@@ -40,6 +40,25 @@ func mikrotikConfigure(d *schema.ResourceData) (c interface{}, err error) {
 	address := d.Get("host").(string)
 	username := d.Get("username").(string)
 	password := d.Get("password").(string)
+	c = mikrotikConn{
+		host:     address,
+		username: username,
+		password: password,
+	}
+	return
+}
+
+type mikrotikConn struct {
+	host     string
+	username string
+	password string
+}
+
+func getMikrotikClient(m interface{}) (c *routeros.Client, err error) {
+	conn := m.(mikrotikConn)
+	address := conn.host
+	username := conn.username
+	password := conn.password
 	c, err = routeros.Dial(address, username, password)
 	return
 }

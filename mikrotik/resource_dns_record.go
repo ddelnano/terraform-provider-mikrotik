@@ -46,7 +46,13 @@ func resourceServerCreate(d *schema.ResourceData, m interface{}) error {
 	name := d.Get("name").(string)
 	ttl := d.Get("ttl").(int)
 
-	c := m.(*routeros.Client)
+	conn := m.(mikrotikConn)
+	c, err := getMikrotikClient(conn)
+
+	if err != nil {
+		return err
+	}
+
 	// TODO: Provide some basic validation here
 	r, err := c.RunArgs(strings.Split(fmt.Sprintf("/ip/dns/static/add =name=%s =address=%s =ttl=%d", name, address, ttl), " "))
 	if err != nil {
@@ -75,7 +81,12 @@ func resourceServerCreate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceServerRead(d *schema.ResourceData, m interface{}) error {
-	c := m.(*routeros.Client)
+	conn := m.(mikrotikConn)
+	c, err := getMikrotikClient(conn)
+
+	if err != nil {
+		return err
+	}
 	record, err := findDnsRecord(c, d.Id())
 
 	// TODO: Ignoring this error can cause all resources to think they
@@ -92,8 +103,12 @@ func resourceServerRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceServerUpdate(d *schema.ResourceData, m interface{}) error {
-	// return resourceServerRead(d, m)
-	c := m.(*routeros.Client)
+	conn := m.(mikrotikConn)
+	c, err := getMikrotikClient(conn)
+
+	if err != nil {
+		return err
+	}
 	address := d.Get("address").(string)
 	ttl := d.Get("ttl").(int)
 	name := d.Id()
@@ -133,7 +148,12 @@ func resourceServerUpdate(d *schema.ResourceData, m interface{}) error {
 func resourceServerDelete(d *schema.ResourceData, m interface{}) error {
 	name := d.Id()
 
-	c := m.(*routeros.Client)
+	conn := m.(mikrotikConn)
+	c, err := getMikrotikClient(conn)
+
+	if err != nil {
+		return err
+	}
 	record, err := findDnsRecord(c, name)
 
 	if err != nil {
@@ -218,7 +238,13 @@ func findDnsRecord(c *routeros.Client, name string) (*dnsRecord, error) {
 // RecordImport - import record from existing mikrotik api. ID is specified by the address (google.com)
 func RecordImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	name := d.Id()
-	c := m.(*routeros.Client)
+	conn := m.(mikrotikConn)
+	c, err := getMikrotikClient(conn)
+
+	if err != nil {
+		return nil, err
+	}
+
 	record, err := findDnsRecord(c, name)
 
 	if err != nil {
