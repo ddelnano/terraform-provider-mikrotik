@@ -21,6 +21,5 @@ resource "mikrotik_dns_record" "www" {
 ```
 
 ## Todo
-- [ ] Add Travis test suite
 - [ ] Add more rigorious Terraform tests
 - [ ] Resource reading needs to be more robust so the terraform plan does not think it needs to recreate everything when really the state is fine.
