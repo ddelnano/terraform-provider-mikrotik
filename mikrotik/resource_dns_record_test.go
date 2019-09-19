@@ -15,41 +15,41 @@ var originalDnsName string = "terraform"
 var originalAddress string = "10.255.255.1"
 var updatedAddress string = "10.0.0.1"
 
-func TestAccXenorchestraCloudConfig_create(t *testing.T) {
+func TestAccXenorchestraDnsRecord_create(t *testing.T) {
 	resourceName := "mikrotik_dns_record.bar"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckXenorchestraCloudConfigDestroy,
+		CheckDestroy: testAccCheckXenorchestraDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCloudConfigConfig(),
+				Config: testAccDnsRecord(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCloudConfigExists(resourceName),
+					testAccDnsRecordExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id")),
 			},
 		},
 	})
 }
 
-func TestAccXenorchestraCloudConfig_updateAddress(t *testing.T) {
+func TestAccXenorchestraDnsRecord_updateAddress(t *testing.T) {
 	resourceName := "mikrotik_dns_record.bar"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckXenorchestraCloudConfigDestroy,
+		CheckDestroy: testAccCheckXenorchestraDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCloudConfigConfig(),
+				Config: testAccDnsRecord(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCloudConfigExists(resourceName),
+					testAccDnsRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "address", originalAddress),
 				),
 			},
 			{
-				Config: testAccCloudConfigConfigUpdatedAddress(),
+				Config: testAccDnsRecordUpdatedAddress(),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCloudConfigExists(resourceName),
+					testAccDnsRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "address", updatedAddress)),
 			},
 		},
@@ -58,7 +58,7 @@ func TestAccXenorchestraCloudConfig_updateAddress(t *testing.T) {
 
 // TODO: Add a test for importing the resource
 
-func testAccCloudConfigConfig() string {
+func testAccDnsRecord() string {
 	return fmt.Sprintf(`
 resource "mikrotik_dns_record" "bar" {
     name = "%s"
@@ -68,7 +68,7 @@ resource "mikrotik_dns_record" "bar" {
 `, originalDnsName, originalAddress)
 }
 
-func testAccCloudConfigConfigUpdatedAddress() string {
+func testAccDnsRecordUpdatedAddress() string {
 	return fmt.Sprintf(`
 resource "mikrotik_dns_record" "bar" {
     name = "%s"
@@ -78,7 +78,7 @@ resource "mikrotik_dns_record" "bar" {
 `, originalDnsName, updatedAddress)
 }
 
-func testAccCloudConfigExists(resourceName string) resource.TestCheckFunc {
+func testAccDnsRecordExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -86,7 +86,7 @@ func testAccCloudConfigExists(resourceName string) resource.TestCheckFunc {
 		}
 
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("No CloudConfig Id is set")
+			return fmt.Errorf("mikrotik_dns_record does not exist in the statefile")
 		}
 
 		c := client.NewClient(client.GetConfigFromEnv())
@@ -108,7 +108,7 @@ func testAccCloudConfigExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func testAccCheckXenorchestraCloudConfigDestroyNow(resourceName string) resource.TestCheckFunc {
+func testAccCheckXenorchestraDnsRecordDestroyNow(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -136,7 +136,7 @@ func testAccCheckXenorchestraCloudConfigDestroyNow(resourceName string) resource
 	}
 }
 
-func testAccCheckXenorchestraCloudConfigDestroy(s *terraform.State) error {
+func testAccCheckXenorchestraDnsRecordDestroy(s *terraform.State) error {
 	c := client.NewClient(client.GetConfigFromEnv())
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mikrotik_dns_record" {
