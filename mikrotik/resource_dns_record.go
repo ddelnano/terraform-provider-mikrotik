@@ -1,15 +1,9 @@
 package mikrotik
 
 import (
-	"errors"
 	"fmt"
-	"math"
-	"strconv"
-	"strings"
-	"time"
 
-	"github.com/go-routeros/routeros"
-	"github.com/go-routeros/routeros/proto"
+	"github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -46,15 +40,9 @@ func resourceServerCreate(d *schema.ResourceData, m interface{}) error {
 	name := d.Get("name").(string)
 	ttl := d.Get("ttl").(int)
 
-	conn := m.(mikrotikConn)
-	c, err := getMikrotikClient(conn)
+	c := m.(client.Mikrotik)
 
-	if err != nil {
-		return err
-	}
-
-	// TODO: Provide some basic validation here
-	r, err := c.RunArgs(strings.Split(fmt.Sprintf("/ip/dns/static/add =name=%s =address=%s =ttl=%d", name, address, ttl), " "))
+	r, err := c.AddDnsRecord(name, address, ttl)
 	if err != nil {
 		return err
 	}
@@ -70,24 +58,20 @@ func resourceServerCreate(d *schema.ResourceData, m interface{}) error {
 		}
 	}
 
-	record := &dnsRecord{
-		id:      id,
-		address: address,
-		name:    name,
-		ttl:     ttl,
+	record := &client.DnsRecord{
+		Id:      id,
+		Address: address,
+		Name:    name,
+		Ttl:     ttl,
 	}
 	recordToData(record, d)
 	return nil
 }
 
 func resourceServerRead(d *schema.ResourceData, m interface{}) error {
-	conn := m.(mikrotikConn)
-	c, err := getMikrotikClient(conn)
+	c := m.(client.Mikrotik)
 
-	if err != nil {
-		return err
-	}
-	record, err := findDnsRecord(c, d.Id())
+	record, err := c.FindDnsRecord(d.Id())
 
 	// TODO: Ignoring this error can cause all resources to think they
 	// need to be created. We should more appropriately handle this. The
@@ -103,28 +87,28 @@ func resourceServerRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceServerUpdate(d *schema.ResourceData, m interface{}) error {
-	conn := m.(mikrotikConn)
-	c, err := getMikrotikClient(conn)
+	c := m.(client.Mikrotik)
 
-	if err != nil {
-		return err
-	}
 	address := d.Get("address").(string)
 	ttl := d.Get("ttl").(int)
 	name := d.Id()
 
-	record, err := findDnsRecord(c, name)
+	record, err := c.FindDnsRecord(name)
 
 	if err != nil {
 		return err
 	}
 
-	_, err = c.RunArgs(strings.Split(fmt.Sprintf("/ip/dns/static/set =numbers=%s =name=%s =address=%s =ttl=%d", record.id, name, address, ttl), " "))
+	fmt.Printf("[DEBUG] About to update dns record with %v", record)
+	err = c.UpdateDnsRecord(record.Id, name, address, ttl)
 
 	if err != nil {
 		return err
 	}
 
+	// TODO: the c.UpdateDnsRecord call should return a
+	// new DnsRecord instead of mutating the current one.
+	record.Address = address
 	recordToData(record, d)
 	return nil
 }
@@ -148,18 +132,14 @@ func resourceServerUpdate(d *schema.ResourceData, m interface{}) error {
 func resourceServerDelete(d *schema.ResourceData, m interface{}) error {
 	name := d.Id()
 
-	conn := m.(mikrotikConn)
-	c, err := getMikrotikClient(conn)
+	c := m.(client.Mikrotik)
+
+	record, err := c.FindDnsRecord(name)
 
 	if err != nil {
 		return err
 	}
-	record, err := findDnsRecord(c, name)
-
-	if err != nil {
-		return err
-	}
-	_, err = c.RunArgs(strings.Split(fmt.Sprintf("/ip/dns/static/remove =numbers=%s", record.id), " "))
+	err = c.DeleteDnsRecord(record.Id)
 
 	if err != nil {
 		return err
@@ -168,122 +148,24 @@ func resourceServerDelete(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-func recordToData(record *dnsRecord, d *schema.ResourceData) error {
-	d.SetId(record.name)
-	d.Set("numerical_id", record.id)
-	d.Set("name", record.name)
-	d.Set("address", record.address)
-	d.Set("ttl", record.ttl)
+func recordToData(record *client.DnsRecord, d *schema.ResourceData) error {
+	d.SetId(record.Name)
+	d.Set("numerical_id", record.Id)
+	d.Set("name", record.Name)
+	d.Set("address", record.Address)
+	d.Set("ttl", record.Ttl)
 	return nil
 }
 
-type dnsRecord struct {
-	// .id field that mikrotik uses as the 'real' ID
-	id      string
-	name    string
-	ttl     int
-	address string
-}
-
-// TODO: Why does /print seem to return ID's as hex but /add seems to always return the ID as a decimal number
-func findDnsRecord(c *routeros.Client, name string) (*dnsRecord, error) {
-	r, err := c.Run("/ip/dns/static/print")
-	found := false
-	var sentence *proto.Sentence
-
-	if err != nil {
-		return nil, err
-	}
-
-	fmt.Println(r)
-	for _, reply := range r.Re {
-		for _, item := range reply.List {
-			if item.Value == name {
-				found = true
-				sentence = reply
-			}
-		}
-	}
-
-	if !found {
-		return nil, errors.New("Resource was not found")
-	}
-
-	// TODO: Add error checking
-
-	address := ""
-	ttl := ""
-	id := ""
-	for _, pair := range sentence.List {
-		if pair.Key == ".id" {
-			id = pair.Value
-		}
-		if pair.Key == "address" {
-			address = pair.Value
-		}
-
-		if pair.Key == "ttl" {
-			ttl = pair.Value
-		}
-	}
-
-	return &dnsRecord{
-		id:      id,
-		address: address,
-		name:    name,
-		ttl:     ttlToSeconds(ttl),
-	}, nil
-}
-
-// RecordImport - import record from existing mikrotik api. ID is specified by the address (google.com)
 func RecordImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
 	name := d.Id()
-	conn := m.(mikrotikConn)
-	c, err := getMikrotikClient(conn)
+	c := m.(client.Mikrotik)
 
-	if err != nil {
-		return nil, err
-	}
-
-	record, err := findDnsRecord(c, name)
+	record, err := c.FindDnsRecord(name)
 
 	if err != nil {
 		return nil, err
 	}
 	recordToData(record, d)
 	return []*schema.ResourceData{d}, nil
-}
-
-func ttlToSeconds(ttl string) int {
-	parts := strings.Split(ttl, "d")
-
-	idx := 0
-	days := 0
-	var err error
-	fmt.Println(parts)
-	if len(parts) == 2 {
-		idx = 1
-		days, err = strconv.Atoi(parts[0])
-
-		// We should be parsing an ascii number
-		// if this fails we should fail loudly
-		if err != nil {
-			panic(err)
-		}
-
-		// In the event we just get days parts[1] will be an
-		// empty string. Just coerce that into 0 seconds.
-		if parts[1] == "" {
-			parts[1] = "0s"
-		}
-	}
-	d, err := time.ParseDuration(parts[idx])
-
-	// We should never receive a duration greater than
-	// 23h59m59s. So this should always parse.
-	if err != nil {
-		panic(err)
-	}
-	return 86400*days + int(d)/int(math.Pow10(9))
-
 }

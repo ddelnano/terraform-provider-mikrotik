@@ -19,7 +19,3 @@ resource "mikrotik_dns_record" "www" {
     ttl = 300
 }
 ```
-
-## Todo
-- [ ] Add more rigorious Terraform tests
-- [ ] Resource reading needs to be more robust so the terraform plan does not think it needs to recreate everything when really the state is fine.
