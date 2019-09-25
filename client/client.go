@@ -130,10 +130,6 @@ func (client Mikrotik) DeleteDnsRecord(id string) error {
 	return err
 }
 
-func (client Mikrotik) FindScript(name string) (error, error) {
-	return nil, nil
-}
-
 func ttlToSeconds(ttl string) int {
 	parts := strings.Split(ttl, "d")
 
