@@ -135,16 +135,3 @@ func resourceScriptDelete(d *schema.ResourceData, m interface{}) error {
 	d.SetId("")
 	return nil
 }
-
-func scriptImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
-	name := d.Id()
-	c := m.(client.Mikrotik)
-
-	_, err := c.FindScript(name)
-
-	if err != nil {
-		return nil, err
-	}
-	// scriptToData(script, d)
-	return nil, nil
-}
