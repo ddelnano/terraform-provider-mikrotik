@@ -14,7 +14,7 @@ func resourceRecord() *schema.Resource {
 		Update: resourceServerUpdate,
 		Delete: resourceServerDelete,
 		Importer: &schema.ResourceImporter{
-			State: RecordImport,
+			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -155,17 +155,4 @@ func recordToData(record *client.DnsRecord, d *schema.ResourceData) error {
 	d.Set("address", record.Address)
 	d.Set("ttl", record.Ttl)
 	return nil
-}
-
-func RecordImport(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
-	name := d.Id()
-	c := m.(client.Mikrotik)
-
-	record, err := c.FindDnsRecord(name)
-
-	if err != nil {
-		return nil, err
-	}
-	recordToData(record, d)
-	return []*schema.ResourceData{d}, nil
 }
