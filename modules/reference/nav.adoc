@@ -1,0 +1,4 @@
+* Reference
+** Resources
+*** xref:resource_dns_record[dns_record]
+*** xref:resource_script[script]
