@@ -1,0 +1,34 @@
+= mikrotik_script
+
+Creates a Mikrotik script.
+
+== Example Usage
+
+```hcl
+resource "mikrotik_script" "script" {
+  name = "script-name"
+  owner = "admin"
+  policy = [
+    "ftp",
+    "reboot",
+  ]
+  source = <<EOF
+:put testing
+EOF
+}
+```
+
+== Argument Reference
+** name - (Required) The name of script.
+** owner - (Required) The owner of the script 
+** policy - (Required) What permissions the script has. This must be one of the following: ftp, reboot, read, write, policy, test, password, sniff, sensitive, romon.
+** source - (Required) The source code of the script. See the mikrotik docs for the scripting language (https://wiki.mikrotik.com/wiki/Manual:Scripting)
+** dont_require_permissions - (Optional) If the script requires permissions or not.
+
+== Attributes Reference
+
+== Import Reference
+
+```bash
+terraform import mikrotik_script.script script-name
+```

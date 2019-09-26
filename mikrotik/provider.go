@@ -30,8 +30,8 @@ func Provider() terraform.ResourceProvider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"mikrotik_dns_record": resourceRecord(),
+			"mikrotik_script":     resourceScript(),
 		},
-		// TODO: do i need a configure func?
 		ConfigureFunc: mikrotikConfigure,
 	}
 }
