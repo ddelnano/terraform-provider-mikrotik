@@ -56,7 +56,27 @@ func TestAccXenorchestraDnsRecord_updateAddress(t *testing.T) {
 	})
 }
 
-// TODO: Add a test for importing the resource
+func TestAccXenorchestraDnsRecord_import(t *testing.T) {
+	resourceName := "mikrotik_dns_record.bar"
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckXenorchestraDnsRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDnsRecord(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccDnsRecordExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "id")),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
 
 func testAccDnsRecord() string {
 	return fmt.Sprintf(`
