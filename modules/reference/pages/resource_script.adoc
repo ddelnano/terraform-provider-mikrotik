@@ -26,3 +26,9 @@ EOF
 ** dont_require_permissions - (Optional) If the script requires permissions or not.
 
 == Attributes Reference
+
+== Import Reference
+
+```bash
+terraform import mikrotik_script script script-name
+```

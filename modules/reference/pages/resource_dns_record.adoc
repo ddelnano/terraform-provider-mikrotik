@@ -18,3 +18,9 @@ resource "mikrotik_dns_record" "record" {
 ** ttl - (Optional) The ttl of the DNS record.
 
 == Attributes Reference
+
+== Import Reference
+
+```bash
+terraform import mikrotik_dns_record.record example.domain.com
+```
