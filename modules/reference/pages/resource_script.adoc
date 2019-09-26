@@ -5,7 +5,7 @@ Creates a Mikrotik script.
 == Example Usage
 
 ```hcl
-resource mikrotik_script" "script"
+resource "mikrotik_script" "script"
   name = "script-name"
   owner = "admin"
   policy = [
