@@ -30,5 +30,5 @@ EOF
 == Import Reference
 
 ```bash
-terraform import mikrotik_script script script-name
+terraform import mikrotik_script.script script-name
 ```
