@@ -8,4 +8,4 @@ It currently has support for the following RouterOS concepts:
 
 ## Examples
 
-See the [pages directory](modules/ROOT/pages) for the documentation on each resource.
+See the [pages directory](modules/reference/pages) for the documentation on each resource.
