@@ -15,12 +15,12 @@ var originalDnsName string = "terraform"
 var originalAddress string = "10.255.255.1"
 var updatedAddress string = "10.0.0.1"
 
-func TestAccXenorchestraDnsRecord_create(t *testing.T) {
+func TestAccMikrotikDnsRecord_create(t *testing.T) {
 	resourceName := "mikrotik_dns_record.bar"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckXenorchestraDnsRecordDestroy,
+		CheckDestroy: testAccCheckMikrotikDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDnsRecord(),
@@ -32,12 +32,12 @@ func TestAccXenorchestraDnsRecord_create(t *testing.T) {
 	})
 }
 
-func TestAccXenorchestraDnsRecord_updateAddress(t *testing.T) {
+func TestAccMikrotikDnsRecord_updateAddress(t *testing.T) {
 	resourceName := "mikrotik_dns_record.bar"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckXenorchestraDnsRecordDestroy,
+		CheckDestroy: testAccCheckMikrotikDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDnsRecord(),
@@ -56,12 +56,12 @@ func TestAccXenorchestraDnsRecord_updateAddress(t *testing.T) {
 	})
 }
 
-func TestAccXenorchestraDnsRecord_import(t *testing.T) {
+func TestAccMikrotikDnsRecord_import(t *testing.T) {
 	resourceName := "mikrotik_dns_record.bar"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckXenorchestraDnsRecordDestroy,
+		CheckDestroy: testAccCheckMikrotikDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDnsRecord(),
@@ -128,7 +128,7 @@ func testAccDnsRecordExists(resourceName string) resource.TestCheckFunc {
 	}
 }
 
-func testAccCheckXenorchestraDnsRecordDestroyNow(resourceName string) resource.TestCheckFunc {
+func testAccCheckMikrotikDnsRecordDestroyNow(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -156,7 +156,7 @@ func testAccCheckXenorchestraDnsRecordDestroyNow(resourceName string) resource.T
 	}
 }
 
-func testAccCheckXenorchestraDnsRecordDestroy(s *terraform.State) error {
+func testAccCheckMikrotikDnsRecordDestroy(s *terraform.State) error {
 	c := client.NewClient(client.GetConfigFromEnv())
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mikrotik_dns_record" {
