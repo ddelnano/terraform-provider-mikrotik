@@ -5,8 +5,6 @@ go 1.12
 require (
 	github.com/apparentlymart/go-cidr v1.0.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
-	github.com/ddelnano/terraform-provider-xenorchestra v0.0.0-20190414164814-ed82fff95c19
-	github.com/go-delve/delve v1.3.1 // indirect
 	github.com/go-routeros/routeros v0.0.0-20190719172022-0819accf8221
 	github.com/hashicorp/go-getter v1.1.0 // indirect
 	github.com/hashicorp/go-hclog v0.7.0 // indirect

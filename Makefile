@@ -1,9 +1,15 @@
-.PHONY: import testacc
+.PHONY: import testacc dist
 
 TEST ?= ./...
 
 build:
 	GO111MODULE=on go build -o terraform-provider-mikrotik
+
+clean:
+	rm dist/*
+	terraform-provider-mikrotik
+dist:
+	./scripts/dist.sh
 
 plan: build
 	terraform init
