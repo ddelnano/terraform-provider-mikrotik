@@ -1,8 +1,20 @@
 language: go
-
 go:
 - 1.11.x
 - 1.12.x
-
+env:
+- GO111MODULE=on
 script:
-  - GO111MODULE=on go build
+- GO111MODULE=on go build
+before_deploy:
+- make dist
+deploy:
+  provider: releases
+  api_key:
+    secure: Shadn2CECS/kUCdHDwOz0ukXdYPcz1at9QXnkg3yRHmZJDaAQCkBKLWKSnyfxSBCu/9Snl7FngBjv2JBndhmaGdzwE0m8sPXvL38bUzqhLqod2D4LMxTbrYnsz7yL612hK9AYmkbkiBqkDDmAYJgjVuBc6SFZY6hmiAbnbO0lmeitQ+8vfW6fH9DW28CkU5r+uXaAJPOKfD/1M4QwVeZgX1l1HE35OhvDcqZnDkbEelKz0bjqSCo5IsMu9JbIJoKfDSG8mR8MSBXSPPg4Juyzzzkdq6Qip82KBama+K/sfYvT7BtYZ0kRIcdZUcOUJ6H31n8Ytk6pN08twuHg5g4qiWcn57QGKG7Hyo0H3mk0It+hqQvv/y93E7yhK1ahxHns3BhFvDPrsFhgkD+uXpVYGEMsjgzx0DhBKw8afWjzJkBHCVS+NavggUQ+Yw/VRPFILiuyGhkvFJzJKy9VRVGoYvTgWGqa4gufG+tB7nA5lE8yAPwiR6dcyQOL3B8XQaGkKegrhyS2skQ7eFtwnl8QUdORMMIlD2T5Cy4COVWdS5SIcw65y418vpHBoD3+BMqDGlku/kcWZTTGpZB1zz/n2i/Jv5nfz0R1SQ0T4yVTfa7o3CSZFCvwqiQjg48+pFfAR/l74tjMOPffNbiKmpD/syzNBmMYfemzgv7wKu4L7M=
+  file: dist/terraform-provider-mikrotik*
+  file_glob: true
+  skip_cleanup: true
+  on:
+    repo: ddelnano/terraform-provider-mikrotik
+    tags: true
