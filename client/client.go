@@ -38,6 +38,9 @@ func GetConfigFromEnv() (host, username, password string) {
 	host = os.Getenv("MIKROTIK_HOST")
 	username = os.Getenv("MIKROTIK_USER")
 	password = os.Getenv("MIKROTIK_PASSWORD")
+	if host == "" || username == "" || password == "" {
+		panic("Unable to find the MIKROTIK_HOST, MIKROTIK_USER or MIKROTIK_PASSWORD environment variable")
+	}
 	return host, username, password
 }
 
