@@ -30,6 +30,7 @@ func Provider() terraform.ResourceProvider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"mikrotik_dns_record": resourceRecord(),
+			"mikrotik_dhcp_lease": resourceLease(),
 			"mikrotik_script":     resourceScript(),
 		},
 		ConfigureFunc: mikrotikConfigure,
