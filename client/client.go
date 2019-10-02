@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"os"
 	"strconv"
@@ -56,7 +57,7 @@ func (client Mikrotik) getMikrotikClient() (c *routeros.Client, err error) {
 func (client Mikrotik) AddDnsRecord(name, address string, ttl int) (*routeros.Reply, error) {
 	c, err := client.getMikrotikClient()
 	cmd := strings.Split(fmt.Sprintf("/ip/dns/static/add =name=%s =address=%s =ttl=%d", name, address, ttl), " ")
-	fmt.Println(fmt.Sprintf("[INFO] Running the mikrotik command: `%s`", cmd))
+	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 	return r, err
 }
@@ -64,7 +65,7 @@ func (client Mikrotik) AddDnsRecord(name, address string, ttl int) (*routeros.Re
 func (client Mikrotik) FindDnsRecord(name string) (*DnsRecord, error) {
 	c, err := client.getMikrotikClient()
 	cmd := "/ip/dns/static/print"
-	fmt.Println(fmt.Sprintf("[INFO] Running the mikrotik command: `%s`", cmd))
+	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.Run(cmd)
 	found := false
 	var sentence *proto.Sentence
@@ -78,7 +79,7 @@ func (client Mikrotik) FindDnsRecord(name string) (*DnsRecord, error) {
 			if item.Value == name {
 				found = true
 				sentence = reply
-				fmt.Println(fmt.Sprintf("[DEBUG] Found dns record we were looking for: %v", sentence))
+				log.Printf("[DEBUG] Found dns record we were looking for: %v", sentence)
 			}
 		}
 	}
@@ -120,7 +121,7 @@ func (client Mikrotik) UpdateDnsRecord(id, name, address string, ttl int) error 
 		return err
 	}
 	cmd := strings.Split(fmt.Sprintf("/ip/dns/static/set =numbers=%s =name=%s =address=%s =ttl=%d", id, name, address, ttl), " ")
-	fmt.Println(fmt.Sprintf("[INFO] Running the mikrotik command: `%s`", cmd))
+	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	_, err = c.RunArgs(cmd)
 	return err
 }
@@ -128,7 +129,7 @@ func (client Mikrotik) UpdateDnsRecord(id, name, address string, ttl int) error 
 func (client Mikrotik) DeleteDnsRecord(id string) error {
 	c, err := client.getMikrotikClient()
 	cmd := strings.Split(fmt.Sprintf("/ip/dns/static/remove =numbers=%s", id), " ")
-	fmt.Println(fmt.Sprintf("[INFO] Running the mikrotik command: `%s`", cmd))
+	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	_, err = c.RunArgs(cmd)
 	return err
 }

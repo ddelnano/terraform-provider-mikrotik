@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -32,9 +33,9 @@ func (client Mikrotik) CreateScript(name, owner, source string, policies []strin
 		policyArg,
 		dontReqPermsArg,
 	}
-	fmt.Println(fmt.Sprintf("[INFO] Running the mikrotik command: `%s`", cmd))
+	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
-	fmt.Println(fmt.Sprintf("[DEBUG] /system/script/add returned %v", r))
+	log.Printf("[DEBUG] /system/script/add returned %v", r)
 
 	if err != nil {
 		return Script{}, err
@@ -69,7 +70,7 @@ func (client Mikrotik) UpdateScript(name, owner, source string, policy []string,
 		policyArg,
 		dontReqPermsArg,
 	}
-	fmt.Println(fmt.Sprintf("[INFO] Running the mikrotik command: `%s`", cmd))
+	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	_, err = c.RunArgs(cmd)
 
 	if err != nil {
@@ -88,9 +89,9 @@ func (client Mikrotik) DeleteScript(name string) error {
 		return err
 	}
 	cmd := strings.Split(fmt.Sprintf("/system/script/remove =numbers=%s", script.Id), " ")
-	fmt.Println(fmt.Sprintf("[INFO] Running the mikrotik command: `%s`", cmd))
+	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
-	fmt.Println(fmt.Sprintf("[DEBUG] Remove script from mikrotik api %v", r))
+	log.Printf("[DEBUG] Remove script from mikrotik api %v", r)
 
 	return err
 }
@@ -98,10 +99,10 @@ func (client Mikrotik) DeleteScript(name string) error {
 func (client Mikrotik) FindScript(name string) (Script, error) {
 	c, err := client.getMikrotikClient()
 	cmd := strings.Split(fmt.Sprintf("/system/script/print ?name=%s", name), " ")
-	fmt.Println(fmt.Sprintf("[INFO] Running the mikrotik command: `%s`", cmd))
+	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 
-	fmt.Printf("[DEBUG] Found script from mikrotik api %v", r)
+	log.Printf("[DEBUG] Found script from mikrotik api %v", r)
 
 	if r.Re == nil {
 		return Script{}, nil
