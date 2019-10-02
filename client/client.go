@@ -40,7 +40,7 @@ func GetConfigFromEnv() (host, username, password string) {
 	username = os.Getenv("MIKROTIK_USER")
 	password = os.Getenv("MIKROTIK_PASSWORD")
 	if host == "" || username == "" || password == "" {
-		panic("Unable to find the MIKROTIK_HOST, MIKROTIK_USER or MIKROTIK_PASSWORD environment variable")
+		// panic("Unable to find the MIKROTIK_HOST, MIKROTIK_USER or MIKROTIK_PASSWORD environment variable")
 	}
 	return host, username, password
 }
@@ -50,6 +50,10 @@ func (client Mikrotik) getMikrotikClient() (c *routeros.Client, err error) {
 	username := client.Username
 	password := client.Password
 	c, err = routeros.Dial(address, username, password)
+
+	if err != nil {
+		log.Printf("[ERROR] Failed to login to routerOS with error: %v", err)
+	}
 
 	return
 }
