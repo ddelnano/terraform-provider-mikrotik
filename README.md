@@ -1,8 +1,8 @@
+# Mikrotik provider for Terraform 
+
 ## Intro
 
-This is an experiemental terraform provider for managing your Mikrotik router.
-
-It currently has support for the following RouterOS concepts:
+This is a terraform provider for managing resources on your RouterOS device. It currently has support for the following RouterOS concepts:
 - DNS records
 - Scripts
 
