@@ -1,7 +1,7 @@
 package mikrotik
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -99,7 +99,7 @@ func resourceServerUpdate(d *schema.ResourceData, m interface{}) error {
 		return err
 	}
 
-	fmt.Printf("[DEBUG] About to update dns record with %v", record)
+	log.Printf("[DEBUG] About to update dns record with %v", record)
 	err = c.UpdateDnsRecord(record.Id, name, address, ttl)
 
 	if err != nil {
