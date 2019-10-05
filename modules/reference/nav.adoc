@@ -1,4 +1,5 @@
 * Reference
 ** Resources
 *** xref:resource_dns_record[dns_record]
+*** xref:resource_dhcp_lease[dhcp_lease]
 *** xref:resource_script[script]

@@ -60,6 +60,10 @@ func (client Mikrotik) getMikrotikClient() (c *routeros.Client, err error) {
 
 func (client Mikrotik) AddDnsRecord(name, address string, ttl int) (*routeros.Reply, error) {
 	c, err := client.getMikrotikClient()
+
+	if err != nil {
+		return nil, err
+	}
 	cmd := strings.Split(fmt.Sprintf("/ip/dns/static/add =name=%s =address=%s =ttl=%d", name, address, ttl), " ")
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
@@ -68,6 +72,10 @@ func (client Mikrotik) AddDnsRecord(name, address string, ttl int) (*routeros.Re
 
 func (client Mikrotik) FindDnsRecord(name string) (*DnsRecord, error) {
 	c, err := client.getMikrotikClient()
+
+	if err != nil {
+		return nil, err
+	}
 	cmd := "/ip/dns/static/print"
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.Run(cmd)
@@ -132,6 +140,10 @@ func (client Mikrotik) UpdateDnsRecord(id, name, address string, ttl int) error 
 
 func (client Mikrotik) DeleteDnsRecord(id string) error {
 	c, err := client.getMikrotikClient()
+
+	if err != nil {
+		return err
+	}
 	cmd := strings.Split(fmt.Sprintf("/ip/dns/static/remove =numbers=%s", id), " ")
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	_, err = c.RunArgs(cmd)
