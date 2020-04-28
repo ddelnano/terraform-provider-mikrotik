@@ -10,6 +10,10 @@ This is a terraform provider for managing resources on your RouterOS device. It 
 
 See the [pages directory](modules/reference/pages) for the documentation on each resource.
 
+## Support
+
+You can discuss any issues you have or feature requests in [Discord](https://discord.gg/ZpNq8ez).
+
 ## Contributing
 
 ### Dependencies
