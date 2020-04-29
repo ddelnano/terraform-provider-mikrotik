@@ -34,6 +34,51 @@ func (client Mikrotik) AddDhcpLease(address, macaddress, name string) (*DhcpLeas
 	return client.FindDhcpLease(id)
 }
 
+func (client Mikrotik) ListDhcpLeases() ([]DhcpLease, error) {
+	c, err := client.getMikrotikClient()
+
+	if err != nil {
+		return nil, err
+	}
+	cmd := []string{"/ip/dhcp-server/lease/print"}
+	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
+	r, err := c.RunArgs(cmd)
+
+	if err != nil {
+		return nil, err
+	}
+
+	leases := []DhcpLease{}
+	for _, reply := range r.Re {
+		id := ""
+		address := ""
+		macaddress := ""
+		comment := ""
+		for _, item := range reply.List {
+			if item.Key == ".id" {
+				id = item.Value
+			}
+			if item.Key == "address" {
+				address = item.Value
+			}
+			if item.Key == "mac-address" {
+				macaddress = item.Value
+			}
+			if item.Key == "comment" {
+				comment = item.Value
+			}
+		}
+		lease := DhcpLease{
+			Id:         id,
+			Address:    address,
+			MacAddress: macaddress,
+			Comment:    comment,
+		}
+		leases = append(leases, lease)
+	}
+	return leases, nil
+}
+
 func (client Mikrotik) FindDhcpLease(id string) (*DhcpLease, error) {
 	c, err := client.getMikrotikClient()
 
