@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-
 var originalIpAddress string = "1.1.1.1"
 var originalMacAddress string = "11:11:11:11:11:11"
 var updatedIpAddress string = "2.2.2.2"
@@ -29,6 +28,7 @@ func TestAccMikrotikDhcpLease_create(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "address", originalIpAddress),
 					resource.TestCheckResourceAttr(resourceName, "macaddress", originalMacAddress),
+					resource.TestCheckResourceAttr(resourceName, "dynamic", "false"),
 				),
 			},
 		},
