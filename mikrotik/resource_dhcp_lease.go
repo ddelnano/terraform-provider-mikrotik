@@ -28,6 +28,15 @@ func resourceLease() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"hostname": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"dynamic": &schema.Schema{
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -73,8 +82,9 @@ func resourceLeaseUpdate(d *schema.ResourceData, m interface{}) error {
 	macaddress := d.Get("macaddress").(string)
 	address := d.Get("address").(string)
 	comment := d.Get("comment").(string)
+	dynamic := d.Get("dynamic").(bool)
 
-	lease, err := c.UpdateDhcpLease(d.Id(), address, macaddress, comment)
+	lease, err := c.UpdateDhcpLease(d.Id(), address, macaddress, comment, dynamic)
 
 	if err != nil {
 		return err
@@ -102,5 +112,7 @@ func leaseToData(lease *client.DhcpLease, d *schema.ResourceData) error {
 	d.Set("comment", lease.Comment)
 	d.Set("address", lease.Address)
 	d.Set("macaddress", lease.MacAddress)
+	d.Set("hostname", lease.Hostname)
+	d.Set("dynamic", lease.Dynamic)
 	return nil
 }

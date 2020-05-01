@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/go-routeros/routeros/proto"
@@ -13,6 +14,8 @@ type DhcpLease struct {
 	Address    string
 	MacAddress string
 	Comment    string
+	Hostname   string
+	Dynamic    bool
 }
 
 func (client Mikrotik) AddDhcpLease(address, macaddress, name string) (*DhcpLease, error) {
@@ -32,6 +35,57 @@ func (client Mikrotik) AddDhcpLease(address, macaddress, name string) (*DhcpLeas
 	id := r.Done.Map["ret"]
 
 	return client.FindDhcpLease(id)
+}
+
+func (client Mikrotik) ListDhcpLeases() ([]DhcpLease, error) {
+	c, err := client.getMikrotikClient()
+
+	if err != nil {
+		return nil, err
+	}
+	cmd := []string{"/ip/dhcp-server/lease/print"}
+	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
+	r, err := c.RunArgs(cmd)
+
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("[DEBUG] Found dhcp leases: %v", r)
+
+	leases := []DhcpLease{}
+	for _, reply := range r.Re {
+		id := ""
+		address := ""
+		macaddress := ""
+		comment := ""
+		hostname := ""
+		for _, item := range reply.List {
+			if item.Key == ".id" {
+				id = item.Value
+			}
+			if item.Key == "address" {
+				address = item.Value
+			}
+			if item.Key == "mac-address" {
+				macaddress = item.Value
+			}
+			if item.Key == "comment" {
+				comment = item.Value
+			}
+			if item.Key == "host-name" {
+				hostname = item.Value
+			}
+		}
+		lease := DhcpLease{
+			Id:         id,
+			Address:    address,
+			MacAddress: macaddress,
+			Comment:    comment,
+			Hostname:   hostname,
+		}
+		leases = append(leases, lease)
+	}
+	return leases, nil
 }
 
 func (client Mikrotik) FindDhcpLease(id string) (*DhcpLease, error) {
@@ -67,6 +121,8 @@ func (client Mikrotik) FindDhcpLease(id string) (*DhcpLease, error) {
 	address := ""
 	macaddress := ""
 	comment := ""
+	hostname := ""
+	dynamic := false
 	for _, pair := range sentence.List {
 		if pair.Key == "address" {
 			address = pair.Value
@@ -77,6 +133,12 @@ func (client Mikrotik) FindDhcpLease(id string) (*DhcpLease, error) {
 		if pair.Key == "comment" {
 			comment = pair.Value
 		}
+		if pair.Key == "host-name" {
+			hostname = pair.Value
+		}
+		if pair.Key == "dynamic" {
+			dynamic, _ = strconv.ParseBool(pair.Value)
+		}
 	}
 
 	return &DhcpLease{
@@ -84,10 +146,12 @@ func (client Mikrotik) FindDhcpLease(id string) (*DhcpLease, error) {
 		MacAddress: macaddress,
 		Address:    address,
 		Comment:    comment,
+		Hostname:   hostname,
+		Dynamic:    dynamic,
 	}, nil
 }
 
-func (client Mikrotik) UpdateDhcpLease(id, address, macaddress, comment string) (*DhcpLease, error) {
+func (client Mikrotik) UpdateDhcpLease(id, address, macaddress, comment string, dynamic bool) (*DhcpLease, error) {
 	c, err := client.getMikrotikClient()
 
 	if err != nil {

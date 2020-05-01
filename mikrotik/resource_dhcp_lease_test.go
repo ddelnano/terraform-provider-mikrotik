@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-
 var originalIpAddress string = "1.1.1.1"
 var originalMacAddress string = "11:11:11:11:11:11"
 var updatedIpAddress string = "2.2.2.2"
@@ -29,6 +28,7 @@ func TestAccMikrotikDhcpLease_create(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "address", originalIpAddress),
 					resource.TestCheckResourceAttr(resourceName, "macaddress", originalMacAddress),
+					resource.TestCheckResourceAttr(resourceName, "dynamic", "false"),
 				),
 			},
 		},
@@ -92,12 +92,41 @@ func TestAccMikrotikDhcpLease_import(t *testing.T) {
 	})
 }
 
+func TestAccMikrotikDhcpLease_createDynamicDiff(t *testing.T) {
+	resourceName := "mikrotik_dhcp_lease.bar"
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMikrotikDhcpLeaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDhcpLeaseDynamic(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccDhcpLeaseExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "id")),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testAccDhcpLease() string {
 	return fmt.Sprintf(`
 resource "mikrotik_dhcp_lease" "bar" {
     comment = "bar"
     address = "%s"
     macaddress = "%s"
+}
+`, originalIpAddress, originalMacAddress)
+}
+
+func testAccDhcpLeaseDynamic() string {
+	return fmt.Sprintf(`
+resource "mikrotik_dhcp_lease" "bar" {
+    comment = "bar"
+    address = "%s"
+    macaddress = "%s"
+    dynamic = true
 }
 `, originalIpAddress, originalMacAddress)
 }
