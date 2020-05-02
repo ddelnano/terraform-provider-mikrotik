@@ -39,6 +39,23 @@ func Unmarshal(reply routeros.Reply, v interface{}) error {
 
 	switch elem.Kind() {
 	case reflect.Slice:
+		l := len(reply.Re)
+		if l <= 1 {
+			panic(fmt.Sprintf("Cannot Unmarshal %d sentence(s) into a slice", l))
+		}
+
+		t := elem.Type()
+		d := reflect.MakeSlice(t, l, l)
+
+		for i := 0; i < l; i++ {
+			item := d.Index(i)
+			sentence := reply.Re[i]
+			fmt.Println(item, sentence)
+
+			parseStruct(&item, *sentence)
+		}
+		elem.Set(d)
+
 	case reflect.Struct:
 		if len(reply.Re) < 1 {
 			// This is an empty message
@@ -49,29 +66,34 @@ func Unmarshal(reply routeros.Reply, v interface{}) error {
 			return errors.New(msg)
 		}
 
-		for i := 0; i < elem.NumField(); i++ {
-			field := elem.Field(i)
-			fieldType := elem.Type().Field(i)
-			tag := fieldType.Tag.Get("mikrotik")
+		parseStruct(&elem, *reply.Re[0])
 
-			path := strings.ToLower(fieldType.Name)
-
-			for _, pair := range reply.Re[0].List {
-				if strings.Compare(pair.Key, path) == 0 || strings.Compare(pair.Key, tag) == 0 {
-					switch fieldType.Type.Kind() {
-					case reflect.String:
-						field.SetString(pair.Value)
-					case reflect.Bool:
-						b, _ := strconv.ParseBool(pair.Value)
-						field.SetBool(b)
-					}
-
-				}
-			}
-		}
 	}
 
 	return nil
+}
+func parseStruct(v *reflect.Value, sentence proto.Sentence) {
+	elem := *v
+	for i := 0; i < elem.NumField(); i++ {
+		field := elem.Field(i)
+		fieldType := elem.Type().Field(i)
+		tag := fieldType.Tag.Get("mikrotik")
+
+		path := strings.ToLower(fieldType.Name)
+
+		for _, pair := range sentence.List {
+			if strings.Compare(pair.Key, path) == 0 || strings.Compare(pair.Key, tag) == 0 {
+				switch fieldType.Type.Kind() {
+				case reflect.String:
+					field.SetString(pair.Value)
+				case reflect.Bool:
+					b, _ := strconv.ParseBool(pair.Value)
+					field.SetBool(b)
+				}
+
+			}
+		}
+	}
 }
 
 func NewClient(host, username, password string) Mikrotik {

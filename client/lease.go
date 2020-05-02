@@ -52,38 +52,13 @@ func (client Mikrotik) ListDhcpLeases() ([]DhcpLease, error) {
 	log.Printf("[DEBUG] Found dhcp leases: %v", r)
 
 	leases := []DhcpLease{}
-	for _, reply := range r.Re {
-		id := ""
-		address := ""
-		macaddress := ""
-		comment := ""
-		hostname := ""
-		for _, item := range reply.List {
-			if item.Key == ".id" {
-				id = item.Value
-			}
-			if item.Key == "address" {
-				address = item.Value
-			}
-			if item.Key == "mac-address" {
-				macaddress = item.Value
-			}
-			if item.Key == "comment" {
-				comment = item.Value
-			}
-			if item.Key == "host-name" {
-				hostname = item.Value
-			}
-		}
-		lease := DhcpLease{
-			Id:         id,
-			Address:    address,
-			MacAddress: macaddress,
-			Comment:    comment,
-			Hostname:   hostname,
-		}
-		leases = append(leases, lease)
+
+	err = Unmarshal(*r, &leases)
+
+	if err != nil {
+		return nil, err
 	}
+
 	return leases, nil
 }
 
