@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -29,35 +30,40 @@ type DnsRecord struct {
 }
 
 func Unmarshal(reply routeros.Reply, v interface{}) error {
-	rv := reflect.TypeOf(v)
+	rv := reflect.ValueOf(v)
+	elem := rv.Elem()
 
 	if rv.Kind() != reflect.Ptr {
 		panic("Unmarshal cannot work without a pointer")
 	}
 
-	elem := rv.Elem()
-
 	switch elem.Kind() {
 	case reflect.Slice:
 	case reflect.Struct:
-		if len(reply.Re) != 1 {
-			panic("Error decoding slice into struct")
+		if len(reply.Re) < 1 {
+			// This is an empty message
+			return nil
+		}
+		if len(reply.Re) > 1 {
+			msg := fmt.Sprintf("Failed to decode reply: %v", reply)
+			return errors.New(msg)
 		}
 
 		for i := 0; i < elem.NumField(); i++ {
 			field := elem.Field(i)
-			tags := field.Tag
-			tag := field.Tag.Get("mikrotik")
-			fmt.Printf("%d. %v (%v), tag: '%v' '%v' \n", i+1, field.Name, field.Type.Name(), tag, tags)
+			fieldType := elem.Type().Field(i)
+			tag := fieldType.Tag.Get("mikrotik")
 
-			path := strings.ToLower(field.Name)
+			path := strings.ToLower(fieldType.Name)
 
 			for _, pair := range reply.Re[0].List {
-				if strings.Compare(pair.Key, path) == 0 {
-					fmt.Printf("Found %s and %s for kind %v\n\n", pair.Key, pair.Value, field.Type.Kind())
-					switch field.Type.Kind() {
+				if strings.Compare(pair.Key, path) == 0 || strings.Compare(pair.Key, tag) == 0 {
+					switch fieldType.Type.Kind() {
 					case reflect.String:
-						fmt.Println("The type of the value", reflect.ValueOf(field), reflect.TypeOf(field))
+						field.SetString(pair.Value)
+					case reflect.Bool:
+						b, _ := strconv.ParseBool(pair.Value)
+						field.SetBool(b)
 					}
 
 				}

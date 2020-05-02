@@ -10,9 +10,9 @@ import (
 type Script struct {
 	Id                     string
 	Name                   string
-	Owner                  string `mikrotik:-`
+	Owner                  string
 	Policy                 []string
-	DontRequirePermissions bool
+	DontRequirePermissions bool `mikrotik:"dont-require-permissions"`
 	Source                 string
 }
 
@@ -103,14 +103,25 @@ func (client Mikrotik) FindScript(name string) (Script, error) {
 	r, err := c.RunArgs(cmd)
 
 	log.Printf("[DEBUG] Found script from mikrotik api %v", r)
+	script := Script{}
+	err = Unmarshal(*r, &script)
 
+	if err != nil {
+		return script, err
+	}
+
+	// script := Script{}
+	// err = Unmarshal(*r, &script)
+
+	// if err != nil {
+	// 	return script, err
+	// }
 	if r.Re == nil {
 		return Script{}, nil
 	}
 	if len(r.Re) > 1 && len(r.Re[0].List) > 1 {
-		return Script{}, fmt.Errorf("Found more than one result for script with name %s", name)
+		return script, fmt.Errorf("Found more than one result for script with name %s", name)
 	}
-	script := Script{}
 	for _, pair := range r.Re[0].List {
 		if pair.Key == ".id" {
 			script.Id = pair.Value

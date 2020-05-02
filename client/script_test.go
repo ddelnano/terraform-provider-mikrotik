@@ -46,6 +46,7 @@ func TestCreateScriptAndDeleteScript(t *testing.T) {
 
 	expectedScript.Id = script.Id
 
+	defer c.DeleteScript(scriptName)
 	if !reflect.DeepEqual(script, expectedScript) {
 		t.Errorf("The script does not match what we expected. actual: %v expected: %v", script, expectedScript)
 	}
