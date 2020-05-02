@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -25,6 +26,46 @@ type DnsRecord struct {
 	Name    string
 	Ttl     int
 	Address string
+}
+
+func Unmarshal(reply routeros.Reply, v interface{}) error {
+	rv := reflect.TypeOf(v)
+
+	if rv.Kind() != reflect.Ptr {
+		panic("Unmarshal cannot work without a pointer")
+	}
+
+	elem := rv.Elem()
+
+	switch elem.Kind() {
+	case reflect.Slice:
+	case reflect.Struct:
+		if len(reply.Re) != 1 {
+			panic("Error decoding slice into struct")
+		}
+
+		for i := 0; i < elem.NumField(); i++ {
+			field := elem.Field(i)
+			tags := field.Tag
+			tag := field.Tag.Get("mikrotik")
+			fmt.Printf("%d. %v (%v), tag: '%v' '%v' \n", i+1, field.Name, field.Type.Name(), tag, tags)
+
+			path := strings.ToLower(field.Name)
+
+			for _, pair := range reply.Re[0].List {
+				if strings.Compare(pair.Key, path) == 0 {
+					fmt.Printf("Found %s and %s for kind %v\n\n", pair.Key, pair.Value, field.Type.Kind())
+					switch field.Type.Kind() {
+					case reflect.String:
+						fmt.Println("The type of the value", reflect.ValueOf(field), reflect.TypeOf(field))
+					}
+
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 func NewClient(host, username, password string) Mikrotik {

@@ -10,7 +10,7 @@ import (
 type Script struct {
 	Id                     string
 	Name                   string
-	Owner                  string
+	Owner                  string `mikrotik:-`
 	Policy                 []string
 	DontRequirePermissions bool
 	Source                 string

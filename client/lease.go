@@ -94,7 +94,7 @@ func (client Mikrotik) FindDhcpLease(id string) (*DhcpLease, error) {
 	if err != nil {
 		return nil, err
 	}
-	cmd := strings.Split(fmt.Sprintf("/ip/dhcp-server/lease/print ?.id=%s", id), " ")
+	cmd := strings.Split(fmt.Sprintf("/ip/dhcp-server/lease/print .id=%s", id), " ")
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 	found := false
