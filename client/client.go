@@ -4,10 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-routeros/routeros"
 	"github.com/go-routeros/routeros/proto"
@@ -40,7 +42,6 @@ func Unmarshal(reply routeros.Reply, v interface{}) error {
 		for i := 0; i < l; i++ {
 			item := d.Index(i)
 			sentence := reply.Re[i]
-			fmt.Println(item, sentence)
 
 			parseStruct(&item, *sentence)
 		}
@@ -57,7 +58,6 @@ func Unmarshal(reply routeros.Reply, v interface{}) error {
 		}
 
 		parseStruct(&elem, *reply.Re[0])
-
 	}
 
 	return nil
@@ -89,6 +89,39 @@ func parseStruct(v *reflect.Value, sentence proto.Sentence) {
 			}
 		}
 	}
+}
+
+func ttlToSeconds(ttl string) int {
+	parts := strings.Split(ttl, "d")
+
+	idx := 0
+	days := 0
+	var err error
+	if len(parts) == 2 {
+		idx = 1
+		days, err = strconv.Atoi(parts[0])
+
+		// We should be parsing an ascii number
+		// if this fails we should fail loudly
+		if err != nil {
+			panic(err)
+		}
+
+		// In the event we just get days parts[1] will be an
+		// empty string. Just coerce that into 0 seconds.
+		if parts[1] == "" {
+			parts[1] = "0s"
+		}
+	}
+	d, err := time.ParseDuration(parts[idx])
+
+	// We should never receive a duration greater than
+	// 23h59m59s. So this should always parse.
+	if err != nil {
+		panic(err)
+	}
+	return 86400*days + int(d)/int(math.Pow10(9))
+
 }
 
 func contains(s []string, e string) bool {

@@ -59,18 +59,3 @@ func TestAddLeaseAndDeleteLease(t *testing.T) {
 		t.Errorf("Error deleting lease with: %v", err)
 	}
 }
-
-// func TestFindScriptOnNonExistantScript(t *testing.T) {
-// 	c := NewClient(GetConfigFromEnv())
-
-// 	name := "script-not-found"
-// 	script, err := c.FindScript(name)
-
-// 	if err != nil {
-// 		t.Errorf("Failed to find script `%s` with error: %v", name, err)
-// 	}
-
-// 	if script.Name != "" {
-// 		t.Errorf("Script should have a blank name")
-// 	}
-// }

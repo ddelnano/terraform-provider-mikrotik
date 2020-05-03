@@ -73,34 +73,3 @@ func TestFindScriptOnNonExistantScript(t *testing.T) {
 		t.Errorf("Script should have a blank name")
 	}
 }
-
-// func TestScriptUnmarshal(t *testing.T) {
-// 	script := Script{}
-// 	policyStr := "ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon"
-// 	reply := routeros.Reply{
-// 		Re: []*proto.Sentence{
-// 			{
-// 				Word: "!re",
-// 				List: []proto.Pair{
-// 					{
-// 						Key:   "policy",
-// 						Value: policyStr,
-// 					},
-// 					{
-// 						Key:   "dont-require-permissions",
-// 						Value: "yes",
-// 					},
-// 				},
-// 			},
-// 		},
-// 	}
-// 	err := Unmarshal(reply, &script)
-
-// 	if err != nil {
-// 		t.Errorf("Failed to unmarshal with error: %v", err)
-// 	}
-
-// 	if script.DontRequirePermissions != true {
-// 		t.Errorf("Failed to unmarshal the dont-require-permissions field to boolean. expected: 'true' received: %v", script.DontRequirePermissions)
-// 	}
-// }
