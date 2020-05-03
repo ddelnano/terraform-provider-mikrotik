@@ -11,6 +11,7 @@ require (
 	github.com/fatih/gomodifytags v1.4.0 // indirect
 	github.com/fatih/motion v1.1.0 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
+	github.com/go-delve/delve v1.4.0 // indirect
 	github.com/go-routeros/routeros v0.0.0-20190719172022-0819accf8221
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect

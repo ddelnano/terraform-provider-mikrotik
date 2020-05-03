@@ -77,7 +77,7 @@ func scriptToData(s client.Script, d *schema.ResourceData) error {
 	d.Set("name", s.Name)
 	d.Set("owner", s.Owner)
 	d.Set("source", s.Source)
-	err := d.Set("policy", s.Policy)
+	err := d.Set("policy", s.Policy())
 	if err != nil {
 		return err
 	}

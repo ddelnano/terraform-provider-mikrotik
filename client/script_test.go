@@ -2,6 +2,7 @@ package client
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -29,7 +30,7 @@ func TestCreateScriptAndDeleteScript(t *testing.T) {
 		Name:                   scriptName,
 		Owner:                  scriptOwner,
 		Source:                 scriptSource,
-		Policy:                 scriptPolicies,
+		PolicyString:           strings.Join(scriptPolicies, ","),
 		DontRequirePermissions: scriptDontReqPerms,
 	}
 	script, err := NewClient(GetConfigFromEnv()).CreateScript(
@@ -46,6 +47,7 @@ func TestCreateScriptAndDeleteScript(t *testing.T) {
 
 	expectedScript.Id = script.Id
 
+	defer c.DeleteScript(scriptName)
 	if !reflect.DeepEqual(script, expectedScript) {
 		t.Errorf("The script does not match what we expected. actual: %v expected: %v", script, expectedScript)
 	}
