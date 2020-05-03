@@ -9,28 +9,6 @@ import (
 	"github.com/go-routeros/routeros/proto"
 )
 
-func TestTtlToSeconds(t *testing.T) {
-	tests := []struct {
-		expected int
-		input    string
-	}{
-		{300, "5m"},
-		{59, "59s"},
-		{301, "5m1s"},
-		{55259, "15h20m59s"},
-		{141659, "1d15h20m59s"},
-		{228059, "2d15h20m59s"},
-		{86400, "1d"},
-	}
-
-	for _, test := range tests {
-		actual := ttlToSeconds(test.input)
-		if test.expected != actual {
-			t.Errorf("Input %s returned %d instead of %d", test.input, actual, test.expected)
-		}
-	}
-}
-
 func TestUnmarshal(t *testing.T) {
 	name := "testing script"
 	owner := "admin"
@@ -147,5 +125,35 @@ func TestUnmarshalOnSlices(t *testing.T) {
 	if testStruct[0].Allowed != b {
 		t.Errorf("Failed to unmarshal Allowed '%v' and testStruct.Allowed'%v' should match", b, testStruct[0].Allowed)
 
+	}
+}
+
+func TestUnmarshal_ttlToSeconds(t *testing.T) {
+	ttlStr := "5m"
+	expectedTtl := ttlToSeconds(ttlStr)
+	testStruct := struct {
+		Ttl int `mikrotik:"ttl,ttlToSeconds"`
+	}{}
+	reply := routeros.Reply{
+		Re: []*proto.Sentence{
+			{
+				Word: "!re",
+				List: []proto.Pair{
+					{
+						Key:   "ttl",
+						Value: ttlStr,
+					},
+				},
+			},
+		},
+	}
+	err := Unmarshal(reply, &testStruct)
+
+	if err != nil {
+		t.Errorf("Failed to unmarshal with error: %v", err)
+	}
+
+	if testStruct.Ttl != expectedTtl {
+		t.Errorf("Failed to unmarshal ttl field with `ttlToSeconds`. Expected: '%d', received: %v", expectedTtl, testStruct.Ttl)
 	}
 }

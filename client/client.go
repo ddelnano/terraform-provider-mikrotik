@@ -4,12 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"reflect"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/go-routeros/routeros"
 	"github.com/go-routeros/routeros/proto"
@@ -19,14 +17,6 @@ type Mikrotik struct {
 	Host     string
 	Username string
 	Password string
-}
-
-type DnsRecord struct {
-	// .id field that mikrotik uses as the 'real' ID
-	Id      string
-	Name    string
-	Ttl     int
-	Address string
 }
 
 func Unmarshal(reply routeros.Reply, v interface{}) error {
@@ -77,23 +67,37 @@ func parseStruct(v *reflect.Value, sentence proto.Sentence) {
 	for i := 0; i < elem.NumField(); i++ {
 		field := elem.Field(i)
 		fieldType := elem.Type().Field(i)
-		tag := fieldType.Tag.Get("mikrotik")
+		tags := strings.Split(fieldType.Tag.Get("mikrotik"), ",")
 
 		path := strings.ToLower(fieldType.Name)
+		fieldName := tags[0]
 
 		for _, pair := range sentence.List {
-			if strings.Compare(pair.Key, path) == 0 || strings.Compare(pair.Key, tag) == 0 {
+			if strings.Compare(pair.Key, path) == 0 || strings.Compare(pair.Key, fieldName) == 0 {
 				switch fieldType.Type.Kind() {
 				case reflect.String:
 					field.SetString(pair.Value)
 				case reflect.Bool:
 					b, _ := strconv.ParseBool(pair.Value)
 					field.SetBool(b)
+				case reflect.Int:
+					if contains(tags, "ttlToSeconds") {
+						field.SetInt(int64(ttlToSeconds(pair.Value)))
+					}
 				}
 
 			}
 		}
 	}
+}
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
 
 func NewClient(host, username, password string) Mikrotik {
@@ -125,129 +129,4 @@ func (client Mikrotik) getMikrotikClient() (c *routeros.Client, err error) {
 	}
 
 	return
-}
-
-func (client Mikrotik) AddDnsRecord(name, address string, ttl int) (*routeros.Reply, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-	cmd := strings.Split(fmt.Sprintf("/ip/dns/static/add =name=%s =address=%s =ttl=%d", name, address, ttl), " ")
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	return r, err
-}
-
-func (client Mikrotik) FindDnsRecord(name string) (*DnsRecord, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-	cmd := "/ip/dns/static/print"
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.Run(cmd)
-	found := false
-	var sentence *proto.Sentence
-
-	if err != nil {
-		return nil, err
-	}
-
-	for _, reply := range r.Re {
-		for _, item := range reply.List {
-			if item.Value == name {
-				found = true
-				sentence = reply
-				log.Printf("[DEBUG] Found dns record we were looking for: %v", sentence)
-			}
-		}
-	}
-
-	if !found {
-		return nil, nil
-	}
-
-	// TODO: Add error checking
-
-	address := ""
-	ttl := ""
-	id := ""
-	for _, pair := range sentence.List {
-		if pair.Key == ".id" {
-			id = pair.Value
-		}
-		if pair.Key == "address" {
-			address = pair.Value
-		}
-
-		if pair.Key == "ttl" {
-			ttl = pair.Value
-		}
-	}
-
-	return &DnsRecord{
-		Id:      id,
-		Address: address,
-		Name:    name,
-		Ttl:     ttlToSeconds(ttl),
-	}, nil
-}
-
-func (client Mikrotik) UpdateDnsRecord(id, name, address string, ttl int) error {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return err
-	}
-	cmd := strings.Split(fmt.Sprintf("/ip/dns/static/set =numbers=%s =name=%s =address=%s =ttl=%d", id, name, address, ttl), " ")
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
-	return err
-}
-
-func (client Mikrotik) DeleteDnsRecord(id string) error {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return err
-	}
-	cmd := strings.Split(fmt.Sprintf("/ip/dns/static/remove =numbers=%s", id), " ")
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
-	return err
-}
-
-func ttlToSeconds(ttl string) int {
-	parts := strings.Split(ttl, "d")
-
-	idx := 0
-	days := 0
-	var err error
-	if len(parts) == 2 {
-		idx = 1
-		days, err = strconv.Atoi(parts[0])
-
-		// We should be parsing an ascii number
-		// if this fails we should fail loudly
-		if err != nil {
-			panic(err)
-		}
-
-		// In the event we just get days parts[1] will be an
-		// empty string. Just coerce that into 0 seconds.
-		if parts[1] == "" {
-			parts[1] = "0s"
-		}
-	}
-	d, err := time.ParseDuration(parts[idx])
-
-	// We should never receive a duration greater than
-	// 23h59m59s. So this should always parse.
-	if err != nil {
-		panic(err)
-	}
-	return 86400*days + int(d)/int(math.Pow10(9))
-
 }
