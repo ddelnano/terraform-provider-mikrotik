@@ -3,17 +3,20 @@ package client
 import (
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 )
 
 type Script struct {
-	Id                     string
+	Id                     string `mikrotik:".id"`
 	Name                   string
 	Owner                  string
-	Policy                 []string
-	DontRequirePermissions bool `mikrotik:"dont-require-permissions"`
+	PolicyString           string `mikrotik:"policy"`
+	DontRequirePermissions bool   `mikrotik:"dont-require-permissions"`
 	Source                 string
+}
+
+func (s Script) Policy() []string {
+	return strings.Split(s.PolicyString, ",")
 }
 
 func (client Mikrotik) CreateScript(name, owner, source string, policies []string, dontReqPerms bool) (Script, error) {
@@ -110,42 +113,11 @@ func (client Mikrotik) FindScript(name string) (Script, error) {
 		return script, err
 	}
 
-	// script := Script{}
-	// err = Unmarshal(*r, &script)
-
-	// if err != nil {
-	// 	return script, err
-	// }
 	if r.Re == nil {
-		return Script{}, nil
+		return script, nil
 	}
 	if len(r.Re) > 1 && len(r.Re[0].List) > 1 {
 		return script, fmt.Errorf("Found more than one result for script with name %s", name)
-	}
-	for _, pair := range r.Re[0].List {
-		if pair.Key == ".id" {
-			script.Id = pair.Value
-		}
-		if pair.Key == "name" {
-			script.Name = pair.Value
-		}
-		if pair.Key == "owner" {
-			script.Owner = pair.Value
-		}
-		if pair.Key == "policy" {
-			script.Policy = strings.Split(pair.Value, ",")
-		}
-		if pair.Key == "dont-require-permissions" {
-			b, _ := strconv.ParseBool(pair.Value)
-			if b {
-				script.DontRequirePermissions = true
-			} else {
-				script.DontRequirePermissions = false
-			}
-		}
-		if pair.Key == "source" {
-			script.Source = pair.Value
-		}
 	}
 	return script, err
 }
