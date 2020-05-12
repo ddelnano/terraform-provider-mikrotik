@@ -82,7 +82,7 @@ func parseStruct(v *reflect.Value, sentence proto.Sentence) {
 					field.SetBool(b)
 				case reflect.Int:
 					if contains(tags, "ttlToSeconds") {
-						field.SetInt(int64(ttlToSeconds(pair.Value)))
+						field.SetInt(int64(TtlToSeconds(pair.Value)))
 					}
 				}
 
@@ -91,7 +91,7 @@ func parseStruct(v *reflect.Value, sentence proto.Sentence) {
 	}
 }
 
-func ttlToSeconds(ttl string) int {
+func TtlToSeconds(ttl string) int {
 	parts := strings.Split(ttl, "d")
 
 	idx := 0
