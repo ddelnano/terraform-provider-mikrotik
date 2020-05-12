@@ -4,7 +4,9 @@
 
 This is a terraform provider for managing resources on your RouterOS device. It currently has support for the following RouterOS concepts:
 - DNS records
+- DHCP leases
 - Scripts
+- Scheduler
 
 ## Examples
 
