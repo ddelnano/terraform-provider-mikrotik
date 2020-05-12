@@ -1,13 +1,13 @@
-= mikrotik_script
+= mikrotik_scheduler
 
-Creates a Mikrotik script.
+Creates a Mikrotik scheduler.
 
 == Example Usage
 
 ```hcl
-resource "mikrotik_scheduler" "schduler" {
-  name = "script-name"
-  on_event = "script-to-execute"
+resource "mikrotik_scheduler" "scheduler" {
+  name = "scheduler-name"
+  on_event = "scheduler-to-execute"
   # Run every 5 mins
   interval = 300
 ```
