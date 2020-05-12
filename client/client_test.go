@@ -24,7 +24,7 @@ func TestTtlToSeconds(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actual := TtlToSeconds(test.input)
+		actual := ttlToSeconds(test.input)
 		if test.expected != actual {
 			t.Errorf("Input %s returned %d instead of %d", test.input, actual, test.expected)
 		}
@@ -152,7 +152,7 @@ func TestUnmarshalOnSlices(t *testing.T) {
 
 func TestUnmarshal_ttlToSeconds(t *testing.T) {
 	ttlStr := "5m"
-	expectedTtl := TtlToSeconds(ttlStr)
+	expectedTtl := ttlToSeconds(ttlStr)
 	testStruct := struct {
 		Ttl int `mikrotik:"ttl,ttlToSeconds"`
 	}{}
