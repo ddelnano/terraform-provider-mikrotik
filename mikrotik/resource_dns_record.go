@@ -42,28 +42,11 @@ func resourceServerCreate(d *schema.ResourceData, m interface{}) error {
 
 	c := m.(client.Mikrotik)
 
-	r, err := c.AddDnsRecord(name, address, ttl)
+	record, err := c.AddDnsRecord(name, address, ttl)
 	if err != nil {
 		return err
 	}
 
-	// If API is successful we should only get a single sentence and list back like so
-	// 2019/02/28 20:13:15 !done @ [{`ret` `*14`}]
-	var id string
-	for _, reply := range r.Re {
-		for _, item := range reply.List {
-			if item.Key == ".id" {
-				id = item.Value
-			}
-		}
-	}
-
-	record := &client.DnsRecord{
-		Id:      id,
-		Address: address,
-		Name:    name,
-		Ttl:     ttl,
-	}
 	recordToData(record, d)
 	return nil
 }
