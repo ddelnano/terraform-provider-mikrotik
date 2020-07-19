@@ -1,7 +1,6 @@
 package client
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -31,7 +30,7 @@ func (client Mikrotik) FindScheduler(name string) (*Scheduler, error) {
 	}
 
 	if scheduler.Name == "" {
-		return nil, errors.New(fmt.Sprintf("scheduler `%s` not found", name))
+		return nil, NewNotFound(fmt.Sprintf("scheduler `%s` not found", name))
 	}
 	return scheduler, err
 }

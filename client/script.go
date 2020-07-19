@@ -1,7 +1,6 @@
 package client
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -115,7 +114,7 @@ func (client Mikrotik) FindScript(name string) (*Script, error) {
 	}
 
 	if script.Name == "" {
-		return nil, errors.New(fmt.Sprintf("script `%s` not found", name))
+		return nil, NewNotFound(fmt.Sprintf("script `%s` not found", name))
 	}
 
 	return script, err

@@ -1,7 +1,6 @@
 package client
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -56,7 +55,7 @@ func (client Mikrotik) FindDnsRecord(name string) (*DnsRecord, error) {
 	}
 
 	if record.Name == "" {
-		return nil, errors.New(fmt.Sprintf("dns record `%s` not found", name))
+		return nil, NewNotFound(fmt.Sprintf("dns record `%s` not found", name))
 	}
 
 	return &record, nil

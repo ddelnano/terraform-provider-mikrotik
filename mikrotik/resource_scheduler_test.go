@@ -143,7 +143,8 @@ func testAccCheckMikrotikSchedulerDestroy(s *terraform.State) error {
 
 		scheduler, err := c.FindScheduler(rs.Primary.ID)
 
-		if err != nil {
+		_, ok := err.(*client.NotFound)
+		if !ok && err != nil {
 			return err
 		}
 
@@ -169,8 +170,9 @@ func testAccSchedulerExists(resourceName string) resource.TestCheckFunc {
 
 		scheduler, err := c.FindScheduler(rs.Primary.ID)
 
-		if err != nil {
-			return fmt.Errorf("Unable to get the dns record with error: %v", err)
+		_, ok = err.(*client.NotFound)
+		if !ok && err != nil {
+			return fmt.Errorf("Unable to get the scheduler with error: %v", err)
 		}
 
 		if scheduler == nil {
