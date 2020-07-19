@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -86,7 +87,7 @@ func (client Mikrotik) FindDhcpLease(id string) (*DhcpLease, error) {
 	}
 
 	if lease.Id == "" {
-		return nil, nil
+		return nil, errors.New(fmt.Sprintf("dhcp lease `%s` not found", id))
 	}
 
 	return &lease, nil

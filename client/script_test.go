@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -48,7 +49,7 @@ func TestCreateScriptAndDeleteScript(t *testing.T) {
 	expectedScript.Id = script.Id
 
 	defer c.DeleteScript(scriptName)
-	if !reflect.DeepEqual(script, expectedScript) {
+	if !reflect.DeepEqual(*script, expectedScript) {
 		t.Errorf("The script does not match what we expected. actual: %v expected: %v", script, expectedScript)
 	}
 
@@ -59,17 +60,14 @@ func TestCreateScriptAndDeleteScript(t *testing.T) {
 	}
 }
 
-func TestFindScriptOnNonExistantScript(t *testing.T) {
+func TestFindScript_onNonExistantScript(t *testing.T) {
 	c := NewClient(GetConfigFromEnv())
 
 	name := "script-not-found"
-	script, err := c.FindScript(name)
+	_, err := c.FindScript(name)
 
-	if err != nil {
-		t.Errorf("Failed to find script `%s` with error: %v", name, err)
-	}
-
-	if script.Name != "" {
-		t.Errorf("Script should have a blank name")
+	expectedErrStr := fmt.Sprintf("script `%s` not found", name)
+	if err == nil || err.Error() != expectedErrStr {
+		t.Errorf("client should have received error indicating the following script `%s` was not found. Instead error was nil", name)
 	}
 }

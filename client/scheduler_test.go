@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -38,10 +39,16 @@ func TestCreateDeleteAndFindScheduler(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error deleting a scheduler with: %v", err)
 	}
+}
 
-	scheduler, err = c.FindScheduler(schedulerName)
+func TestFindScheduler_onNonExistantScript(t *testing.T) {
+	c := NewClient(GetConfigFromEnv())
 
-	if err != nil || scheduler != nil {
-		t.Errorf("Scheduler (%v) was not deleted: %v", scheduler, err)
+	name := "scheduler does not exist"
+	_, err := c.FindScheduler(name)
+
+	expectedErrStr := fmt.Sprintf("scheduler `%s` not found", name)
+	if err == nil || err.Error() != expectedErrStr {
+		t.Errorf("client should have received error indicating the following script `%s` was not found. Instead error was nil", name)
 	}
 }

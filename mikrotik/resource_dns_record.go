@@ -96,22 +96,6 @@ func resourceServerUpdate(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-// !re @ [{`.id` `*2`} {`name` `radarr`} {`address` `192.168.88.254`} {`ttl` `59s`} {`dynamic` `false`} {`regexp` `false`} {`disabled` `false`}]
-// !re @ [{`.id` `*3`} {`name` `sonarr`} {`address` `192.168.88.254`} {`ttl` `59s`} {`dynamic` `false`} {`regexp` `false`} {`disabled` `false`}]
-// !re @ [{`.id` `*4`} {`name` `sabnzbd`} {`address` `192.168.88.254`} {`ttl` `59s`} {`dynamic` `false`} {`regexp` `false`} {`disabled` `false`}]
-// !re @ [{`.id` `*5`} {`name` `kodi`} {`address` `192.168.88.244`} {`ttl` `59s`} {`dynamic` `false`} {`regexp` `false`} {`disabled` `false`}]
-// !re @ [{`.id` `*6`} {`name` `osmc`} {`address` `192.168.88.244`} {`ttl` `59s`} {`dynamic` `false`} {`regexp` `false`} {`disabled` `false`}]
-// !re @ [{`.id` `*7`} {`name` `radarr.internal.ddelnano.com`} {`address` `192.168.88.254`} {`ttl` `1m`} {`dynamic` `false`} {`regexp` `false`} {`disabled` `false`}]
-// !re @ [{`.id` `*8`} {`name` `sonarr.internal.ddelnano.com`} {`address` `192.168.88.254`} {`ttl` `1m`} {`dynamic` `false`} {`regexp` `false`} {`disabled` `false`}]
-// !re @ [{`.id` `*9`} {`name` `sabnzbd.internal.ddelnano.com`} {`address` `192.168.88.254`} {`ttl` `1m`} {`dynamic` `false`} {`regexp` `false`} {`disabled` `false`}]
-// !re @ [{`.id` `*A`} {`name` `router.internal.ddelnano.com`} {`address` `192.168.88.1`} {`ttl` `1m`} {`dynamic` `false`} {`regexp` `false`} {`disabled` `false`}]
-// !re @ [{`.id` `*B`} {`name` `kodi.internal.ddelnano.com`} {`address` `192.168.88.244`} {`ttl` `1m`} {`dynamic` `false`} {`regexp` `false`} {`disabled` `false`}]
-// !re @ [{`.id` `*D`} {`name` `osmc.internal.ddelnano.com`} {`address` `192.168.88.244`} {`ttl` `1m`} {`dynamic` `false`} {`regexp` `false`} {`disabled` `false`}]
-// !re @ [{`.id` `*E`} {`name` `switch.internal.ddelnano.com`} {`address` `192.168.88.90`} {`ttl` `5m`} {`dynamic` `false`} {`regexp` `false`} {`disabled` `false`}]
-// !re @ [{`.id` `*F`} {`name` `xen.internal.ddelnano.com`} {`address` `192.168.88.117`} {`ttl` `5m`} {`dynamic` `false`} {`regexp` `false`} {`disabled` `false`} {`comment` `DNS for the hypervisor`}]
-// !re @ [{`.id` `*10`} {`name` `xoa.internal.ddelnano.com`} {`address` `192.168.88.86`} {`ttl` `5m`} {`dynamic` `false`} {`regexp` `false`} {`disabled` `false`}]
-// !re @ [{`.id` `*15`} {`name` `test`} {`address` `10.0.0.1`} {`ttl` `1d15h20m59s`} {`dynamic` `false`} {`regexp` `false`} {`disabled` `false`}]
-
 func resourceServerDelete(d *schema.ResourceData, m interface{}) error {
 	name := d.Id()
 
