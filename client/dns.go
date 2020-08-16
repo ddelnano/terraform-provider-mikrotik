@@ -55,7 +55,7 @@ func (client Mikrotik) FindDnsRecord(name string) (*DnsRecord, error) {
 	}
 
 	if record.Name == "" {
-		return nil, nil
+		return nil, NewNotFound(fmt.Sprintf("dns record `%s` not found", name))
 	}
 
 	return &record, nil

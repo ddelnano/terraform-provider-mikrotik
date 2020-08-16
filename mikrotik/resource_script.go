@@ -72,7 +72,7 @@ func resourceScriptCreate(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-func scriptToData(s client.Script, d *schema.ResourceData) error {
+func scriptToData(s *client.Script, d *schema.ResourceData) error {
 	d.SetId(s.Name)
 	d.Set("name", s.Name)
 	d.Set("owner", s.Owner)

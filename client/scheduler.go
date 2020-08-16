@@ -29,11 +29,8 @@ func (client Mikrotik) FindScheduler(name string) (*Scheduler, error) {
 		return nil, err
 	}
 
-	if r.Re == nil {
-		return nil, nil
-	}
-	if len(r.Re) > 1 && len(r.Re[0].List) > 1 {
-		return nil, fmt.Errorf("Found more than one result for scheduler with name %s", name)
+	if scheduler.Name == "" {
+		return nil, NewNotFound(fmt.Sprintf("scheduler `%s` not found", name))
 	}
 	return scheduler, err
 }

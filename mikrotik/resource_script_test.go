@@ -235,11 +235,12 @@ func testAccCheckMikrotikScriptDestroy(s *terraform.State) error {
 
 		script, err := c.FindScript(rs.Primary.ID)
 
-		if err != nil {
+		_, ok := err.(*client.NotFound)
+		if !ok && err != nil {
 			return err
 		}
 
-		if script.Name != "" {
+		if script != nil && script.Name != "" {
 			return fmt.Errorf("script (%s) still exists", script.Name)
 		}
 	}
@@ -254,15 +255,16 @@ func testAccScriptExists(resourceName string) resource.TestCheckFunc {
 		}
 
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("mikrotik_dns_record does not exist in the statefile")
+			return fmt.Errorf("mikrotik_script does not exist in the statefile")
 		}
 
 		c := client.NewClient(client.GetConfigFromEnv())
 
 		script, err := c.FindScript(rs.Primary.ID)
 
-		if err != nil {
-			return fmt.Errorf("Unable to get the dns record with error: %v", err)
+		_, ok = err.(*client.NotFound)
+		if !ok && err != nil {
+			return fmt.Errorf("Unable to get the script with error: %v", err)
 		}
 
 		if script.Name == "" {

@@ -196,7 +196,8 @@ func testAccCheckMikrotikDhcpLeaseDestroyNow(resourceName string) resource.TestC
 
 		dhcpLease, err := c.FindDhcpLease(rs.Primary.ID)
 
-		if err != nil {
+		_, ok = err.(*client.NotFound)
+		if !ok && err != nil {
 			return err
 		}
 
@@ -219,7 +220,8 @@ func testAccCheckMikrotikDhcpLeaseDestroy(s *terraform.State) error {
 
 		dhcpLease, err := c.FindDhcpLease(rs.Primary.ID)
 
-		if err != nil {
+		_, ok := err.(*client.NotFound)
+		if !ok && err != nil {
 			return err
 		}
 

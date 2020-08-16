@@ -15,11 +15,11 @@ type Script struct {
 	Source                 string
 }
 
-func (s Script) Policy() []string {
+func (s *Script) Policy() []string {
 	return strings.Split(s.PolicyString, ",")
 }
 
-func (client Mikrotik) CreateScript(name, owner, source string, policies []string, dontReqPerms bool) (Script, error) {
+func (client Mikrotik) CreateScript(name, owner, source string, policies []string, dontReqPerms bool) (*Script, error) {
 	c, err := client.getMikrotikClient()
 
 	policiesString := strings.Join(policies, ",")
@@ -41,22 +41,22 @@ func (client Mikrotik) CreateScript(name, owner, source string, policies []strin
 	log.Printf("[DEBUG] /system/script/add returned %v", r)
 
 	if err != nil {
-		return Script{}, err
+		return nil, err
 	}
 	return client.FindScript(name)
 }
 
-func (client Mikrotik) UpdateScript(name, owner, source string, policy []string, dontReqPerms bool) (Script, error) {
+func (client Mikrotik) UpdateScript(name, owner, source string, policy []string, dontReqPerms bool) (*Script, error) {
 	c, err := client.getMikrotikClient()
 
 	if err != nil {
-		return Script{}, err
+		return nil, err
 	}
 
 	script, err := client.FindScript(name)
 
 	if err != nil {
-		return script, err
+		return nil, err
 	}
 
 	policiesString := strings.Join(policy, ",")
@@ -77,7 +77,7 @@ func (client Mikrotik) UpdateScript(name, owner, source string, policy []string,
 	_, err = c.RunArgs(cmd)
 
 	if err != nil {
-		return script, err
+		return nil, err
 	}
 
 	return client.FindScript(name)
@@ -99,26 +99,24 @@ func (client Mikrotik) DeleteScript(name string) error {
 	return err
 }
 
-func (client Mikrotik) FindScript(name string) (Script, error) {
+func (client Mikrotik) FindScript(name string) (*Script, error) {
 	c, err := client.getMikrotikClient()
 	cmd := strings.Split(fmt.Sprintf("/system/script/print ?name=%s", name), " ")
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 
 	log.Printf("[DEBUG] Found script from mikrotik api %v", r)
-	script := Script{}
-	err = Unmarshal(*r, &script)
+	script := &Script{}
+	err = Unmarshal(*r, script)
 
 	if err != nil {
 		return script, err
 	}
 
-	if r.Re == nil {
-		return script, nil
+	if script.Name == "" {
+		return nil, NewNotFound(fmt.Sprintf("script `%s` not found", name))
 	}
-	if len(r.Re) > 1 && len(r.Re[0].List) > 1 {
-		return script, fmt.Errorf("Found more than one result for script with name %s", name)
-	}
+
 	return script, err
 }
 
