@@ -32,6 +32,42 @@ func TestAccMikrotikDnsRecord_create(t *testing.T) {
 	})
 }
 
+func TestAccMikrotikDnsRecord_createAndPlanWithNonExistantRecord(t *testing.T) {
+	resourceName := "mikrotik_dns_record.bar"
+	removeDnsRecord := func() {
+
+		c := client.NewClient(client.GetConfigFromEnv())
+		dns, err := c.FindDnsRecord(originalDnsName)
+
+		if err != nil {
+			t.Fatalf("Error finding the DNS record: %s", err)
+		}
+		err = c.DeleteDnsRecord(dns.Id)
+		if err != nil {
+			t.Fatalf("Error removing the DNS record: %s", err)
+		}
+
+	}
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckMikrotikDnsRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDnsRecord(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccDnsRecordExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "id")),
+			},
+			{
+				PreConfig:          removeDnsRecord,
+				Config:             testAccDnsRecord(),
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
 func TestAccMikrotikDnsRecord_updateAddress(t *testing.T) {
 	resourceName := "mikrotik_dns_record.bar"
 	resource.Test(t, resource.TestCase{
