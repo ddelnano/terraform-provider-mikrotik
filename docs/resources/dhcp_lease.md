@@ -1,8 +1,8 @@
-= mikrotik_dhcp_lease
+## mikrotik_dhcp_lease
 
 Creates a DHCP lease on the mikrotik device
 
-== Example Usage
+### Example Usage
 
 ```hcl
 resource "mikrotik_dhcp_lease" "file_server" {
@@ -12,14 +12,14 @@ resource "mikrotik_dhcp_lease" "file_server" {
 }
 ```
 
-== Argument Reference
-** address - (Required) The IP address of the DHCP lease to be created
-** macaddress - (Required) The MAC addreess of the DHCP lease to be created
-** comment - (Optional) The comment of the DHCP lease to be created
+### Argument Reference
+* address - (Required) The IP address of the DHCP lease to be created
+* macaddress - (Required) The MAC addreess of the DHCP lease to be created
+* comment - (Optional) The comment of the DHCP lease to be created
 
-== Attributes Reference
+### Attributes Reference
 
-== Import Reference
+### Import Reference
 
 ```bash
 terraform import mikrotik_dhcp_lease.file_server *19

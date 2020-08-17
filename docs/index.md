@@ -1,19 +1,17 @@
-= Mikrotik Provider
+# Mikrotik Provider
 
 The mikrotik provider is used to interact with the resources supported by RouterOS.
 The provider needs to be configured with the proper credentials before it can be used.
 
-== Requirements
+## Requirements
 
-** Terraform 0.12+
-** Go 1.11+ (to build the provider plugin)
 ** RouterOS v6.45.2+ (It may work with other versions but it is untested against other versions!)
 
-== Using the provider
+## Using the provider
 
-If you're building the provider, follow the instructions to install it as a https://www.terraform.io/docs/plugins/basics.html#installing-plugins[plugin]. After placing it into your plugins directory, run `terraform init` to initialize it.
+This provider is on the terraform registry so you only need to reference it in your terraform code (example below).
 
-== Example Usage
+## Example Usage
 
 ```hcl
 # Configure the mikrotik Provider
