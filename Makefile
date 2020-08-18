@@ -8,8 +8,6 @@ build:
 clean:
 	rm dist/*
 	terraform-provider-mikrotik
-dist:
-	./scripts/dist.sh
 
 plan: build
 	terraform init

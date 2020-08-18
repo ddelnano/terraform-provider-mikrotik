@@ -10,7 +10,7 @@ This is a terraform provider for managing resources on your RouterOS device. It 
 
 ## Examples
 
-See the [pages directory](modules/reference/pages) for the documentation on each resource.
+See the terraform registry [documentation](https://registry.terraform.io/providers/ddelnano/mikrotik/latest/docs) for examples on how to use the resources.
 
 ## Support
 

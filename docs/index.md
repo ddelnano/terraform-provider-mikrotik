@@ -5,7 +5,7 @@ The provider needs to be configured with the proper credentials before it can be
 
 ## Requirements
 
-** RouterOS v6.45.2+ (It may work with other versions but it is untested against other versions!)
+* RouterOS v6.45.2+ (It may work with other versions but it is untested against other versions!)
 
 ## Using the provider
 
