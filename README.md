@@ -23,8 +23,8 @@ If you get value out this project and want to show your support you can find me 
 ## Contributing
 
 ### Dependencies
-- go 1.15+ to build the provider
 - RouterOS v6.45.2+ (It may work on older versions but it is untested)
+- Terraform 0.11+
 
 ### Testing
 
