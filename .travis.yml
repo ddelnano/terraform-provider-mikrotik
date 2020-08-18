@@ -1,8 +1,5 @@
 language: go
 go:
-- 1.11.x
-- 1.12.x
-env:
-- GO111MODULE=on
+- 1.15.x
 script:
-- GO111MODULE=on go build
+- make build

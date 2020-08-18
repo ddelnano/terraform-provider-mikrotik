@@ -3,7 +3,7 @@
 TEST ?= ./...
 
 build:
-	GO111MODULE=on go build -o terraform-provider-mikrotik
+	go build -o terraform-provider-mikrotik
 
 clean:
 	rm dist/*
