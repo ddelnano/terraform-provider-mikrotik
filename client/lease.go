@@ -7,21 +7,22 @@ import (
 )
 
 type DhcpLease struct {
-	Id         string `mikrotik:".id"`
-	Address    string
-	MacAddress string `mikrotik:"mac-address"`
-	Comment    string
-	Hostname   string `mikrotik:"host-name"`
-	Dynamic    bool
+	Id          string `mikrotik:".id"`
+	Address     string
+	MacAddress  string `mikrotik:"mac-address"`
+	Comment     string
+	BlockAccess string `mikrotik:"blocked"`
+	Hostname    string `mikrotik:"host-name"`
+	Dynamic     bool
 }
 
-func (client Mikrotik) AddDhcpLease(address, macaddress, name string) (*DhcpLease, error) {
+func (client Mikrotik) AddDhcpLease(address, macaddress, name string, blocked string) (*DhcpLease, error) {
 	c, err := client.getMikrotikClient()
 
 	if err != nil {
 		return nil, err
 	}
-	cmd := strings.Split(fmt.Sprintf("/ip/dhcp-server/lease/add =address=%s =mac-address=%s =comment=%s", address, macaddress, name), " ")
+	cmd := strings.Split(fmt.Sprintf("/ip/dhcp-server/lease/add =address=%s =mac-address=%s =comment=%s =block-access=%s", address, macaddress, name, blocked), " ")
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 
@@ -92,14 +93,14 @@ func (client Mikrotik) FindDhcpLease(id string) (*DhcpLease, error) {
 	return &lease, nil
 }
 
-func (client Mikrotik) UpdateDhcpLease(id, address, macaddress, comment string, dynamic bool) (*DhcpLease, error) {
+func (client Mikrotik) UpdateDhcpLease(id, address, macaddress, comment string, blocked string, dynamic bool) (*DhcpLease, error) {
 	c, err := client.getMikrotikClient()
 
 	if err != nil {
 		return nil, err
 	}
 
-	cmd := strings.Split(fmt.Sprintf("/ip/dhcp-server/lease/set =.id=%s =address=%s =mac-address=%s =comment=%s", id, address, macaddress, comment), " ")
+	cmd := strings.Split(fmt.Sprintf("/ip/dhcp-server/lease/set =.id=%s =address=%s =mac-address=%s =comment=%s =block-access=%s", id, address, macaddress, comment, blocked), " ")
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	_, err = c.RunArgs(cmd)
 

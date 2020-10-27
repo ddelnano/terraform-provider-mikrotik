@@ -13,15 +13,18 @@ func TestAddLeaseAndDeleteLease(t *testing.T) {
 	address := "1.1.1.1"
 	macaddress := "11:11:11:11:11:11"
 	comment := "terraform-acc-test"
+	blocked:= "false"
 	expectedLease := &DhcpLease{
-		Address:    address,
-		MacAddress: macaddress,
-		Comment:    comment,
+		Address:      address,
+		MacAddress:   macaddress,
+		Comment:      comment,
+		BlockAccess:  blocked,
 	}
 	lease, err := c.AddDhcpLease(
 		address,
 		macaddress,
 		comment,
+		blocked,
 	)
 
 	if err != nil {
@@ -42,6 +45,9 @@ func TestAddLeaseAndDeleteLease(t *testing.T) {
 
 	if strings.Compare(lease.Comment, expectedLease.Comment) != 0 {
 		t.Errorf("The lease Comment fields do not match. actual: %v expected: %v", lease.Comment, expectedLease.Comment)
+	}
+	if strings.Compare(lease.BlockAccess, expectedLease.BlockAccess) != 0 {
+		t.Errorf("The lease BlockAccess fields do not match. actual: %v expected: %v", lease.BlockAccess, expectedLease.BlockAccess)
 	}
 
 	foundLease, err := c.FindDhcpLease(lease.Id)

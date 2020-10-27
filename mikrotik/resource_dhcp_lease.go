@@ -32,6 +32,11 @@ func resourceLease() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"blocked": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "false",
+			},
 			"dynamic": &schema.Schema{
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -45,10 +50,11 @@ func resourceLeaseCreate(d *schema.ResourceData, m interface{}) error {
 	address := d.Get("address").(string)
 	macaddress := d.Get("macaddress").(string)
 	comment := d.Get("comment").(string)
+	blocked:= d.Get("blocked").(string)
 
 	c := m.(client.Mikrotik)
 
-	lease, err := c.AddDhcpLease(address, macaddress, comment)
+	lease, err := c.AddDhcpLease(address, macaddress, comment, blocked)
 	if err != nil {
 		return err
 	}
@@ -82,9 +88,10 @@ func resourceLeaseUpdate(d *schema.ResourceData, m interface{}) error {
 	macaddress := d.Get("macaddress").(string)
 	address := d.Get("address").(string)
 	comment := d.Get("comment").(string)
+	blocked:= d.Get("blocked").(string)
 	dynamic := d.Get("dynamic").(bool)
 
-	lease, err := c.UpdateDhcpLease(d.Id(), address, macaddress, comment, dynamic)
+	lease, err := c.UpdateDhcpLease(d.Id(), address, macaddress, comment, blocked, dynamic)
 
 	if err != nil {
 		return err
@@ -109,6 +116,7 @@ func resourceLeaseDelete(d *schema.ResourceData, m interface{}) error {
 
 func leaseToData(lease *client.DhcpLease, d *schema.ResourceData) error {
 	d.SetId(lease.Id)
+	d.Set("blocked", lease.BlockAccess)
 	d.Set("comment", lease.Comment)
 	d.Set("address", lease.Address)
 	d.Set("macaddress", lease.MacAddress)

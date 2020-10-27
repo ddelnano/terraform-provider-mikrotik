@@ -13,6 +13,7 @@ var originalIpAddress string = "1.1.1.1"
 var originalMacAddress string = "11:11:11:11:11:11"
 var updatedIpAddress string = "2.2.2.2"
 var updatedMacAddress string = "22:22:22:22:22:22"
+var updatedBlockAccess string = "true"
 
 func TestAccMikrotikDhcpLease_create(t *testing.T) {
 	resourceName := "mikrotik_dhcp_lease.bar"
@@ -64,6 +65,15 @@ func TestAccMikrotikDhcpLease_updateAddress(t *testing.T) {
 					testAccDhcpLeaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "address", originalIpAddress),
 					resource.TestCheckResourceAttr(resourceName, "macaddress", updatedMacAddress),
+				),
+			},
+			{
+				Config: testAccDhcpLeaseUpdatedBlockAccess(),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccDhcpLeaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "address", originalIpAddress),
+					resource.TestCheckResourceAttr(resourceName, "macaddress", originalMacAddress),
+					resource.TestCheckResourceAttr(resourceName, "blocked", updatedBlockAccess),
 				),
 			},
 		},
@@ -149,6 +159,17 @@ resource "mikrotik_dhcp_lease" "bar" {
     macaddress = "%s"
 }
 `, originalIpAddress, updatedMacAddress)
+}
+
+func testAccDhcpLeaseUpdatedBlockAccess() string {
+	return fmt.Sprintf(`
+resource "mikrotik_dhcp_lease" "bar" {
+    comment = "bar"
+    address = "%s"
+    macaddress = "%s"
+    blocked= "%s"
+}
+`, originalIpAddress, originalMacAddress, updatedBlockAccess)
 }
 
 func testAccDhcpLeaseExists(resourceName string) resource.TestCheckFunc {
