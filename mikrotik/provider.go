@@ -33,6 +33,7 @@ func Provider() terraform.ResourceProvider {
 			"mikrotik_dhcp_lease": resourceLease(),
 			"mikrotik_scheduler":  resourceScheduler(),
 			"mikrotik_script":     resourceScript(),
+			"mikrotik_pool":       resourcePool(),
 		},
 		ConfigureFunc: mikrotikConfigure,
 	}
