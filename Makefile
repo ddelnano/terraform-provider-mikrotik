@@ -20,4 +20,4 @@ test:
 	go test $(TEST) -v
 
 testacc:
-	TF_ACC=1 go test $(TEST) -v
+	TF_ACC=1 go test $(TEST) -count 1 -v
