@@ -34,10 +34,12 @@ func TestTtlToSeconds(t *testing.T) {
 func TestUnmarshal(t *testing.T) {
 	name := "testing script"
 	owner := "admin"
+	runCount := "3"
 	allowed := "true"
 	testStruct := struct {
 		Name          string
 		NotNamedOwner string `mikrotik:"owner"`
+		RunCount      int    `mikrotik:"run-count"`
 		Allowed       bool
 	}{}
 	reply := routeros.Reply{
@@ -52,6 +54,10 @@ func TestUnmarshal(t *testing.T) {
 					{
 						Key:   "owner",
 						Value: owner,
+					},
+					{
+						Key:   "run-count",
+						Value: runCount,
 					},
 					{
 						Key:   "allowed",
@@ -72,7 +78,12 @@ func TestUnmarshal(t *testing.T) {
 	}
 
 	if strings.Compare(owner, testStruct.NotNamedOwner) != 0 {
-		t.Errorf("Failed to unmarshal name '%s' and testStruct.name '%s' should match", name, testStruct.Name)
+		t.Errorf("Failed to unmarshal name '%s' and testStruct.Name '%s' should match", name, testStruct.Name)
+	}
+
+	intRunCount, err := strconv.Atoi(runCount)
+	if intRunCount != testStruct.RunCount || err != nil {
+		t.Errorf("Failed to unmarshal run-count '%s' and testStruct.RunCount '%d' should match", runCount, testStruct.RunCount)
 	}
 
 	b, _ := strconv.ParseBool(allowed)
@@ -177,5 +188,28 @@ func TestUnmarshal_ttlToSeconds(t *testing.T) {
 
 	if testStruct.Ttl != expectedTtl {
 		t.Errorf("Failed to unmarshal ttl field with `ttlToSeconds`. Expected: '%d', received: %v", expectedTtl, testStruct.Ttl)
+	}
+}
+
+func TestMarshal(t *testing.T) {
+	name := "test owner"
+	owner := "admin"
+	runCount := 3
+	allowed := true
+	retain := false
+	testStruct := struct {
+		Name           string `mikrotik:"name"`
+		NotNamedOwner  string `mikrotik:"owner,extraTagNotUsed"`
+		RunCount       int    `mikrotik:"run-count"`
+		Allowed        bool   `mikrotik:"allowed-or-not"`
+		Retain         bool   `mikrotik:"retain"`
+		SecondaryOwner string `mikrotik:"secondary-owner"`
+	}{name, owner, runCount, allowed, retain, ""}
+
+	expectedAttributes := "=name=test owner =owner=admin =run-count=3 =allowed-or-not=yes =retain=no"
+	attributes := Marshal(&testStruct)
+
+	if attributes != expectedAttributes {
+		t.Errorf("Failed to marshal: %v does not equal expected %v", attributes, expectedAttributes)
 	}
 }

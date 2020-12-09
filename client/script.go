@@ -119,11 +119,3 @@ func (client Mikrotik) FindScript(name string) (*Script, error) {
 
 	return script, err
 }
-
-func boolToMikrotikBool(b bool) string {
-	if b {
-		return "yes"
-	} else {
-		return "no"
-	}
-}

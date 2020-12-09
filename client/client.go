@@ -83,6 +83,9 @@ func parseStruct(v *reflect.Value, sentence proto.Sentence) {
 				case reflect.Int:
 					if contains(tags, "ttlToSeconds") {
 						field.SetInt(int64(ttlToSeconds(pair.Value)))
+					} else {
+						intValue, _ := strconv.Atoi(pair.Value)
+						field.SetInt(int64(intValue))
 					}
 				}
 
@@ -162,4 +165,47 @@ func (client Mikrotik) getMikrotikClient() (c *routeros.Client, err error) {
 	}
 
 	return
+}
+
+func boolToMikrotikBool(b bool) string {
+	if b {
+		return "yes"
+	} else {
+		return "no"
+	}
+}
+
+func Marshal(s interface{}) string {
+	rv := reflect.ValueOf(s)
+	elem := rv.Elem()
+
+	if rv.Kind() != reflect.Ptr {
+		panic("Command attribute construction cannot work without a pointer")
+	}
+
+	var attributes []string
+
+	for i := 0; i < elem.NumField(); i++ {
+		value := elem.Field(i)
+		fieldType := elem.Type().Field(i)
+		// supports multiple struct tags--assumes first is mikrotik field name
+		tag := strings.Split(fieldType.Tag.Get("mikrotik"), ",")[0]
+
+		if tag != "" && (!value.IsZero() || value.Kind() == reflect.Bool) {
+			switch value.Kind() {
+			case reflect.Int:
+				intValue := elem.Field(i).Interface().(int)
+				attributes = append(attributes, fmt.Sprintf("=%s=%d", tag, intValue))
+			case reflect.String:
+				stringValue := elem.Field(i).Interface().(string)
+				attributes = append(attributes, fmt.Sprintf("=%s=%s", tag, stringValue))
+			case reflect.Bool:
+				boolValue := elem.Field(i).Interface().(bool)
+				stringBoolValue := boolToMikrotikBool(boolValue)
+				attributes = append(attributes, fmt.Sprintf("=%s=%s", tag, stringBoolValue))
+			}
+		}
+	}
+
+	return strings.Join(attributes, " ")
 }

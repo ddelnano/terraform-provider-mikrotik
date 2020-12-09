@@ -29,11 +29,12 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"mikrotik_dns_record": resourceRecord(),
-			"mikrotik_dhcp_lease": resourceLease(),
-			"mikrotik_scheduler":  resourceScheduler(),
-			"mikrotik_script":     resourceScript(),
-			"mikrotik_pool":       resourcePool(),
+			"mikrotik_dns_record":   resourceRecord(),
+			"mikrotik_dhcp_lease":   resourceLease(),
+			"mikrotik_scheduler":    resourceScheduler(),
+			"mikrotik_script":       resourceScript(),
+			"mikrotik_pool":         resourcePool(),
+			"mikrotik_bgp_instance": resourceBgpInstance(),
 		},
 		ConfigureFunc: mikrotikConfigure,
 	}
