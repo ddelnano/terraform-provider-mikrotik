@@ -1,6 +1,0 @@
-name: provider-mikrotik
-title: Mikrotik Provider
-version: 'master' 
-start_page: ROOT:index.adoc 
-nav:
-- modules/reference/nav.adoc
