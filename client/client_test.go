@@ -207,9 +207,40 @@ func TestMarshal(t *testing.T) {
 	}{name, owner, runCount, allowed, retain, ""}
 
 	expectedAttributes := "=name=test owner =owner=admin =run-count=3 =allowed-or-not=yes =retain=no"
+	// Marshal by passing pointer to struct
 	attributes := Marshal(&testStruct)
 
 	if attributes != expectedAttributes {
 		t.Errorf("Failed to marshal: %v does not equal expected %v", attributes, expectedAttributes)
+	}
+
+	// Marshal by passing by struct value
+	attributes = Marshal(testStruct)
+
+	if attributes != expectedAttributes {
+		t.Errorf("Failed to marshal: %v does not equal expected %v", attributes, expectedAttributes)
+	}
+}
+
+func TestMarshalStructWithoutTags(t *testing.T) {
+	name := "test owner"
+	owner := "admin"
+	runCount := 3
+	allowed := true
+	retain := false
+	testStruct := struct {
+		Name           string `example:"name"`
+		NotNamedOwner  string `json:"not-named"`
+		RunCount       int
+		Allowed        bool
+		Retain         bool
+		SecondaryOwner string
+	}{name, owner, runCount, allowed, retain, ""}
+
+	expectedAttributes := ""
+	attributes := Marshal(&testStruct)
+
+	if attributes != expectedAttributes {
+		t.Errorf("Marshaling with a struct without tags shoudl return empty attributes for command: %v does not equal expected %v", attributes, expectedAttributes)
 	}
 }

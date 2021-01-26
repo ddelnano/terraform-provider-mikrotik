@@ -128,11 +128,8 @@ func TestAccMikrotikBgpInstance_import(t *testing.T) {
 					testAccBgpInstanceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id")),
 			},
-			// TODO:  figure out why this fails
 			{
-				ResourceName: resourceName,
-				// tried adding this field, but didn't help
-				ImportStateId:     originalBgpName,
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},

@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -118,8 +117,7 @@ func TestFindBgpInstance_onNonExistantBgpInstance(t *testing.T) {
 	name := "bgp instance does not exist"
 	_, err := c.FindBgpInstance(name)
 
-	expectedErrStr := fmt.Sprintf("bgp instance `%s` not found", name)
-	if err == nil || err.Error() != expectedErrStr {
-		t.Errorf("client should have received error indicating the following bgp instance `%s` was not found. Instead error was nil", name)
+	if _, ok := err.(*NotFound); !ok {
+		t.Errorf("Expecting to receive NotFound error for bgp instance `%s`, instead error was nil.", name)
 	}
 }

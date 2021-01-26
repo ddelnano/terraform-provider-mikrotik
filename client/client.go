@@ -176,11 +176,14 @@ func boolToMikrotikBool(b bool) string {
 }
 
 func Marshal(s interface{}) string {
+	var elem reflect.Value
 	rv := reflect.ValueOf(s)
-	elem := rv.Elem()
 
-	if rv.Kind() != reflect.Ptr {
-		panic("Command attribute construction cannot work without a pointer")
+	if rv.Kind() == reflect.Ptr {
+		// get Value of what pointer points to
+		elem = rv.Elem()
+	} else {
+		elem = rv
 	}
 
 	var attributes []string

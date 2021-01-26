@@ -90,11 +90,6 @@ func (client Mikrotik) UpdateBgpInstance(b *BgpInstance) (*BgpInstance, error) {
 		return nil, err
 	}
 
-	_, err = client.FindBgpInstance(b.Name)
-
-	if err != nil {
-		return b, err
-	}
 	attributes := Marshal(b)
 	cmd := strings.Split(fmt.Sprintf("/routing/bgp/instance/set %s", attributes), " ")
 

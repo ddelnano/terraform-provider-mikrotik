@@ -115,11 +115,7 @@ func resourceBgpInstanceRead(d *schema.ResourceData, m interface{}) error {
 
 	bgpInstance, err := c.FindBgpInstance(d.Id())
 
-	// TODO: Ignoring this error can cause all resources to think they
-	// need to be created. We should more appropriately handle this. The
-	// error where the record is not found is not actually an error and
-	// needs to be disambiguated from real failures
-	if err != nil {
+	if _, ok := err.(*client.NotFound); ok {
 		d.SetId("")
 		return nil
 	}
