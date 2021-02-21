@@ -1,13 +1,21 @@
-.PHONY: import testacc dist
+.PHONY: import testacc
 
-TEST ?= ./...
+TIMEOUT ?= 40m
+ifdef TEST
+    TEST := ./... -run $(TEST)
+else
+    TEST := ./...
+endif
+
+ifdef TF_LOG
+    TF_LOG := TF_LOG=$(TF_LOG)
+endif
 
 build:
 	go build -o terraform-provider-mikrotik
 
 clean:
 	rm dist/*
-	terraform-provider-mikrotik
 
 plan: build
 	terraform init
@@ -16,8 +24,5 @@ plan: build
 apply:
 	terraform apply
 
-test:
-	go test $(TEST) -v
-
 testacc:
-	TF_ACC=1 go test $(TEST) -count 1 -v
+	TF_ACC=1 $(TF_LOG) go test $(TEST) -v -count 1 -timeout $(TIMEOUT)
