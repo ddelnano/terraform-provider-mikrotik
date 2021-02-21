@@ -22,7 +22,13 @@ func (client Mikrotik) AddDhcpLease(address, macaddress, name string, blocked st
 	if err != nil {
 		return nil, err
 	}
-	cmd := strings.Split(fmt.Sprintf("/ip/dhcp-server/lease/add =address=%s =mac-address=%s =comment=%q =block-access=%s", address, macaddress, name, blocked), " ")
+	cmd := []string{
+		"/ip/dhcp-server/lease/add",
+		fmt.Sprintf("=address=%s", address),
+		fmt.Sprintf("=mac-address=%s", macaddress),
+		fmt.Sprintf("=comment=%s", name),
+		fmt.Sprintf("=block-access=%s", blocked),
+	}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 
@@ -100,7 +106,14 @@ func (client Mikrotik) UpdateDhcpLease(id, address, macaddress, comment string, 
 		return nil, err
 	}
 
-	cmd := strings.Split(fmt.Sprintf("/ip/dhcp-server/lease/set =.id=%s =address=%s =mac-address=%s =comment=%q =block-access=%s", id, address, macaddress, comment, blocked), " ")
+	cmd := []string{
+		"/ip/dhcp-server/lease/set",
+		fmt.Sprintf("=.id=%s", id),
+		fmt.Sprintf("=address=%s", address),
+		fmt.Sprintf("=mac-address=%s", macaddress),
+		fmt.Sprintf("=comment=%s", comment),
+		fmt.Sprintf("=block-access=%s", blocked),
+	}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	_, err = c.RunArgs(cmd)
 
