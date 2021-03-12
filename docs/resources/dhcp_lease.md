@@ -20,7 +20,7 @@ resource "mikrotik_dhcp_lease" "file_server" {
 * blocked - (Optional) Whether to block access for this DHCP client (true\false)
 
 ### Attributes Reference
-* dynamic - Wether the dhcp lease is static or dynamic. Dynamic leases are not guaranteed to continue to be assigned to that specific device
+* dynamic - Whether the dhcp lease is static or dynamic. Dynamic leases are not guaranteed to continue to be assigned to that specific device
 * hostname - The hostname of the device
 
 ### Import Reference
