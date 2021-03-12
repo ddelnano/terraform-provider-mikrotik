@@ -1,8 +1,11 @@
 package client
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math"
 	"os"
@@ -19,6 +22,9 @@ type Mikrotik struct {
 	Host     string
 	Username string
 	Password string
+	TLS      bool
+	CA       string
+	Verify   bool
 }
 
 func Unmarshal(reply routeros.Reply, v interface{}) error {
@@ -136,11 +142,14 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func NewClient(host, username, password string) Mikrotik {
+func NewClient(host, username, password string, tls bool, ca string, verify bool) Mikrotik {
 	return Mikrotik{
-		Host:     host,
-		Username: username,
-		Password: password,
+		Host:      host,
+		Username:  username,
+		Password:  password,
+		TLS:       tls,
+		CA:        ca,
+		Verify:    verify,
 	}
 }
 
@@ -158,8 +167,27 @@ func (client Mikrotik) getMikrotikClient() (c *routeros.Client, err error) {
 	address := client.Host
 	username := client.Username
 	password := client.Password
-	c, err = routeros.Dial(address, username, password)
 
+	if client.tls {
+		tlsCfg := tls.Config{
+			config.InsecureSkipVerify = !verify
+		}
+
+		if ca != nil {
+			certPool := x509.NewCertPool()
+			file, err := ioutil.ReadFile(ca)
+			if err != nil {
+				log.Printf("[ERROR] Failed to read CA file %s: %v", ca, err)
+				return
+			}
+			certPool.AppendCertsFromPEM(file)
+			config.RootCAs = certPool
+		}
+
+		c, err = routeros.DialTLS(address, username, password, tlsCfg)
+	} else {
+		c, err = routeros.Dial(address, username, password)
+	}
 	if err != nil {
 		log.Printf("[ERROR] Failed to login to routerOS with error: %v", err)
 	}
