@@ -24,7 +24,7 @@ type Mikrotik struct {
 	Password string
 	TLS      bool
 	CA       string
-	Verify   bool
+	Insecure bool
 }
 
 func Unmarshal(reply routeros.Reply, v interface{}) error {
@@ -142,14 +142,14 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func NewClient(host, username, password string, tls bool, ca string, verify bool) Mikrotik {
+func NewClient(host, username, password string, tls bool, ca_certificate string, insecure bool) Mikrotik {
 	return Mikrotik{
 		Host:      host,
 		Username:  username,
 		Password:  password,
 		TLS:       tls,
-		CA:        ca,
-		Verify:    verify,
+		CA:        ca_certificate,
+		Insecure:  insecure,
 	}
 }
 
@@ -170,7 +170,7 @@ func (client Mikrotik) getMikrotikClient() (c *routeros.Client, err error) {
 
 	if client.TLS {
 		var tlsCfg tls.Config
-		tlsCfg.InsecureSkipVerify = !client.Verify
+		tlsCfg.InsecureSkipVerify = client.Insecure
 
 		if client.CA != "" {
 			certPool := x509.NewCertPool()

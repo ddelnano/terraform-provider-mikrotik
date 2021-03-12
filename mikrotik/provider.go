@@ -33,17 +33,17 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_TLS", false),
 				Description: "Whether to use TLS when connecting to MikroTik or not",
 			},
-			"ca": &schema.Schema{
+			"ca_certificate": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_CA", ""),
+				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_CA_CERTIFICATE", ""),
 				Description: "Path to MikroTik's certificate authority",
 			},
-			"verify": &schema.Schema{
+			"insecure": &schema.Schema{
 				Type:        schema.TypeBool,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_VERIFY", false),
-				Description: "Whether to verify TLS certification or not",
+				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_INSECURE", true),
+				Description: "Insecure connection does not verify MikroTik's TLS certificate",
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -63,9 +63,9 @@ func mikrotikConfigure(d *schema.ResourceData) (c interface{}, err error) {
 	username := d.Get("username").(string)
 	password := d.Get("password").(string)
 	tls := d.Get("tls").(bool)
-	ca := d.Get("ca").(string)
-	verify := d.Get("verify").(bool)
-	c = client.NewClient(address, username, password, tls, ca, verify)
+	ca_certificate := d.Get("ca_certificate").(string)
+	insecure := d.Get("insecure").(bool)
+	c = client.NewClient(address, username, password, tls, ca_certificate, insecure)
 	return
 }
 
