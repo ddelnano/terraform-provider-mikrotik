@@ -168,23 +168,22 @@ func (client Mikrotik) getMikrotikClient() (c *routeros.Client, err error) {
 	username := client.Username
 	password := client.Password
 
-	if client.tls {
-		tlsCfg := tls.Config{
-			config.InsecureSkipVerify = !verify
-		}
+	if client.TLS {
+		var tlsCfg tls.Config
+		tlsCfg.InsecureSkipVerify = !client.Verify
 
-		if ca != nil {
+		if client.CA != "" {
 			certPool := x509.NewCertPool()
-			file, err := ioutil.ReadFile(ca)
+			file, err := ioutil.ReadFile(client.CA)
 			if err != nil {
-				log.Printf("[ERROR] Failed to read CA file %s: %v", ca, err)
-				return
+				log.Printf("[ERROR] Failed to read CA file %s: %v", client.CA , err)
+				return nil, err
 			}
 			certPool.AppendCertsFromPEM(file)
-			config.RootCAs = certPool
+			tlsCfg.RootCAs = certPool
 		}
 
-		c, err = routeros.DialTLS(address, username, password, tlsCfg)
+		c, err = routeros.DialTLS(address, username, password, &tlsCfg)
 	} else {
 		c, err = routeros.Dial(address, username, password)
 	}

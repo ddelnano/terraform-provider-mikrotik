@@ -36,7 +36,7 @@ func Provider() terraform.ResourceProvider {
 			"ca": &schema.Schema{
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_CA", nil),
+				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_CA", ""),
 				Description: "Path to MikroTik's certificate authority",
 			},
 			"verify": &schema.Schema{
