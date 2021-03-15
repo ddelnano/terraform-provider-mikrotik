@@ -63,9 +63,9 @@ func mikrotikConfigure(d *schema.ResourceData) (c interface{}, err error) {
 	username := d.Get("username").(string)
 	password := d.Get("password").(string)
 	tls := d.Get("tls").(bool)
-	ca_certificate := d.Get("ca_certificate").(string)
+	caCertificate := d.Get("ca_certificate").(string)
 	insecure := d.Get("insecure").(bool)
-	c = client.NewClient(address, username, password, tls, ca_certificate, insecure)
+	c = client.NewClient(address, username, password, tls, caCertificate, insecure)
 	return
 }
 

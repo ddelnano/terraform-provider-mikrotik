@@ -142,13 +142,13 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func NewClient(host, username, password string, tls bool, ca_certificate string, insecure bool) Mikrotik {
+func NewClient(host, username, password string, tls bool, caCertificate string, insecure bool) Mikrotik {
 	return Mikrotik{
 		Host:      host,
 		Username:  username,
 		Password:  password,
 		TLS:       tls,
-		CA:        ca_certificate,
+		CA:        caCertificate,
 		Insecure:  insecure,
 	}
 }
