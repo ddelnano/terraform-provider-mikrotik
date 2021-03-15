@@ -42,7 +42,7 @@ func Provider() terraform.ResourceProvider {
 			"insecure": &schema.Schema{
 				Type:        schema.TypeBool,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_INSECURE", true),
+				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_INSECURE", false),
 				Description: "Insecure connection does not verify MikroTik's TLS certificate",
 			},
 		},
