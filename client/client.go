@@ -153,13 +153,23 @@ func NewClient(host, username, password string, tls bool, caCertificate string, 
 	}
 }
 
-func GetConfigFromEnv() (host, username, password string) {
+func GetConfigFromEnv() (host, username, password string, tls bool, caCertificate string, insecure bool) {
 	host = os.Getenv("MIKROTIK_HOST")
 	username = os.Getenv("MIKROTIK_USER")
 	password = os.Getenv("MIKROTIK_PASSWORD")
-	tls = os.Getenv("MIKROTIK_TLS")
+	tlsString := os.Getenv("MIKROTIK_TLS")
+	if tlsString == "true" {
+		tls = true
+	} else {
+		tls = false
+	}
 	caCertificate = os.Getenv("MIKROTIK_CA_CERTIFICATE")
-	insecure = os.Getenv("MIKROTIK_INSECURE")
+	insecureString := os.Getenv("MIKROTIK_INSECURE")
+	if insecureString == "true" {
+		insecure = true
+	} else {
+		insecure = false
+	}
 	if host == "" || username == "" || password == "" {
 		// panic("Unable to find the MIKROTIK_HOST, MIKROTIK_USER or MIKROTIK_PASSWORD environment variable")
 	}
