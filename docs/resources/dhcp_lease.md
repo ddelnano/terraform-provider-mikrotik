@@ -18,8 +18,10 @@ resource "mikrotik_dhcp_lease" "file_server" {
 * macaddress - (Required) The MAC addreess of the DHCP lease to be created
 * comment - (Optional) The comment of the DHCP lease to be created
 * blocked - (Optional) Whether to block access for this DHCP client (true\false)
+* dynamic - (Optional) Whether the dhcp lease is static or dynamic. Dynamic leases are not guaranteed to continue to be assigned to that specific device. Defaults to false.
 
 ### Attributes Reference
+* hostname - The hostname of the device
 
 ### Import Reference
 
