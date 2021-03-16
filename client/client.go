@@ -157,10 +157,13 @@ func GetConfigFromEnv() (host, username, password string) {
 	host = os.Getenv("MIKROTIK_HOST")
 	username = os.Getenv("MIKROTIK_USER")
 	password = os.Getenv("MIKROTIK_PASSWORD")
+	tls = os.Getenv("MIKROTIK_TLS")
+	caCertificate = os.Getenv("MIKROTIK_CA_CERTIFICATE")
+	insecure = os.Getenv("MIKROTIK_INSECURE")
 	if host == "" || username == "" || password == "" {
 		// panic("Unable to find the MIKROTIK_HOST, MIKROTIK_USER or MIKROTIK_PASSWORD environment variable")
 	}
-	return host, username, password
+	return host, username, password, tls, caCertificate, insecure
 }
 
 func (client Mikrotik) getMikrotikClient() (c *routeros.Client, err error) {
