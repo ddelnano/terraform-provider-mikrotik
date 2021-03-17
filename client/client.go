@@ -1,8 +1,11 @@
 package client
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math"
 	"os"
@@ -19,6 +22,9 @@ type Mikrotik struct {
 	Host     string
 	Username string
 	Password string
+	TLS      bool
+	CA       string
+	Insecure bool
 }
 
 func Unmarshal(reply routeros.Reply, v interface{}) error {
@@ -136,30 +142,64 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func NewClient(host, username, password string) Mikrotik {
+func NewClient(host, username, password string, tls bool, caCertificate string, insecure bool) Mikrotik {
 	return Mikrotik{
-		Host:     host,
-		Username: username,
-		Password: password,
+		Host:      host,
+		Username:  username,
+		Password:  password,
+		TLS:       tls,
+		CA:        caCertificate,
+		Insecure:  insecure,
 	}
 }
 
-func GetConfigFromEnv() (host, username, password string) {
+func GetConfigFromEnv() (host, username, password string, tls bool, caCertificate string, insecure bool) {
 	host = os.Getenv("MIKROTIK_HOST")
 	username = os.Getenv("MIKROTIK_USER")
 	password = os.Getenv("MIKROTIK_PASSWORD")
+	tlsString := os.Getenv("MIKROTIK_TLS")
+	if tlsString == "true" {
+		tls = true
+	} else {
+		tls = false
+	}
+	caCertificate = os.Getenv("MIKROTIK_CA_CERTIFICATE")
+	insecureString := os.Getenv("MIKROTIK_INSECURE")
+	if insecureString == "true" {
+		insecure = true
+	} else {
+		insecure = false
+	}
 	if host == "" || username == "" || password == "" {
 		// panic("Unable to find the MIKROTIK_HOST, MIKROTIK_USER or MIKROTIK_PASSWORD environment variable")
 	}
-	return host, username, password
+	return host, username, password, tls, caCertificate, insecure
 }
 
 func (client Mikrotik) getMikrotikClient() (c *routeros.Client, err error) {
 	address := client.Host
 	username := client.Username
 	password := client.Password
-	c, err = routeros.Dial(address, username, password)
 
+	if client.TLS {
+		var tlsCfg tls.Config
+		tlsCfg.InsecureSkipVerify = client.Insecure
+
+		if client.CA != "" {
+			certPool := x509.NewCertPool()
+			file, err := ioutil.ReadFile(client.CA)
+			if err != nil {
+				log.Printf("[ERROR] Failed to read CA file %s: %v", client.CA , err)
+				return nil, err
+			}
+			certPool.AppendCertsFromPEM(file)
+			tlsCfg.RootCAs = certPool
+		}
+
+		c, err = routeros.DialTLS(address, username, password, &tlsCfg)
+	} else {
+		c, err = routeros.Dial(address, username, password)
+	}
 	if err != nil {
 		log.Printf("[ERROR] Failed to login to routerOS with error: %v", err)
 	}
