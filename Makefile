@@ -1,4 +1,4 @@
-.PHONY: import testacc
+.PHONY: import testacc testclient test
 
 TIMEOUT ?= 40m
 ifdef TEST
@@ -23,6 +23,11 @@ plan: build
 
 apply:
 	terraform apply
+
+test: testclient testacc
+
+testclient:
+	cd client; go test $(TEST) -v -count 1
 
 testacc:
 	TF_ACC=1 $(TF_LOG) go test $(TEST) -v -count 1 -timeout $(TIMEOUT)
