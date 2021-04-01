@@ -91,7 +91,7 @@ func (client Mikrotik) DeleteScript(name string) error {
 	if err != nil {
 		return err
 	}
-	cmd := strings.Split(fmt.Sprintf("/system/script/remove =numbers=%s", script.Id), " ")
+	cmd := []string{"/system/script/remove", "=numbers=" + script.Id}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 	log.Printf("[DEBUG] Remove script from mikrotik api %v", r)
@@ -101,7 +101,7 @@ func (client Mikrotik) DeleteScript(name string) error {
 
 func (client Mikrotik) FindScript(name string) (*Script, error) {
 	c, err := client.getMikrotikClient()
-	cmd := strings.Split(fmt.Sprintf("/system/script/print ?name=%s", name), " ")
+	cmd := []string{"/system/script/print", "?name=" + name}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 

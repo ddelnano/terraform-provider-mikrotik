@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 	"log"
-	"strings"
 )
 
 type Scheduler struct {
@@ -17,7 +16,7 @@ type Scheduler struct {
 
 func (client Mikrotik) FindScheduler(name string) (*Scheduler, error) {
 	c, err := client.getMikrotikClient()
-	cmd := strings.Split(fmt.Sprintf("/system/scheduler/print ?name=%s", name), " ")
+	cmd := []string{"/system/scheduler/print", "?name=" + name}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 
@@ -43,7 +42,7 @@ func (client Mikrotik) DeleteScheduler(name string) error {
 	if err != nil {
 		return err
 	}
-	cmd := strings.Split(fmt.Sprintf("/system/scheduler/remove =numbers=%s", scheduler.Id), " ")
+	cmd := []string{"/system/scheduler/remove", "=numbers=" + scheduler.Id}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 	log.Printf("[DEBUG] Remove scheduler from mikrotik api %v", r)
