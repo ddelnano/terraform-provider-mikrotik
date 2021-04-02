@@ -8,8 +8,10 @@ import (
 var name string = "testacc"
 var ranges string = "172.16.0.1-172.16.0.8,172.16.0.10"
 var comment string = "terraform-acc-test-pool"
+var updatedRanges string = "172.16.0.1-172.16.0.8,172.16.0.16"
+var updatedComment string = "terraform acc test pool updated"
 
-func TestAddPoolAndDeletePool(t *testing.T) {
+func TestAddUpdateAndDeletePool(t *testing.T) {
 	c := NewClient(GetConfigFromEnv())
 
 	expectedPool := &Pool{
@@ -17,40 +19,27 @@ func TestAddPoolAndDeletePool(t *testing.T) {
 		Ranges:  ranges,
 		Comment: comment,
 	}
-	pool, err := c.AddPool(
-		name,
-		ranges,
-		comment,
-	)
+	pool, err := c.AddPool(expectedPool)
 
 	if err != nil {
 		t.Fatalf("Error creating a pool with: %v", err)
 	}
 
-	if len(pool.Id) < 1 {
-		t.Errorf("The created pool does not have an Id: %v", pool)
+	expectedPool.Id = pool.Id
+	if !reflect.DeepEqual(pool, expectedPool) {
+		t.Errorf("The pool does not match what we expected. actual: %v expected: %v", pool, expectedPool)
 	}
 
-	if pool.Name != expectedPool.Name {
-		t.Errorf("The pool Name fields do not match. actual: %v expected: %v", pool.Name, expectedPool.Name)
-	}
-
-	if pool.Ranges != expectedPool.Ranges {
-		t.Errorf("The pool Ranges fields do not match. actual: %v expected: %v", pool.Ranges, expectedPool.Ranges)
-	}
-
-	if pool.Comment != expectedPool.Comment {
-		t.Errorf("The pool Comment fields do not match. actual: %v expected: %v", pool.Comment, expectedPool.Comment)
-	}
-
-	foundPool, err := c.FindPool(pool.Id)
+	expectedPool.Comment = updatedComment
+	expectedPool.Ranges = updatedRanges
+	pool, err = c.UpdatePool(expectedPool)
 
 	if err != nil {
-		t.Errorf("Error getting pool with: %v", err)
+		t.Errorf("Error updating pool with: %v", err)
 	}
 
-	if !reflect.DeepEqual(pool, foundPool) {
-		t.Errorf("Created pool and found pool do not match. actual: %v expected: %v", foundPool, pool)
+	if !reflect.DeepEqual(pool, expectedPool) {
+		t.Errorf("Updated pool does not match the expected: %v expected: %v", expectedPool, pool)
 	}
 
 	err = c.DeletePool(pool.Id)
@@ -73,11 +62,13 @@ func TestFindPool_forNonExistingPool(t *testing.T) {
 
 func TestFindPoolByName_forExistingPool(t *testing.T) {
 	c := NewClient(GetConfigFromEnv())
-	pool, err := c.AddPool(
-		name,
-		ranges,
-		comment,
-	)
+
+	p := &Pool{
+		Name:    name,
+		Ranges:  ranges,
+		Comment: comment,
+	}
+	pool, err := c.AddPool(p)
 
 	expectedPool, err := c.FindPoolByName(pool.Name)
 	if err != nil {

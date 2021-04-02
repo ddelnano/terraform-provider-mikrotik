@@ -33,13 +33,11 @@ func resourcePool() *schema.Resource {
 }
 
 func resourcePoolCreate(d *schema.ResourceData, m interface{}) error {
-	name := d.Get("name").(string)
-	ranges := d.Get("ranges").(string)
-	comment := d.Get("comment").(string)
+	p := preparePool(d)
 
 	c := m.(client.Mikrotik)
 
-	pool, err := c.AddPool(name, ranges, comment)
+	pool, err := c.AddPool(p)
 	if err != nil {
 		return err
 	}
@@ -63,11 +61,14 @@ func resourcePoolRead(d *schema.ResourceData, m interface{}) error {
 func resourcePoolUpdate(d *schema.ResourceData, m interface{}) error {
 	c := m.(client.Mikrotik)
 
-	name := d.Get("name").(string)
-	ranges := d.Get("ranges").(string)
-	comment := d.Get("comment").(string)
+	p, err := c.FindPool(d.Id())
+	if err != nil {
+		return err
+	}
+	pool := preparePool(d)
+	pool.Id = p.Id
 
-	pool, err := c.UpdatePool(d.Id(), name, ranges, comment)
+	pool, err = c.UpdatePool(pool)
 
 	if err != nil {
 		return err
@@ -101,4 +102,14 @@ func poolToData(pool *client.Pool, d *schema.ResourceData) error {
 		return err
 	}
 	return nil
+}
+
+func preparePool(d *schema.ResourceData) *client.Pool {
+	pool := new(client.Pool)
+
+	pool.Name = d.Get("name").(string)
+	pool.Ranges = d.Get("ranges").(string)
+	pool.Comment = d.Get("comment").(string)
+
+	return pool
 }
