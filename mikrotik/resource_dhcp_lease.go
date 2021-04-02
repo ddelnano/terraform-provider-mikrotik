@@ -33,9 +33,9 @@ func resourceLease() *schema.Resource {
 				Optional: true,
 			},
 			"blocked": &schema.Schema{
-				Type:     schema.TypeString,
+				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  "false",
+				Default:  false,
 			},
 			"dynamic": &schema.Schema{
 				Type:     schema.TypeBool,
@@ -47,14 +47,11 @@ func resourceLease() *schema.Resource {
 }
 
 func resourceLeaseCreate(d *schema.ResourceData, m interface{}) error {
-	address := d.Get("address").(string)
-	macaddress := d.Get("macaddress").(string)
-	comment := d.Get("comment").(string)
-	blocked:= d.Get("blocked").(string)
+	dhcpLease := prepareDhcpLease(d)
 
 	c := m.(client.Mikrotik)
 
-	lease, err := c.AddDhcpLease(address, macaddress, comment, blocked)
+	lease, err := c.AddDhcpLease(dhcpLease)
 	if err != nil {
 		return err
 	}
@@ -85,13 +82,12 @@ func resourceLeaseRead(d *schema.ResourceData, m interface{}) error {
 func resourceLeaseUpdate(d *schema.ResourceData, m interface{}) error {
 	c := m.(client.Mikrotik)
 
-	macaddress := d.Get("macaddress").(string)
-	address := d.Get("address").(string)
-	comment := d.Get("comment").(string)
-	blocked:= d.Get("blocked").(string)
-	dynamic := d.Get("dynamic").(bool)
+	currentLease, err := c.FindDhcpLease(d.Id())
+	dhcpLease := prepareDhcpLease(d)
+	dhcpLease.Id = currentLease.Id
 
-	lease, err := c.UpdateDhcpLease(d.Id(), address, macaddress, comment, blocked, dynamic)
+	lease, err := c.UpdateDhcpLease(dhcpLease)
+	lease.Dynamic = dhcpLease.Dynamic
 
 	if err != nil {
 		return err
@@ -123,4 +119,17 @@ func leaseToData(lease *client.DhcpLease, d *schema.ResourceData) error {
 	d.Set("hostname", lease.Hostname)
 	d.Set("dynamic", lease.Dynamic)
 	return nil
+}
+
+func prepareDhcpLease(d *schema.ResourceData) *client.DhcpLease {
+	lease := new(client.DhcpLease)
+
+	lease.BlockAccess = d.Get("blocked").(bool)
+	lease.Comment = d.Get("comment").(string)
+	lease.Address = d.Get("address").(string)
+	lease.MacAddress = d.Get("macaddress").(string)
+	lease.Hostname = d.Get("hostname").(string)
+	lease.Dynamic = d.Get("dynamic").(bool)
+
+	return lease
 }

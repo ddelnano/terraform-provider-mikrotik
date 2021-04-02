@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 	"reflect"
-	"strings"
 	"testing"
 )
 
@@ -13,41 +12,37 @@ func TestAddLeaseAndDeleteLease(t *testing.T) {
 	address := "1.1.1.1"
 	macaddress := "11:11:11:11:11:11"
 	comment := "terraform-acc-test"
-	blocked:= "false"
+	blocked := false
+	updatedMacaddress := "11:11:11:11:11:12"
+	updatedComment := "terraform acc test updated"
+
 	expectedLease := &DhcpLease{
-		Address:      address,
-		MacAddress:   macaddress,
-		Comment:      comment,
-		BlockAccess:  blocked,
+		Address:     address,
+		MacAddress:  macaddress,
+		Comment:     comment,
+		BlockAccess: blocked,
 	}
-	lease, err := c.AddDhcpLease(
-		address,
-		macaddress,
-		comment,
-		blocked,
-	)
+	lease, err := c.AddDhcpLease(expectedLease)
 
 	if err != nil {
 		t.Errorf("Error creating a lease with: %v", err)
 	}
 
-	if len(lease.Id) < 1 {
-		t.Errorf("The created lease does not have an Id: %v", lease)
+	expectedLease.Id = lease.Id
+
+	if !reflect.DeepEqual(lease, expectedLease) {
+		t.Errorf("The dhcp lease does not match what we expected. actual: %v expected: %v", lease, expectedLease)
 	}
 
-	if strings.Compare(lease.Address, expectedLease.Address) != 0 {
-		t.Errorf("The lease address fields do not match. actual: %v expected: %v", lease.Address, expectedLease.Address)
-	}
+	expectedLease.Comment = updatedComment
+	expectedLease.MacAddress = updatedMacaddress
+	lease, err = c.UpdateDhcpLease(expectedLease)
 
-	if strings.Compare(lease.MacAddress, expectedLease.MacAddress) != 0 {
-		t.Errorf("The lease MacAddress fields do not match. actual: %v expected: %v", lease.MacAddress, expectedLease.MacAddress)
+	if err != nil {
+		t.Errorf("Error updating a lease with: %v", err)
 	}
-
-	if strings.Compare(lease.Comment, expectedLease.Comment) != 0 {
-		t.Errorf("The lease Comment fields do not match. actual: %v expected: %v", lease.Comment, expectedLease.Comment)
-	}
-	if strings.Compare(lease.BlockAccess, expectedLease.BlockAccess) != 0 {
-		t.Errorf("The lease BlockAccess fields do not match. actual: %v expected: %v", lease.BlockAccess, expectedLease.BlockAccess)
+	if !reflect.DeepEqual(lease, expectedLease) {
+		t.Errorf("The dhcp lease does not match what we expected. actual: %v expected: %v", lease, expectedLease)
 	}
 
 	foundLease, err := c.FindDhcpLease(lease.Id)

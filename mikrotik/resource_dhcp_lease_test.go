@@ -14,7 +14,7 @@ var originalMacAddress string = "11:11:11:11:11:11"
 var originalComment string = "multi word comment"
 var updatedIpAddress string = "2.2.2.2"
 var updatedMacAddress string = "22:22:22:22:22:22"
-var updatedBlockAccess string = "true"
+var updatedBlockAccess bool = true
 var updatedLeaseComment string = "New multi line comment"
 
 func TestAccMikrotikDhcpLease_create(t *testing.T) {
@@ -88,7 +88,7 @@ func TestAccMikrotikDhcpLease_updateLease(t *testing.T) {
 					testAccDhcpLeaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "address", originalIpAddress),
 					resource.TestCheckResourceAttr(resourceName, "macaddress", originalMacAddress),
-					resource.TestCheckResourceAttr(resourceName, "blocked", updatedBlockAccess),
+					resource.TestCheckResourceAttr(resourceName, "blocked", "true"),
 					resource.TestCheckResourceAttr(resourceName, "comment", originalComment),
 				),
 			},
@@ -182,10 +182,10 @@ func testAccDhcpLeaseUpdatedBlockAccess() string {
 resource "mikrotik_dhcp_lease" "bar" {
     address = "%s"
     macaddress = "%s"
-    blocked= "%s"
+    blocked = true
     comment = "%s"
 }
-`, originalIpAddress, originalMacAddress, updatedBlockAccess, originalComment)
+`, originalIpAddress, originalMacAddress, originalComment)
 }
 
 func testAccDhcpLeaseUpdatedComment() string {
