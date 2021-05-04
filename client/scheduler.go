@@ -7,7 +7,7 @@ import (
 
 type Scheduler struct {
 	Id        string `mikrotik:".id"`
-	Name      string
+	Name      string `mikrotik:"name"`
 	OnEvent   string `mikrotik:"on-event"`
 	StartDate string `mikrotik:"start-date"`
 	StartTime string `mikrotik:"start-time"`
@@ -50,18 +50,11 @@ func (client Mikrotik) DeleteScheduler(name string) error {
 	return err
 }
 
-func (client Mikrotik) CreateScheduler(name string, onEvent string, interval int) (*Scheduler, error) {
+func (client Mikrotik) CreateScheduler(s *Scheduler) (*Scheduler, error) {
 	c, err := client.getMikrotikClient()
 
-	nameArg := fmt.Sprintf("=name=%s", name)
-	onEventArg := fmt.Sprintf("=on-event=%s", onEvent)
-	intervalArg := fmt.Sprintf("=interval=%d", interval)
-	cmd := []string{
-		"/system/scheduler/add",
-		nameArg,
-		onEventArg,
-		intervalArg,
-	}
+	cmd := Marshal("/system/scheduler/add", s)
+
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 	log.Printf("[DEBUG] /system/scheduler/add returned %v", r)
@@ -70,31 +63,24 @@ func (client Mikrotik) CreateScheduler(name string, onEvent string, interval int
 		return nil, err
 	}
 
-	return client.FindScheduler(name)
+	return client.FindScheduler(s.Name)
 }
 
-func (client Mikrotik) UpdateScheduler(name, onEvent string, interval int) (*Scheduler, error) {
+func (client Mikrotik) UpdateScheduler(s *Scheduler) (*Scheduler, error) {
 	c, err := client.getMikrotikClient()
 
 	if err != nil {
 		return nil, err
 	}
 
-	scheduler, err := client.FindScheduler(name)
+	scheduler, err := client.FindScheduler(s.Name)
 
 	if err != nil {
 		return scheduler, err
 	}
 
-	nameArg := fmt.Sprintf("=numbers=%s", scheduler.Id)
-	intervalArg := fmt.Sprintf("=interval=%d", interval)
-	onEventArg := fmt.Sprintf("=on-event=%s", onEvent)
-	cmd := []string{
-		"/system/scheduler/set",
-		nameArg,
-		intervalArg,
-		onEventArg,
-	}
+	cmd := Marshal("/system/scheduler/set", s)
+
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	_, err = c.RunArgs(cmd)
 
@@ -102,5 +88,5 @@ func (client Mikrotik) UpdateScheduler(name, onEvent string, interval int) (*Sch
 		return scheduler, err
 	}
 
-	return client.FindScheduler(name)
+	return client.FindScheduler(s.Name)
 }

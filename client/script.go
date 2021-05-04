@@ -8,11 +8,11 @@ import (
 
 type Script struct {
 	Id                     string `mikrotik:".id"`
-	Name                   string
-	Owner                  string
+	Name                   string `mikrotik:"name"`
+	Owner                  string `mikrotik:"owner"`
 	PolicyString           string `mikrotik:"policy"`
 	DontRequirePermissions bool   `mikrotik:"dont-require-permissions"`
-	Source                 string
+	Source                 string `source:"source"`
 }
 
 func (s *Script) Policy() []string {

@@ -44,16 +44,11 @@ func resourceScheduler() *schema.Resource {
 }
 
 func resourceSchedulerCreate(d *schema.ResourceData, m interface{}) error {
-	name := d.Get("name").(string)
-	onEvent := d.Get("on_event").(string)
-	interval := d.Get("interval").(int)
+	sched := prepareScheduler(d)
+
 	c := m.(client.Mikrotik)
 
-	scheduler, err := c.CreateScheduler(
-		name,
-		onEvent,
-		interval,
-	)
+	scheduler, err := c.CreateScheduler(sched)
 	if err != nil {
 		return err
 	}
@@ -76,17 +71,13 @@ func resourceSchedulerRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSchedulerUpdate(d *schema.ResourceData, m interface{}) error {
-	name := d.Get("name").(string)
-	onEvent := d.Get("on_event").(string)
-	interval := d.Get("interval").(int)
-
 	c := m.(client.Mikrotik)
 
-	scheduler, err := c.UpdateScheduler(
-		name,
-		onEvent,
-		interval,
-	)
+	currentScheduler, err := c.FindScheduler(d.Id())
+	sched := prepareScheduler(d)
+	sched.Id = currentScheduler.Id
+
+	scheduler, err := c.UpdateScheduler(sched)
 
 	if err != nil {
 		return err
@@ -119,4 +110,16 @@ func schedulerToData(s *client.Scheduler, d *schema.ResourceData) error {
 	d.Set("start_date", s.StartDate)
 	d.Set("interval", s.Interval)
 	return nil
+}
+
+func prepareScheduler(d *schema.ResourceData) *client.Scheduler {
+	scheduler := new(client.Scheduler)
+
+	scheduler.Name = d.Get("name").(string)
+	scheduler.OnEvent = d.Get("on_event").(string)
+	scheduler.StartDate = d.Get("start_date").(string)
+	scheduler.StartTime = d.Get("start_time").(string)
+	scheduler.Interval = d.Get("interval").(int)
+
+	return scheduler
 }

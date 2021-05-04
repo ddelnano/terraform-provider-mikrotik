@@ -6,21 +6,18 @@ import (
 	"testing"
 )
 
-func TestCreateDeleteAndFindScheduler(t *testing.T) {
+func TestCreateUpdateDeleteAndFindScheduler(t *testing.T) {
 	c := NewClient(GetConfigFromEnv())
 
 	schedulerName := "scheduler"
 	onEvent := "onevent"
 	interval := 0
-	expectedScheduler := Scheduler{
-		Name:    schedulerName,
-		OnEvent: onEvent,
+	expectedScheduler := &Scheduler{
+		Name:     schedulerName,
+		OnEvent:  onEvent,
+		Interval: interval,
 	}
-	scheduler, err := NewClient(GetConfigFromEnv()).CreateScheduler(
-		schedulerName,
-		onEvent,
-		interval,
-	)
+	scheduler, err := c.CreateScheduler(expectedScheduler)
 
 	if err != nil || scheduler == nil {
 		t.Errorf("Error creating a scheduler with: %v and value: %v", err, scheduler)
@@ -30,8 +27,20 @@ func TestCreateDeleteAndFindScheduler(t *testing.T) {
 	expectedScheduler.StartDate = scheduler.StartDate
 	expectedScheduler.StartTime = scheduler.StartTime
 
-	if !reflect.DeepEqual(*scheduler, expectedScheduler) {
-		t.Errorf("The scheduler does not match what we expected. actual: %v expected: %v", *scheduler, expectedScheduler)
+	if !reflect.DeepEqual(scheduler, expectedScheduler) {
+		t.Errorf("The scheduler does not match what we expected. actual: %v expected: %v", scheduler, expectedScheduler)
+	}
+	fmt.Println("")
+	fmt.Println(expectedScheduler)
+	fmt.Println(scheduler)
+	fmt.Println("")
+
+	// update and reassert
+	expectedScheduler.OnEvent = "test"
+	scheduler, err = c.UpdateScheduler(expectedScheduler)
+
+	if !reflect.DeepEqual(scheduler, expectedScheduler) {
+		t.Errorf("The updated scheduler does not match what we expected. actual: %v expected: %v", scheduler, expectedScheduler)
 	}
 
 	err = c.DeleteScheduler(schedulerName)
@@ -47,8 +56,7 @@ func TestFindScheduler_onNonExistantScript(t *testing.T) {
 	name := "scheduler does not exist"
 	_, err := c.FindScheduler(name)
 
-	expectedErrStr := fmt.Sprintf("scheduler `%s` not found", name)
-	if err == nil || err.Error() != expectedErrStr {
-		t.Errorf("client should have received error indicating the following script `%s` was not found. Instead error was nil", name)
+	if _, ok := err.(*NotFound); !ok {
+		t.Errorf("Expecting to receive NotFound error for scheduler `%s`, instead error was nil.", name)
 	}
 }

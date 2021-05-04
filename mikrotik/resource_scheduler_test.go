@@ -11,9 +11,9 @@ import (
 
 var schOrigName string = "scheduler-terraform-acc-testing"
 var origOnEvent string = "testing"
-var origInterval string = "0"
+var origInterval int = 0
 var updatedOnEvent string = "updated"
-var updatedInterval string = "300"
+var updatedInterval int = 300
 
 func TestAccMikrotikScheduler_create(t *testing.T) {
 	resourceName := "mikrotik_scheduler.bar"
@@ -119,7 +119,7 @@ func testAccSchedulerUpdatedInterval() string {
 resource "mikrotik_scheduler" "bar" {
     name = "%s"
     on_event = "%s"
-    interval = "%s"
+    interval = "%d"
 }
 `, schOrigName, origOnEvent, updatedInterval)
 }
@@ -129,7 +129,7 @@ func testAccSchedulerUpdatedOnEvent() string {
 resource "mikrotik_scheduler" "bar" {
     name = "%s"
     on_event = "%s"
-    interval = "%s"
+    interval = "%d"
 }
 `, schOrigName, updatedOnEvent, origInterval)
 }
