@@ -1,6 +1,8 @@
 package mikrotik
 
 import (
+	"strconv"
+
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -33,9 +35,9 @@ func resourceLease() *schema.Resource {
 				Optional: true,
 			},
 			"blocked": &schema.Schema{
-				Type:     schema.TypeBool,
+				Type:     schema.TypeString,
 				Optional: true,
-				Default:  false,
+				Default:  "false",
 			},
 			"dynamic": &schema.Schema{
 				Type:     schema.TypeBool,
@@ -112,7 +114,7 @@ func resourceLeaseDelete(d *schema.ResourceData, m interface{}) error {
 
 func leaseToData(lease *client.DhcpLease, d *schema.ResourceData) error {
 	d.SetId(lease.Id)
-	d.Set("blocked", lease.BlockAccess)
+	d.Set("blocked", strconv.FormatBool(lease.BlockAccess))
 	d.Set("comment", lease.Comment)
 	d.Set("address", lease.Address)
 	d.Set("macaddress", lease.MacAddress)
@@ -124,7 +126,7 @@ func leaseToData(lease *client.DhcpLease, d *schema.ResourceData) error {
 func prepareDhcpLease(d *schema.ResourceData) *client.DhcpLease {
 	lease := new(client.DhcpLease)
 
-	lease.BlockAccess = d.Get("blocked").(bool)
+	lease.BlockAccess, _ = strconv.ParseBool(d.Get("blocked").(string))
 	lease.Comment = d.Get("comment").(string)
 	lease.Address = d.Get("address").(string)
 	lease.MacAddress = d.Get("macaddress").(string)

@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -30,10 +29,6 @@ func TestCreateUpdateDeleteAndFindScheduler(t *testing.T) {
 	if !reflect.DeepEqual(scheduler, expectedScheduler) {
 		t.Errorf("The scheduler does not match what we expected. actual: %v expected: %v", scheduler, expectedScheduler)
 	}
-	fmt.Println("")
-	fmt.Println(expectedScheduler)
-	fmt.Println(scheduler)
-	fmt.Println("")
 
 	// update and reassert
 	expectedScheduler.OnEvent = "test"
