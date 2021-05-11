@@ -84,9 +84,8 @@ func resourceLeaseRead(d *schema.ResourceData, m interface{}) error {
 func resourceLeaseUpdate(d *schema.ResourceData, m interface{}) error {
 	c := m.(client.Mikrotik)
 
-	currentLease, err := c.FindDhcpLease(d.Id())
 	dhcpLease := prepareDhcpLease(d)
-	dhcpLease.Id = currentLease.Id
+	dhcpLease.Id = d.Id()
 
 	lease, err := c.UpdateDhcpLease(dhcpLease)
 	lease.Dynamic = dhcpLease.Dynamic

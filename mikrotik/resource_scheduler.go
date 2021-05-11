@@ -73,9 +73,8 @@ func resourceSchedulerRead(d *schema.ResourceData, m interface{}) error {
 func resourceSchedulerUpdate(d *schema.ResourceData, m interface{}) error {
 	c := m.(client.Mikrotik)
 
-	currentScheduler, err := c.FindScheduler(d.Id())
 	sched := prepareScheduler(d)
-	sched.Id = currentScheduler.Id
+	sched.Id = d.Id()
 
 	scheduler, err := c.UpdateScheduler(sched)
 

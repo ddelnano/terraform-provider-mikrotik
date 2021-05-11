@@ -61,14 +61,10 @@ func resourcePoolRead(d *schema.ResourceData, m interface{}) error {
 func resourcePoolUpdate(d *schema.ResourceData, m interface{}) error {
 	c := m.(client.Mikrotik)
 
-	p, err := c.FindPool(d.Id())
-	if err != nil {
-		return err
-	}
-	pool := preparePool(d)
-	pool.Id = p.Id
+	p := preparePool(d)
+	p.Id = d.Id()
 
-	pool, err = c.UpdatePool(pool)
+	pool, err := c.UpdatePool(p)
 
 	if err != nil {
 		return err
