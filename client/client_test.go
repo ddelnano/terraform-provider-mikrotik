@@ -1,6 +1,7 @@
 package client
 
 import (
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -192,6 +193,7 @@ func TestUnmarshal_ttlToSeconds(t *testing.T) {
 }
 
 func TestMarshal(t *testing.T) {
+	action := "/test/owner/add"
 	name := "test owner"
 	owner := "admin"
 	runCount := 3
@@ -206,23 +208,17 @@ func TestMarshal(t *testing.T) {
 		SecondaryOwner string `mikrotik:"secondary-owner"`
 	}{name, owner, runCount, allowed, retain, ""}
 
-	expectedAttributes := "=name=test owner =owner=admin =run-count=3 =allowed-or-not=yes =retain=no"
+	expectedCmd := []string{action, "=name=test owner", "=owner=admin", "=run-count=3", "=allowed-or-not=yes", "=retain=no"}
 	// Marshal by passing pointer to struct
-	attributes := Marshal(&testStruct)
+	cmd := Marshal(action, &testStruct)
 
-	if attributes != expectedAttributes {
-		t.Errorf("Failed to marshal: %v does not equal expected %v", attributes, expectedAttributes)
-	}
-
-	// Marshal by passing by struct value
-	attributes = Marshal(testStruct)
-
-	if attributes != expectedAttributes {
-		t.Errorf("Failed to marshal: %v does not equal expected %v", attributes, expectedAttributes)
+	if !reflect.DeepEqual(cmd, expectedCmd) {
+		t.Errorf("Failed to marshal: %v does not equal expected %v", cmd, expectedCmd)
 	}
 }
 
 func TestMarshalStructWithoutTags(t *testing.T) {
+	action := "/test/owner/add"
 	name := "test owner"
 	owner := "admin"
 	runCount := 3
@@ -237,10 +233,10 @@ func TestMarshalStructWithoutTags(t *testing.T) {
 		SecondaryOwner string
 	}{name, owner, runCount, allowed, retain, ""}
 
-	expectedAttributes := ""
-	attributes := Marshal(&testStruct)
+	expectedCmd := []string{action}
+	cmd := Marshal(action, &testStruct)
 
-	if attributes != expectedAttributes {
-		t.Errorf("Marshaling with a struct without tags shoudl return empty attributes for command: %v does not equal expected %v", attributes, expectedAttributes)
+	if !reflect.DeepEqual(cmd, expectedCmd) {
+		t.Errorf("Marshaling with a struct without tags should return the command action supplied: %v does not equal expected %v", cmd, expectedCmd)
 	}
 }

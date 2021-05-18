@@ -3,32 +3,26 @@ package client
 import (
 	"fmt"
 	"log"
-	"strings"
 )
 
 type DhcpLease struct {
 	Id          string `mikrotik:".id"`
-	Address     string
+	Address     string `mikrotik:"address"`
 	MacAddress  string `mikrotik:"mac-address"`
-	Comment     string
-	BlockAccess string `mikrotik:"blocked"`
-	Hostname    string `mikrotik:"host-name"`
-	Dynamic     bool
+	Comment     string `mikrotik:"comment"`
+	BlockAccess bool   `mikrotik:"block-access"`
+	Dynamic     bool   // TODO:  don't see this listed as a param https://wiki.mikrotik.com/wiki/Manual:IP/DHCP_Server, but our docs list it as one
+	Hostname    string
 }
 
-func (client Mikrotik) AddDhcpLease(address, macaddress, name string, blocked string) (*DhcpLease, error) {
+func (client Mikrotik) AddDhcpLease(l *DhcpLease) (*DhcpLease, error) {
 	c, err := client.getMikrotikClient()
 
 	if err != nil {
 		return nil, err
 	}
-	cmd := []string{
-		"/ip/dhcp-server/lease/add",
-		fmt.Sprintf("=address=%s", address),
-		fmt.Sprintf("=mac-address=%s", macaddress),
-		fmt.Sprintf("=comment=%s", name),
-		fmt.Sprintf("=block-access=%s", blocked),
-	}
+
+	cmd := Marshal("/ip/dhcp-server/lease/add", l)
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 
@@ -75,7 +69,7 @@ func (client Mikrotik) FindDhcpLease(id string) (*DhcpLease, error) {
 	if err != nil {
 		return nil, err
 	}
-	cmd := strings.Split(fmt.Sprintf("/ip/dhcp-server/lease/print ?.id=%s", id), " ")
+	cmd := []string{"/ip/dhcp-server/lease/print", "?.id=" + id}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 
@@ -99,21 +93,14 @@ func (client Mikrotik) FindDhcpLease(id string) (*DhcpLease, error) {
 	return &lease, nil
 }
 
-func (client Mikrotik) UpdateDhcpLease(id, address, macaddress, comment string, blocked string, dynamic bool) (*DhcpLease, error) {
+func (client Mikrotik) UpdateDhcpLease(l *DhcpLease) (*DhcpLease, error) {
 	c, err := client.getMikrotikClient()
 
 	if err != nil {
 		return nil, err
 	}
 
-	cmd := []string{
-		"/ip/dhcp-server/lease/set",
-		fmt.Sprintf("=.id=%s", id),
-		fmt.Sprintf("=address=%s", address),
-		fmt.Sprintf("=mac-address=%s", macaddress),
-		fmt.Sprintf("=comment=%s", comment),
-		fmt.Sprintf("=block-access=%s", blocked),
-	}
+	cmd := Marshal("/ip/dhcp-server/lease/set", l)
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	_, err = c.RunArgs(cmd)
 
@@ -121,7 +108,7 @@ func (client Mikrotik) UpdateDhcpLease(id, address, macaddress, comment string, 
 		return nil, err
 	}
 
-	return client.FindDhcpLease(id)
+	return client.FindDhcpLease(l.Id)
 }
 
 func (client Mikrotik) DeleteDhcpLease(id string) error {
@@ -131,7 +118,7 @@ func (client Mikrotik) DeleteDhcpLease(id string) error {
 		return err
 	}
 
-	cmd := strings.Split(fmt.Sprintf("/ip/dhcp-server/lease/remove =.id=%s", id), " ")
+	cmd := []string{"/ip/dhcp-server/lease/remove", "=.id=" + id}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	_, err = c.RunArgs(cmd)
 	return err

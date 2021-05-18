@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 	"log"
-	"strings"
 )
 
 // BgpInstance Mikrotik resource
@@ -36,8 +35,7 @@ func (client Mikrotik) AddBgpInstance(b *BgpInstance) (*BgpInstance, error) {
 		return nil, err
 	}
 
-	attributes := Marshal(b)
-	cmd := strings.Split(fmt.Sprintf("/routing/bgp/instance/add %s", attributes), " ")
+	cmd := Marshal("/routing/bgp/instance/add", b)
 
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
@@ -57,7 +55,7 @@ func (client Mikrotik) FindBgpInstance(name string) (*BgpInstance, error) {
 		return nil, err
 	}
 
-	cmd := strings.Split(fmt.Sprintf("/routing/bgp/instance/print ?name=%s", name), " ")
+	cmd := []string{"/routing/bgp/instance/print", "?name=" + name}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 
@@ -90,8 +88,8 @@ func (client Mikrotik) UpdateBgpInstance(b *BgpInstance) (*BgpInstance, error) {
 		return nil, err
 	}
 
-	attributes := Marshal(b)
-	cmd := strings.Split(fmt.Sprintf("/routing/bgp/instance/set %s", attributes), " ")
+	// compose mikrotik command
+	cmd := Marshal("/routing/bgp/instance/set", b)
 
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	_, err = c.RunArgs(cmd)
@@ -113,7 +111,7 @@ func (client Mikrotik) DeleteBgpInstance(name string) error {
 		return err
 	}
 
-	cmd := strings.Split(fmt.Sprintf("/routing/bgp/instance/remove =numbers=%s", bgpInstance.Name), " ")
+	cmd := []string{"/routing/bgp/instance/remove", "=numbers=" + bgpInstance.Name}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 	log.Printf("[DEBUG] Remove bgp instance via mikrotik api: %v", r)

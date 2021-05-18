@@ -1,6 +1,8 @@
 package mikrotik
 
 import (
+	"strconv"
+
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -47,14 +49,11 @@ func resourceLease() *schema.Resource {
 }
 
 func resourceLeaseCreate(d *schema.ResourceData, m interface{}) error {
-	address := d.Get("address").(string)
-	macaddress := d.Get("macaddress").(string)
-	comment := d.Get("comment").(string)
-	blocked:= d.Get("blocked").(string)
+	dhcpLease := prepareDhcpLease(d)
 
 	c := m.(client.Mikrotik)
 
-	lease, err := c.AddDhcpLease(address, macaddress, comment, blocked)
+	lease, err := c.AddDhcpLease(dhcpLease)
 	if err != nil {
 		return err
 	}
@@ -85,13 +84,11 @@ func resourceLeaseRead(d *schema.ResourceData, m interface{}) error {
 func resourceLeaseUpdate(d *schema.ResourceData, m interface{}) error {
 	c := m.(client.Mikrotik)
 
-	macaddress := d.Get("macaddress").(string)
-	address := d.Get("address").(string)
-	comment := d.Get("comment").(string)
-	blocked:= d.Get("blocked").(string)
-	dynamic := d.Get("dynamic").(bool)
+	dhcpLease := prepareDhcpLease(d)
+	dhcpLease.Id = d.Id()
 
-	lease, err := c.UpdateDhcpLease(d.Id(), address, macaddress, comment, blocked, dynamic)
+	lease, err := c.UpdateDhcpLease(dhcpLease)
+	lease.Dynamic = dhcpLease.Dynamic
 
 	if err != nil {
 		return err
@@ -116,11 +113,24 @@ func resourceLeaseDelete(d *schema.ResourceData, m interface{}) error {
 
 func leaseToData(lease *client.DhcpLease, d *schema.ResourceData) error {
 	d.SetId(lease.Id)
-	d.Set("blocked", lease.BlockAccess)
+	d.Set("blocked", strconv.FormatBool(lease.BlockAccess))
 	d.Set("comment", lease.Comment)
 	d.Set("address", lease.Address)
 	d.Set("macaddress", lease.MacAddress)
 	d.Set("hostname", lease.Hostname)
 	d.Set("dynamic", lease.Dynamic)
 	return nil
+}
+
+func prepareDhcpLease(d *schema.ResourceData) *client.DhcpLease {
+	lease := new(client.DhcpLease)
+
+	lease.BlockAccess, _ = strconv.ParseBool(d.Get("blocked").(string))
+	lease.Comment = d.Get("comment").(string)
+	lease.Address = d.Get("address").(string)
+	lease.MacAddress = d.Get("macaddress").(string)
+	lease.Hostname = d.Get("hostname").(string)
+	lease.Dynamic = d.Get("dynamic").(bool)
+
+	return lease
 }

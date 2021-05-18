@@ -36,19 +36,16 @@ func resourceRecord() *schema.Resource {
 }
 
 func resourceServerCreate(d *schema.ResourceData, m interface{}) error {
-	address := d.Get("address").(string)
-	name := d.Get("name").(string)
-	ttl := d.Get("ttl").(int)
+	record := prepareDnsRecord(d)
 
 	c := m.(client.Mikrotik)
 
-	record, err := c.AddDnsRecord(name, address, ttl)
+	dnsRecord, err := c.AddDnsRecord(record)
 	if err != nil {
 		return err
 	}
 
-	recordToData(record, d)
-	return nil
+	return recordToData(dnsRecord, d)
 }
 
 func resourceServerRead(d *schema.ResourceData, m interface{}) error {
@@ -56,44 +53,33 @@ func resourceServerRead(d *schema.ResourceData, m interface{}) error {
 
 	record, err := c.FindDnsRecord(d.Id())
 
-	// TODO: Ignoring this error can cause all resources to think they
-	// need to be created. We should more appropriately handle this. The
-	// error where the DNS record is not found is not actually an error and
-	// needs to be disambiguated from real failures
-	if err != nil {
+	if _, ok := err.(*client.NotFound); ok {
 		d.SetId("")
 		return nil
 	}
 
-	recordToData(record, d)
-	return nil
+	return recordToData(record, d)
 }
 
 func resourceServerUpdate(d *schema.ResourceData, m interface{}) error {
 	c := m.(client.Mikrotik)
 
-	address := d.Get("address").(string)
-	ttl := d.Get("ttl").(int)
-	name := d.Id()
-
-	record, err := c.FindDnsRecord(name)
+	currentRecord, err := c.FindDnsRecord(d.Id())
+	record := prepareDnsRecord(d)
+	record.Id = currentRecord.Id
 
 	if err != nil {
 		return err
 	}
 
 	log.Printf("[DEBUG] About to update dns record with %v", record)
-	err = c.UpdateDnsRecord(record.Id, name, address, ttl)
+	dnsRecord, err := c.UpdateDnsRecord(record)
 
 	if err != nil {
 		return err
 	}
 
-	// TODO: the c.UpdateDnsRecord call should return a
-	// new DnsRecord instead of mutating the current one.
-	record.Address = address
-	recordToData(record, d)
-	return nil
+	return recordToData(dnsRecord, d)
 }
 
 func resourceServerDelete(d *schema.ResourceData, m interface{}) error {
@@ -122,4 +108,14 @@ func recordToData(record *client.DnsRecord, d *schema.ResourceData) error {
 	d.Set("address", record.Address)
 	d.Set("ttl", record.Ttl)
 	return nil
+}
+
+func prepareDnsRecord(d *schema.ResourceData) *client.DnsRecord {
+	dnsRecord := new(client.DnsRecord)
+
+	dnsRecord.Name = d.Get("name").(string)
+	dnsRecord.Ttl = d.Get("ttl").(int)
+	dnsRecord.Address = d.Get("address").(string)
+
+	return dnsRecord
 }

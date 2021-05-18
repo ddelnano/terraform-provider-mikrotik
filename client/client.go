@@ -144,12 +144,12 @@ func contains(s []string, e string) bool {
 
 func NewClient(host, username, password string, tls bool, caCertificate string, insecure bool) Mikrotik {
 	return Mikrotik{
-		Host:      host,
-		Username:  username,
-		Password:  password,
-		TLS:       tls,
-		CA:        caCertificate,
-		Insecure:  insecure,
+		Host:     host,
+		Username: username,
+		Password: password,
+		TLS:      tls,
+		CA:       caCertificate,
+		Insecure: insecure,
 	}
 }
 
@@ -189,7 +189,7 @@ func (client Mikrotik) getMikrotikClient() (c *routeros.Client, err error) {
 			certPool := x509.NewCertPool()
 			file, err := ioutil.ReadFile(client.CA)
 			if err != nil {
-				log.Printf("[ERROR] Failed to read CA file %s: %v", client.CA , err)
+				log.Printf("[ERROR] Failed to read CA file %s: %v", client.CA, err)
 				return nil, err
 			}
 			certPool.AppendCertsFromPEM(file)
@@ -215,7 +215,7 @@ func boolToMikrotikBool(b bool) string {
 	}
 }
 
-func Marshal(s interface{}) string {
+func Marshal(c string, s interface{}) []string {
 	var elem reflect.Value
 	rv := reflect.ValueOf(s)
 
@@ -226,7 +226,7 @@ func Marshal(s interface{}) string {
 		elem = rv
 	}
 
-	var attributes []string
+	cmd := []string{c}
 
 	for i := 0; i < elem.NumField(); i++ {
 		value := elem.Field(i)
@@ -238,17 +238,17 @@ func Marshal(s interface{}) string {
 			switch value.Kind() {
 			case reflect.Int:
 				intValue := elem.Field(i).Interface().(int)
-				attributes = append(attributes, fmt.Sprintf("=%s=%d", tag, intValue))
+				cmd = append(cmd, fmt.Sprintf("=%s=%d", tag, intValue))
 			case reflect.String:
 				stringValue := elem.Field(i).Interface().(string)
-				attributes = append(attributes, fmt.Sprintf("=%s=%s", tag, stringValue))
+				cmd = append(cmd, fmt.Sprintf("=%s=%s", tag, stringValue))
 			case reflect.Bool:
 				boolValue := elem.Field(i).Interface().(bool)
 				stringBoolValue := boolToMikrotikBool(boolValue)
-				attributes = append(attributes, fmt.Sprintf("=%s=%s", tag, stringBoolValue))
+				cmd = append(cmd, fmt.Sprintf("=%s=%s", tag, stringBoolValue))
 			}
 		}
 	}
 
-	return strings.Join(attributes, " ")
+	return cmd
 }

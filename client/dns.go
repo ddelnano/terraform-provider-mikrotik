@@ -3,23 +3,22 @@ package client
 import (
 	"fmt"
 	"log"
-	"strings"
 )
 
 type DnsRecord struct {
 	Id      string `mikrotik:".id"`
-	Name    string
-	Ttl     int `mikrotik:"ttl,ttlToSeconds"`
-	Address string
+	Name    string `mikrotik:"name"`
+	Ttl     int    `mikrotik:"ttl,ttlToSeconds"`
+	Address string `mikrotik:"address"`
 }
 
-func (client Mikrotik) AddDnsRecord(name, address string, ttl int) (*DnsRecord, error) {
+func (client Mikrotik) AddDnsRecord(d *DnsRecord) (*DnsRecord, error) {
 	c, err := client.getMikrotikClient()
 
 	if err != nil {
 		return nil, err
 	}
-	cmd := strings.Split(fmt.Sprintf("/ip/dns/static/add =name=%s =address=%s =ttl=%d", name, address, ttl), " ")
+	cmd := Marshal("/ip/dns/static/add", d)
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 	log.Printf("[DEBUG] /ip/dns/static/add returned %v", r)
@@ -28,7 +27,7 @@ func (client Mikrotik) AddDnsRecord(name, address string, ttl int) (*DnsRecord, 
 		return nil, err
 	}
 
-	return client.FindDnsRecord(name)
+	return client.FindDnsRecord(d.Name)
 }
 
 func (client Mikrotik) FindDnsRecord(name string) (*DnsRecord, error) {
@@ -37,7 +36,7 @@ func (client Mikrotik) FindDnsRecord(name string) (*DnsRecord, error) {
 	if err != nil {
 		return nil, err
 	}
-	cmd := strings.Split(fmt.Sprintf("/ip/dns/static/print ?name=%s", name), " ")
+	cmd := []string{"/ip/dns/static/print", "?name=" + name}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 
@@ -61,16 +60,17 @@ func (client Mikrotik) FindDnsRecord(name string) (*DnsRecord, error) {
 	return &record, nil
 }
 
-func (client Mikrotik) UpdateDnsRecord(id, name, address string, ttl int) error {
+func (client Mikrotik) UpdateDnsRecord(d *DnsRecord) (*DnsRecord, error) {
 	c, err := client.getMikrotikClient()
 
 	if err != nil {
-		return err
+		return nil, err
 	}
-	cmd := strings.Split(fmt.Sprintf("/ip/dns/static/set =numbers=%s =name=%s =address=%s =ttl=%d", id, name, address, ttl), " ")
+	cmd := Marshal("/ip/dns/static/set", d)
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	_, err = c.RunArgs(cmd)
-	return err
+
+	return client.FindDnsRecord(d.Name)
 }
 
 func (client Mikrotik) DeleteDnsRecord(id string) error {
@@ -79,7 +79,7 @@ func (client Mikrotik) DeleteDnsRecord(id string) error {
 	if err != nil {
 		return err
 	}
-	cmd := strings.Split(fmt.Sprintf("/ip/dns/static/remove =numbers=%s", id), " ")
+	cmd := []string{"/ip/dns/static/remove", "=numbers=" + id}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	_, err = c.RunArgs(cmd)
 	return err

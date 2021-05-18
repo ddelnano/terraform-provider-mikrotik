@@ -11,7 +11,7 @@ import (
 
 var originalName string = "test-pool"
 var originalRanges string = "172.16.0.1-172.16.0.8,172.16.0.10"
-var updatedName string = "test-pool-updated"
+var updatedName string = "test pool updated"
 var updatedRanges string = "172.16.0.11-172.16.0.12"
 var updatedComment string = "updated"
 
