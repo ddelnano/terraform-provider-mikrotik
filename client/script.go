@@ -21,6 +21,9 @@ func (s *Script) Policy() []string {
 
 func (client Mikrotik) CreateScript(name, owner, source string, policies []string, dontReqPerms bool) (*Script, error) {
 	c, err := client.getMikrotikClient()
+	if err != nil {
+		return nil, err
+	}
 
 	policiesString := strings.Join(policies, ",")
 	nameArg := fmt.Sprintf("=name=%s", name)
@@ -85,6 +88,9 @@ func (client Mikrotik) UpdateScript(name, owner, source string, policy []string,
 
 func (client Mikrotik) DeleteScript(name string) error {
 	c, err := client.getMikrotikClient()
+	if err != nil {
+		return err
+	}
 
 	script, err := client.FindScript(name)
 
@@ -101,6 +107,10 @@ func (client Mikrotik) DeleteScript(name string) error {
 
 func (client Mikrotik) FindScript(name string) (*Script, error) {
 	c, err := client.getMikrotikClient()
+
+	if err != nil {
+		return nil, err
+	}
 	cmd := []string{"/system/script/print", "?name=" + name}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)

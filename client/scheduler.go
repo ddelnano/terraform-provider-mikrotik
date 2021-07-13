@@ -16,6 +16,11 @@ type Scheduler struct {
 
 func (client Mikrotik) FindScheduler(name string) (*Scheduler, error) {
 	c, err := client.getMikrotikClient()
+
+	if err != nil {
+		return nil, err
+	}
+
 	cmd := []string{"/system/scheduler/print", "?name=" + name}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
@@ -37,6 +42,10 @@ func (client Mikrotik) FindScheduler(name string) (*Scheduler, error) {
 func (client Mikrotik) DeleteScheduler(name string) error {
 	c, err := client.getMikrotikClient()
 
+	if err != nil {
+		return err
+	}
+
 	scheduler, err := client.FindScheduler(name)
 
 	if err != nil {
@@ -52,6 +61,10 @@ func (client Mikrotik) DeleteScheduler(name string) error {
 
 func (client Mikrotik) CreateScheduler(s *Scheduler) (*Scheduler, error) {
 	c, err := client.getMikrotikClient()
+
+	if err != nil {
+		return nil, err
+	}
 
 	cmd := Marshal("/system/scheduler/add", s)
 
