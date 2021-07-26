@@ -5,11 +5,15 @@ Creates a Mikrotik [BGP Peer](https://wiki.mikrotik.com/wiki/Manual:Routing/BGP#
 ## Example Usage
 
 ```hcl
+resource "mikrotik_bpg_instance" "instance" {
+  [...]
+}
+
 resource "mikrotik_bgp_peer" "peer" {
   name = "bgp-peer-name"
   remote_as = 65533
   remote_address = "172.21.16.20"
-  instance = "name of bgp instance" # mikrotik_bgp_instance.name
+  instance = mikrotik_bgp_instance.instance.name
 }
 ```
 
