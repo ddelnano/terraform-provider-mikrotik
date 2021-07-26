@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
+// Provider function to instantiate the Mikrotik provider
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
@@ -53,6 +54,7 @@ func Provider() terraform.ResourceProvider {
 			"mikrotik_script":       resourceScript(),
 			"mikrotik_pool":         resourcePool(),
 			"mikrotik_bgp_instance": resourceBgpInstance(),
+			"mikrotik_bgp_peer":     resourceBgpPeer(),
 		},
 		ConfigureFunc: mikrotikConfigure,
 	}
