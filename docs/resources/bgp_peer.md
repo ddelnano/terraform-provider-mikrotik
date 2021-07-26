@@ -9,7 +9,7 @@ resource "mikrotik_bgp_peer" "peer" {
   name = "bgp-peer-name"
   remote_as = 65533
   remote_address = "172.21.16.20"
-  peer = "name of bgp peer" # mikrotik_bgp_peer.name
+  instance = "name of bgp instance" # mikrotik_bgp_instance.name
 }
 ```
 
