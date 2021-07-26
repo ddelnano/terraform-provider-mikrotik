@@ -141,11 +141,11 @@ func resourceBgpPeer() *schema.Resource {
 }
 
 func resourceBgpPeerCreate(d *schema.ResourceData, m interface{}) error {
-	instance := prepareBgpPeer(d)
+	peer := prepareBgpPeer(d)
 
 	c := m.(client.Mikrotik)
 
-	bgpPeer, err := c.AddBgpPeer(instance)
+	bgpPeer, err := c.AddBgpPeer(peer)
 	if err != nil {
 		return err
 	}
@@ -171,10 +171,10 @@ func resourceBgpPeerUpdate(d *schema.ResourceData, m interface{}) error {
 
 	currentBgpPeer, err := c.FindBgpPeer(d.Get("name").(string))
 
-	instance := prepareBgpPeer(d)
-	instance.ID = currentBgpPeer.ID
+	peer := prepareBgpPeer(d)
+	peer.ID = currentBgpPeer.ID
 
-	bgpPeer, err := c.UpdateBgpPeer(instance)
+	bgpPeer, err := c.UpdateBgpPeer(peer)
 
 	if err != nil {
 		return err
