@@ -37,7 +37,6 @@ type BgpPeer struct {
 	UseBfd               bool   `mikrotik:"use-bfd"`
 }
 
-// AddBgpPeer Mikrotik resource
 func (client Mikrotik) AddBgpPeer(b *BgpPeer) (*BgpPeer, error) {
 	c, err := client.getMikrotikClient()
 
@@ -58,7 +57,6 @@ func (client Mikrotik) AddBgpPeer(b *BgpPeer) (*BgpPeer, error) {
 	return client.FindBgpPeer(b.Name)
 }
 
-// FindBgpPeer Mikrotik resource
 func (client Mikrotik) FindBgpPeer(name string) (*BgpPeer, error) {
 	c, err := client.getMikrotikClient()
 	if err != nil {
@@ -90,7 +88,6 @@ func (client Mikrotik) FindBgpPeer(name string) (*BgpPeer, error) {
 	return &bgpPeer, nil
 }
 
-// UpdateBgpPeer Mikrotik resource
 func (client Mikrotik) UpdateBgpPeer(b *BgpPeer) (*BgpPeer, error) {
 	c, err := client.getMikrotikClient()
 
@@ -98,7 +95,6 @@ func (client Mikrotik) UpdateBgpPeer(b *BgpPeer) (*BgpPeer, error) {
 		return nil, err
 	}
 
-	// compose mikrotik command
 	cmd := Marshal("/routing/bgp/peer/set", b)
 
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
@@ -111,7 +107,6 @@ func (client Mikrotik) UpdateBgpPeer(b *BgpPeer) (*BgpPeer, error) {
 	return client.FindBgpPeer(b.Name)
 }
 
-// DeleteBgpPeer Mikrotik resource
 func (client Mikrotik) DeleteBgpPeer(name string) error {
 	c, err := client.getMikrotikClient()
 
