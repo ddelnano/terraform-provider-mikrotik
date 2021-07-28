@@ -53,6 +53,7 @@ func Provider() terraform.ResourceProvider {
 			"mikrotik_script":       resourceScript(),
 			"mikrotik_pool":         resourcePool(),
 			"mikrotik_bgp_instance": resourceBgpInstance(),
+			"mikrotik_bgp_peer":     resourceBgpPeer(),
 		},
 		ConfigureFunc: mikrotikConfigure,
 	}
