@@ -1,95 +1,98 @@
 package mikrotik
 
 import (
+	"context"
+
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceBgpInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBgpInstanceCreate,
-		Read:   resourceBgpInstanceRead,
-		Update: resourceBgpInstanceUpdate,
-		Delete: resourceBgpInstanceDelete,
+		CreateContext: resourceBgpInstanceCreate,
+		ReadContext:   resourceBgpInstanceRead,
+		UpdateContext: resourceBgpInstanceUpdate,
+		DeleteContext: resourceBgpInstanceDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"as": &schema.Schema{
+			"as": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			"client_to_client_reflection": &schema.Schema{
+			"client_to_client_reflection": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
-			"comment": &schema.Schema{
+			"comment": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"confederation_peers": &schema.Schema{
+			"confederation_peers": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"disabled": &schema.Schema{
+			"disabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-			"ignore_as_path_len": &schema.Schema{
+			"ignore_as_path_len": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"out_filter": &schema.Schema{
+			"out_filter": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "",
 			},
-			"redistribute_connected": &schema.Schema{
+			"redistribute_connected": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"redistribute_ospf": &schema.Schema{
+			"redistribute_ospf": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"redistribute_other_bgp": &schema.Schema{
+			"redistribute_other_bgp": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"redistribute_rip": &schema.Schema{
+			"redistribute_rip": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"redistribute_static": &schema.Schema{
+			"redistribute_static": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"router_id": &schema.Schema{
+			"router_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"routing_table": &schema.Schema{
+			"routing_table": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "",
 			},
-			"cluster_id": &schema.Schema{
+			"cluster_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"confederation": &schema.Schema{
+			"confederation": {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
@@ -97,20 +100,25 @@ func resourceBgpInstance() *schema.Resource {
 	}
 }
 
-func resourceBgpInstanceCreate(d *schema.ResourceData, m interface{}) error {
+func resourceBgpInstanceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	instance := prepareBgpInstance(d)
 
 	c := m.(client.Mikrotik)
 
 	bgpInstance, err := c.AddBgpInstance(instance)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	return bgpInstanceToData(bgpInstance, d)
+	err = bgpInstanceToData(bgpInstance, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
-func resourceBgpInstanceRead(d *schema.ResourceData, m interface{}) error {
+func resourceBgpInstanceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(client.Mikrotik)
 
 	bgpInstance, err := c.FindBgpInstance(d.Id())
@@ -120,10 +128,15 @@ func resourceBgpInstanceRead(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 
-	return bgpInstanceToData(bgpInstance, d)
+	err = bgpInstanceToData(bgpInstance, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
-func resourceBgpInstanceUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceBgpInstanceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(client.Mikrotik)
 
 	currentBgpInstance, err := c.FindBgpInstance(d.Get("name").(string))
@@ -134,19 +147,24 @@ func resourceBgpInstanceUpdate(d *schema.ResourceData, m interface{}) error {
 	bgpInstance, err := c.UpdateBgpInstance(instance)
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	return bgpInstanceToData(bgpInstance, d)
+	err = bgpInstanceToData(bgpInstance, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
-func resourceBgpInstanceDelete(d *schema.ResourceData, m interface{}) error {
+func resourceBgpInstanceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(client.Mikrotik)
 
 	err := c.DeleteBgpInstance(d.Get("name").(string))
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId("")

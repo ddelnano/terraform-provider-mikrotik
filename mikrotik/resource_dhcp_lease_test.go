@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 var originalIpAddress string = "1.1.1.1"
@@ -20,9 +20,9 @@ var updatedLeaseComment string = "New multi line comment"
 func TestAccMikrotikDhcpLease_create(t *testing.T) {
 	resourceName := "mikrotik_dhcp_lease.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikDhcpLeaseDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikDhcpLeaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDhcpLease(),
@@ -42,9 +42,9 @@ func TestAccMikrotikDhcpLease_create(t *testing.T) {
 func TestAccMikrotikDhcpLease_updateLease(t *testing.T) {
 	resourceName := "mikrotik_dhcp_lease.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikDhcpLeaseDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikDhcpLeaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDhcpLease(),
@@ -99,9 +99,9 @@ func TestAccMikrotikDhcpLease_updateLease(t *testing.T) {
 func TestAccMikrotikDhcpLease_import(t *testing.T) {
 	resourceName := "mikrotik_dhcp_lease.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikDhcpLeaseDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikDhcpLeaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDhcpLease(),
@@ -121,9 +121,9 @@ func TestAccMikrotikDhcpLease_import(t *testing.T) {
 func TestAccMikrotikDhcpLease_createDynamicDiff(t *testing.T) {
 	resourceName := "mikrotik_dhcp_lease.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikDhcpLeaseDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikDhcpLeaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDhcpLeaseDynamic(),

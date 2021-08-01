@@ -4,17 +4,19 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-var testAccProviders map[string]terraform.ResourceProvider
-var testAccProvider *schema.Provider
+const (
+	// Provider name for single configuration testing
+	ProviderNameMikrotik = "mikrotik"
+)
+
+var testAccProviderFactories map[string]func() (*schema.Provider, error)
 
 func init() {
-	testAccProvider = Provider().(*schema.Provider)
-	testAccProviders = map[string]terraform.ResourceProvider{
-		"mikrotik": testAccProvider,
+	testAccProviderFactories = map[string]func() (*schema.Provider, error){
+		ProviderNameMikrotik: func() (*schema.Provider, error) { return Provider(), nil },
 	}
 }
 
@@ -25,7 +27,7 @@ func testAccPreCheck(t *testing.T) {
 	if v := os.Getenv("MIKROTIK_USER"); v == "" {
 		t.Fatal("The MIKROTIK_USER environment variable must be set")
 	}
-	if v := os.Getenv("MIKROTIK_PASSWORD"); v == "" {
+	if _, exists := os.LookupEnv("MIKROTIK_PASSWORD"); !exists {
 		t.Fatal("The MIKROTIK_PASSWORD environment variable must be set")
 	}
 }

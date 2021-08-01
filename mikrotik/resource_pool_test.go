@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 var originalName string = "test-pool"
@@ -18,9 +18,9 @@ var updatedComment string = "updated"
 func TestAccMikrotikPool_create(t *testing.T) {
 	resourceName := "mikrotik_pool.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikPoolDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPool(),
@@ -50,9 +50,9 @@ func TestAccMikrotikPool_createAndPlanWithNonExistantPool(t *testing.T) {
 		}
 	}
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikPoolDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPool(),
@@ -72,9 +72,9 @@ func TestAccMikrotikPool_createAndPlanWithNonExistantPool(t *testing.T) {
 func TestAccMikrotikPool_updatePool(t *testing.T) {
 	resourceName := "mikrotik_pool.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikPoolDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPool(),
@@ -116,9 +116,9 @@ func TestAccMikrotikPool_updatePool(t *testing.T) {
 func TestAccMikrotikPool_import(t *testing.T) {
 	resourceName := "mikrotik_pool.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikPoolDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPool(),

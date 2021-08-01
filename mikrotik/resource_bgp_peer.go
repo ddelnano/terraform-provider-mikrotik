@@ -1,137 +1,140 @@
 package mikrotik
 
 import (
+	"context"
+
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceBgpPeer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBgpPeerCreate,
-		Read:   resourceBgpPeerRead,
-		Update: resourceBgpPeerUpdate,
-		Delete: resourceBgpPeerDelete,
+		CreateContext: resourceBgpPeerCreate,
+		ReadContext:   resourceBgpPeerRead,
+		UpdateContext: resourceBgpPeerUpdate,
+		DeleteContext: resourceBgpPeerDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"remote_as": &schema.Schema{
+			"remote_as": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			"remote_address": &schema.Schema{
+			"remote_address": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"instance": &schema.Schema{
+			"instance": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"address_families": &schema.Schema{
+			"address_families": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "ip",
 			},
-			"ttl": &schema.Schema{
+			"ttl": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "default",
 			},
-			"default_originate": &schema.Schema{
+			"default_originate": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "never",
 			},
-			"hold_time": &schema.Schema{
+			"hold_time": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "3m",
 			},
-			"nexthop_choice": &schema.Schema{
+			"nexthop_choice": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "default",
 			},
-			"out_filter": &schema.Schema{
+			"out_filter": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"in_filter": &schema.Schema{
+			"in_filter": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"allow_as_in": &schema.Schema{
+			"allow_as_in": {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
-			"as_override": &schema.Schema{
+			"as_override": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"cisco_vpls_nlri_len_fmt": &schema.Schema{
+			"cisco_vpls_nlri_len_fmt": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"comment": &schema.Schema{
+			"comment": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"disabled": &schema.Schema{
+			"disabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"keepalive_time": &schema.Schema{
+			"keepalive_time": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"max_prefix_limit": &schema.Schema{
+			"max_prefix_limit": {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
-			"max_prefix_restart_time": &schema.Schema{
+			"max_prefix_restart_time": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"multihop": &schema.Schema{
+			"multihop": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"passive": &schema.Schema{
+			"passive": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"remote_port": &schema.Schema{
+			"remote_port": {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
-			"remove_private_as": &schema.Schema{
+			"remove_private_as": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"route_reflect": &schema.Schema{
+			"route_reflect": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"tcp_md5_key": &schema.Schema{
+			"tcp_md5_key": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"update_source": &schema.Schema{
+			"update_source": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"use_bfd": &schema.Schema{
+			"use_bfd": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -140,33 +143,42 @@ func resourceBgpPeer() *schema.Resource {
 	}
 }
 
-func resourceBgpPeerCreate(d *schema.ResourceData, m interface{}) error {
+func resourceBgpPeerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	peer := prepareBgpPeer(d)
 
 	c := m.(client.Mikrotik)
 
 	bgpPeer, err := c.AddBgpPeer(peer)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	return bgpPeerToData(bgpPeer, d)
+	err = bgpPeerToData(bgpPeer, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
-func resourceBgpPeerRead(d *schema.ResourceData, m interface{}) error {
+func resourceBgpPeerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(client.Mikrotik)
 
 	bgpPeer, err := c.FindBgpPeer(d.Id())
-
 	if _, ok := err.(*client.NotFound); ok {
 		d.SetId("")
 		return nil
 	}
 
-	return bgpPeerToData(bgpPeer, d)
+	err = bgpPeerToData(bgpPeer, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
-func resourceBgpPeerUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceBgpPeerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(client.Mikrotik)
 
 	currentBgpPeer, err := c.FindBgpPeer(d.Get("name").(string))
@@ -175,21 +187,25 @@ func resourceBgpPeerUpdate(d *schema.ResourceData, m interface{}) error {
 	peer.ID = currentBgpPeer.ID
 
 	bgpPeer, err := c.UpdateBgpPeer(peer)
-
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	return bgpPeerToData(bgpPeer, d)
+	err = bgpPeerToData(bgpPeer, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
-func resourceBgpPeerDelete(d *schema.ResourceData, m interface{}) error {
+func resourceBgpPeerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(client.Mikrotik)
 
 	err := c.DeleteBgpPeer(d.Get("name").(string))
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId("")

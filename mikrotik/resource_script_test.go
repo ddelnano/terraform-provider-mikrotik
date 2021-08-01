@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 var origName string = "terraform-acc-testing"
@@ -26,9 +26,9 @@ var updatedPolicy []string = []string{
 func TestAccMikrotikScript_create(t *testing.T) {
 	resourceName := "mikrotik_script.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikScriptDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccScriptRecord(),
@@ -43,9 +43,9 @@ func TestAccMikrotikScript_create(t *testing.T) {
 func TestAccMikrotikScript_updateSource(t *testing.T) {
 	resourceName := "mikrotik_script.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikScriptDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccScriptRecord(),
@@ -66,9 +66,9 @@ func TestAccMikrotikScript_updateSource(t *testing.T) {
 func TestAccMikrotikScript_updateOwner(t *testing.T) {
 	resourceName := "mikrotik_script.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikScriptDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccScriptRecord(),
@@ -89,9 +89,9 @@ func TestAccMikrotikScript_updateOwner(t *testing.T) {
 func TestAccMikrotikScript_updateDontReqPerms(t *testing.T) {
 	resourceName := "mikrotik_script.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikScriptDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccScriptRecord(),
@@ -112,9 +112,9 @@ func TestAccMikrotikScript_updateDontReqPerms(t *testing.T) {
 func TestAccMikrotikScript_updatePolicies(t *testing.T) {
 	resourceName := "mikrotik_script.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikScriptDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccScriptRecord(),
@@ -138,9 +138,9 @@ func TestAccMikrotikScript_updatePolicies(t *testing.T) {
 func TestAccMikrotikScript_import(t *testing.T) {
 	resourceName := "mikrotik_script.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikScriptDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccScriptRecord(),

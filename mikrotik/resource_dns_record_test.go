@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 var originalDnsName string = "terraform"
@@ -18,9 +18,9 @@ var updatedAddress string = "10.0.0.1"
 func TestAccMikrotikDnsRecord_create(t *testing.T) {
 	resourceName := "mikrotik_dns_record.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikDnsRecordDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDnsRecord(),
@@ -49,9 +49,9 @@ func TestAccMikrotikDnsRecord_createAndPlanWithNonExistantRecord(t *testing.T) {
 
 	}
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikDnsRecordDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDnsRecord(),
@@ -71,9 +71,9 @@ func TestAccMikrotikDnsRecord_createAndPlanWithNonExistantRecord(t *testing.T) {
 func TestAccMikrotikDnsRecord_updateAddress(t *testing.T) {
 	resourceName := "mikrotik_dns_record.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikDnsRecordDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDnsRecord(),
@@ -95,9 +95,9 @@ func TestAccMikrotikDnsRecord_updateAddress(t *testing.T) {
 func TestAccMikrotikDnsRecord_import(t *testing.T) {
 	resourceName := "mikrotik_dns_record.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikDnsRecordDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDnsRecord(),

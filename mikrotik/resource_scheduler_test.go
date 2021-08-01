@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 var schOrigName string = "scheduler-terraform-acc-testing"
@@ -18,9 +18,9 @@ var updatedInterval int = 300
 func TestAccMikrotikScheduler_create(t *testing.T) {
 	resourceName := "mikrotik_scheduler.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikSchedulerDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikSchedulerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccScheduler(),
@@ -40,9 +40,9 @@ func TestAccMikrotikScheduler_create(t *testing.T) {
 func TestAccMikrotikScheduler_updateInterval(t *testing.T) {
 	resourceName := "mikrotik_scheduler.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikSchedulerDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikSchedulerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccScheduler(),
@@ -63,9 +63,9 @@ func TestAccMikrotikScheduler_updateInterval(t *testing.T) {
 func TestAccMikrotikScheduler_updatedOnEvent(t *testing.T) {
 	resourceName := "mikrotik_scheduler.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikSchedulerDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikSchedulerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccScheduler(),
@@ -86,9 +86,9 @@ func TestAccMikrotikScheduler_updatedOnEvent(t *testing.T) {
 func TestAccMikrotikScheduler_import(t *testing.T) {
 	resourceName := "mikrotik_scheduler.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikSchedulerDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikSchedulerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccScheduler(),

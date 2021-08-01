@@ -1,32 +1,34 @@
 package mikrotik
 
 import (
+	"context"
 	"log"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceServerCreate,
-		Read:   resourceServerRead,
-		Update: resourceServerUpdate,
-		Delete: resourceServerDelete,
+		CreateContext: resourceServerCreate,
+		ReadContext:   resourceServerRead,
+		UpdateContext: resourceServerUpdate,
+		DeleteContext: resourceServerDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"address": &schema.Schema{
+			"address": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"ttl": &schema.Schema{
+			"ttl": {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Computed: true,
@@ -35,20 +37,25 @@ func resourceRecord() *schema.Resource {
 	}
 }
 
-func resourceServerCreate(d *schema.ResourceData, m interface{}) error {
+func resourceServerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	record := prepareDnsRecord(d)
 
 	c := m.(client.Mikrotik)
 
 	dnsRecord, err := c.AddDnsRecord(record)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	return recordToData(dnsRecord, d)
+	err = recordToData(dnsRecord, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
-func resourceServerRead(d *schema.ResourceData, m interface{}) error {
+func resourceServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(client.Mikrotik)
 
 	record, err := c.FindDnsRecord(d.Id())
@@ -58,10 +65,15 @@ func resourceServerRead(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 
-	return recordToData(record, d)
+	err = recordToData(record, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
-func resourceServerUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceServerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(client.Mikrotik)
 
 	currentRecord, err := c.FindDnsRecord(d.Id())
@@ -69,20 +81,24 @@ func resourceServerUpdate(d *schema.ResourceData, m interface{}) error {
 	record.Id = currentRecord.Id
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	log.Printf("[DEBUG] About to update dns record with %v", record)
 	dnsRecord, err := c.UpdateDnsRecord(record)
-
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	return recordToData(dnsRecord, d)
+	err = recordToData(dnsRecord, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
-func resourceServerDelete(d *schema.ResourceData, m interface{}) error {
+func resourceServerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	name := d.Id()
 
 	c := m.(client.Mikrotik)
@@ -90,12 +106,12 @@ func resourceServerDelete(d *schema.ResourceData, m interface{}) error {
 	record, err := c.FindDnsRecord(name)
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	err = c.DeleteDnsRecord(record.Id)
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	d.SetId("")
 	return nil
@@ -103,7 +119,6 @@ func resourceServerDelete(d *schema.ResourceData, m interface{}) error {
 
 func recordToData(record *client.DnsRecord, d *schema.ResourceData) error {
 	d.SetId(record.Name)
-	d.Set("numerical_id", record.Id)
 	d.Set("name", record.Name)
 	d.Set("address", record.Address)
 	d.Set("ttl", record.Ttl)

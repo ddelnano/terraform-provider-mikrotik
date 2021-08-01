@@ -1,18 +1,21 @@
 package mikrotik
 
 import (
+	"context"
+
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourcePool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourcePoolCreate,
-		Read:   resourcePoolRead,
-		Update: resourcePoolUpdate,
-		Delete: resourcePoolDelete,
+		CreateContext: resourcePoolCreate,
+		ReadContext:   resourcePoolRead,
+		UpdateContext: resourcePoolUpdate,
+		DeleteContext: resourcePoolDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -32,20 +35,25 @@ func resourcePool() *schema.Resource {
 	}
 }
 
-func resourcePoolCreate(d *schema.ResourceData, m interface{}) error {
+func resourcePoolCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	p := preparePool(d)
 
 	c := m.(client.Mikrotik)
 
 	pool, err := c.AddPool(p)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	return poolToData(pool, d)
+	err = poolToData(pool, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
-func resourcePoolRead(d *schema.ResourceData, m interface{}) error {
+func resourcePoolRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(client.Mikrotik)
 
 	pool, err := c.FindPool(d.Id())
@@ -55,10 +63,15 @@ func resourcePoolRead(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 
-	return poolToData(pool, d)
+	err = poolToData(pool, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
-func resourcePoolUpdate(d *schema.ResourceData, m interface{}) error {
+func resourcePoolUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(client.Mikrotik)
 
 	p := preparePool(d)
@@ -67,19 +80,24 @@ func resourcePoolUpdate(d *schema.ResourceData, m interface{}) error {
 	pool, err := c.UpdatePool(p)
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	return poolToData(pool, d)
+	err = poolToData(pool, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
-func resourcePoolDelete(d *schema.ResourceData, m interface{}) error {
+func resourcePoolDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(client.Mikrotik)
 
 	err := c.DeletePool(d.Id())
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId("")

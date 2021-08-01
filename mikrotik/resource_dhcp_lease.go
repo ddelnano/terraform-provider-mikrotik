@@ -1,45 +1,47 @@
 package mikrotik
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceLease() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceLeaseCreate,
-		Read:   resourceLeaseRead,
-		Update: resourceLeaseUpdate,
-		Delete: resourceLeaseDelete,
+		CreateContext: resourceLeaseCreate,
+		ReadContext:   resourceLeaseRead,
+		UpdateContext: resourceLeaseUpdate,
+		DeleteContext: resourceLeaseDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"address": &schema.Schema{
+			"address": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"macaddress": &schema.Schema{
+			"macaddress": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"comment": &schema.Schema{
+			"comment": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"hostname": &schema.Schema{
+			"hostname": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"blocked": &schema.Schema{
+			"blocked": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "false",
 			},
-			"dynamic": &schema.Schema{
+			"dynamic": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -48,21 +50,25 @@ func resourceLease() *schema.Resource {
 	}
 }
 
-func resourceLeaseCreate(d *schema.ResourceData, m interface{}) error {
+func resourceLeaseCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	dhcpLease := prepareDhcpLease(d)
 
 	c := m.(client.Mikrotik)
 
 	lease, err := c.AddDhcpLease(dhcpLease)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	leaseToData(lease, d)
+	err = leaseToData(lease, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	return nil
 }
 
-func resourceLeaseRead(d *schema.ResourceData, m interface{}) error {
+func resourceLeaseRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(client.Mikrotik)
 
 	lease, err := c.FindDhcpLease(d.Id())
@@ -77,11 +83,15 @@ func resourceLeaseRead(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 
-	leaseToData(lease, d)
+	err = leaseToData(lease, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	return nil
 }
 
-func resourceLeaseUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceLeaseUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(client.Mikrotik)
 
 	dhcpLease := prepareDhcpLease(d)
@@ -91,20 +101,24 @@ func resourceLeaseUpdate(d *schema.ResourceData, m interface{}) error {
 	lease.Dynamic = dhcpLease.Dynamic
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	leaseToData(lease, d)
+	err = leaseToData(lease, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	return nil
 }
 
-func resourceLeaseDelete(d *schema.ResourceData, m interface{}) error {
+func resourceLeaseDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(client.Mikrotik)
 
 	err := c.DeleteDhcpLease(d.Id())
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId("")

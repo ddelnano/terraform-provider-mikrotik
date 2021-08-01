@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 var originalBgpName string = "test-bgp-instance"
@@ -21,9 +21,9 @@ var commentBgpInstance string = "test-comment"
 func TestAccMikrotikBgpInstance_create(t *testing.T) {
 	resourceName := "mikrotik_bgp_instance.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikBgpInstanceDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikBgpInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBgpInstance(),
@@ -54,9 +54,9 @@ func TestAccMikrotikBgpInstance_createAndPlanWithNonExistantBgpInstance(t *testi
 		}
 	}
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikBgpInstanceDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikBgpInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBgpInstance(),
@@ -76,9 +76,9 @@ func TestAccMikrotikBgpInstance_createAndPlanWithNonExistantBgpInstance(t *testi
 func TestAccMikrotikBgpInstance_updateBgpInstance(t *testing.T) {
 	resourceName := "mikrotik_bgp_instance.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikBgpInstanceDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikBgpInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBgpInstance(),
@@ -118,9 +118,9 @@ func TestAccMikrotikBgpInstance_updateBgpInstance(t *testing.T) {
 func TestAccMikrotikBgpInstance_import(t *testing.T) {
 	resourceName := "mikrotik_bgp_instance.bar"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikBgpInstanceDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikBgpInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBgpInstance(),
