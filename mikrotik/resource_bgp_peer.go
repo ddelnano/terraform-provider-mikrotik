@@ -153,12 +153,7 @@ func resourceBgpPeerCreate(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
-	err = bgpPeerToData(bgpPeer, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return bgpPeerToData(bgpPeer, d)
 }
 
 func resourceBgpPeerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -170,12 +165,7 @@ func resourceBgpPeerRead(ctx context.Context, d *schema.ResourceData, m interfac
 		return nil
 	}
 
-	err = bgpPeerToData(bgpPeer, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return bgpPeerToData(bgpPeer, d)
 }
 
 func resourceBgpPeerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -191,12 +181,7 @@ func resourceBgpPeerUpdate(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
-	err = bgpPeerToData(bgpPeer, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return bgpPeerToData(bgpPeer, d)
 }
 
 func resourceBgpPeerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -212,91 +197,48 @@ func resourceBgpPeerDelete(ctx context.Context, d *schema.ResourceData, m interf
 	return nil
 }
 
-func bgpPeerToData(b *client.BgpPeer, d *schema.ResourceData) error {
+func bgpPeerToData(b *client.BgpPeer, d *schema.ResourceData) diag.Diagnostics {
+	values := map[string]interface{}{
+		"name":                    b.Name,
+		"address_families":        b.AddressFamilies,
+		"allow_as_in":             b.AllowAsIn,
+		"as_override":             b.AsOverride,
+		"cisco_vpls_nlri_len_fmt": b.CiscoVplsNlriLenFmt,
+		"comment":                 b.Comment,
+		"default_originate":       b.DefaultOriginate,
+		"disabled":                b.Disabled,
+		"hold_time":               b.HoldTime,
+		"in_filter":               b.InFilter,
+		"instance":                b.Instance,
+		"keepalive_time":          b.KeepAliveTime,
+		"max_prefix_limit":        b.MaxPrefixLimit,
+		"max_prefix_restart_time": b.MaxPrefixRestartTime,
+		"multihop":                b.Multihop,
+		"nexthop_choice":          b.NexthopChoice,
+		"out_filter":              b.OutFilter,
+		"passive":                 b.Passive,
+		"remote_address":          b.RemoteAddress,
+		"remote_as":               b.RemoteAs,
+		"remote_port":             b.RemotePort,
+		"remove_private_as":       b.RemovePrivateAs,
+		"route_reflect":           b.RouteReflect,
+		"tcp_md5_key":             b.TCPMd5Key,
+		"ttl":                     b.TTL,
+		"update_source":           b.UpdateSource,
+		"use_bfd":                 b.UseBfd,
+	}
+
 	d.SetId(b.Name)
 
-	if err := d.Set("name", b.Name); err != nil {
-		return err
+	var diags diag.Diagnostics
+
+	for key, value := range values {
+		if err := d.Set(key, value); err != nil {
+			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
+		}
 	}
-	if err := d.Set("address_families", b.AddressFamilies); err != nil {
-		return err
-	}
-	if err := d.Set("allow_as_in", b.AllowAsIn); err != nil {
-		return err
-	}
-	if err := d.Set("as_override", b.AsOverride); err != nil {
-		return err
-	}
-	if err := d.Set("cisco_vpls_nlri_len_fmt", b.CiscoVplsNlriLenFmt); err != nil {
-		return err
-	}
-	if err := d.Set("comment", b.Comment); err != nil {
-		return err
-	}
-	if err := d.Set("default_originate", b.DefaultOriginate); err != nil {
-		return err
-	}
-	if err := d.Set("disabled", b.Disabled); err != nil {
-		return err
-	}
-	if err := d.Set("hold_time", b.HoldTime); err != nil {
-		return err
-	}
-	if err := d.Set("in_filter", b.InFilter); err != nil {
-		return err
-	}
-	if err := d.Set("instance", b.Instance); err != nil {
-		return err
-	}
-	if err := d.Set("keepalive_time", b.KeepAliveTime); err != nil {
-		return err
-	}
-	if err := d.Set("max_prefix_limit", b.MaxPrefixLimit); err != nil {
-		return err
-	}
-	if err := d.Set("max_prefix_restart_time", b.MaxPrefixRestartTime); err != nil {
-		return err
-	}
-	if err := d.Set("multihop", b.Multihop); err != nil {
-		return err
-	}
-	if err := d.Set("nexthop_choice", b.NexthopChoice); err != nil {
-		return err
-	}
-	if err := d.Set("out_filter", b.OutFilter); err != nil {
-		return err
-	}
-	if err := d.Set("passive", b.Passive); err != nil {
-		return err
-	}
-	if err := d.Set("remote_address", b.RemoteAddress); err != nil {
-		return err
-	}
-	if err := d.Set("remote_as", b.RemoteAs); err != nil {
-		return err
-	}
-	if err := d.Set("remote_port", b.RemotePort); err != nil {
-		return err
-	}
-	if err := d.Set("remove_private_as", b.RemovePrivateAs); err != nil {
-		return err
-	}
-	if err := d.Set("route_reflect", b.RouteReflect); err != nil {
-		return err
-	}
-	if err := d.Set("tcp_md5_key", b.TCPMd5Key); err != nil {
-		return err
-	}
-	if err := d.Set("ttl", b.TTL); err != nil {
-		return err
-	}
-	if err := d.Set("update_source", b.UpdateSource); err != nil {
-		return err
-	}
-	if err := d.Set("use_bfd", b.UseBfd); err != nil {
-		return err
-	}
-	return nil
+
+	return diags
 }
 
 func prepareBgpPeer(d *schema.ResourceData) *client.BgpPeer {

@@ -2,7 +2,6 @@ package mikrotik
 
 import (
 	"context"
-	"errors"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -55,12 +54,7 @@ func resourceSchedulerCreate(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 
-	err = schedulerToData(scheduler, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return schedulerToData(scheduler, d)
 }
 
 func resourceSchedulerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -71,12 +65,7 @@ func resourceSchedulerRead(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.FromErr(err)
 	}
 
-	err = schedulerToData(scheduler, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return schedulerToData(scheduler, d)
 }
 
 func resourceSchedulerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -90,12 +79,7 @@ func resourceSchedulerUpdate(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 
-	err = schedulerToData(scheduler, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return schedulerToData(scheduler, d)
 }
 
 func resourceSchedulerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -112,17 +96,30 @@ func resourceSchedulerDelete(ctx context.Context, d *schema.ResourceData, m inte
 	return nil
 }
 
-func schedulerToData(s *client.Scheduler, d *schema.ResourceData) error {
+func schedulerToData(s *client.Scheduler, d *schema.ResourceData) diag.Diagnostics {
 	if s == nil {
-		return errors.New("scheduler was not found")
+		return diag.Errorf("scheduler was not found")
 	}
+
+	values := map[string]interface{}{
+		"name":       s.Name,
+		"on_event":   s.OnEvent,
+		"start_time": s.StartTime,
+		"start_date": s.StartDate,
+		"interval":   s.Interval,
+	}
+
 	d.SetId(s.Name)
-	d.Set("name", s.Name)
-	d.Set("on_event", s.OnEvent)
-	d.Set("start_time", s.StartTime)
-	d.Set("start_date", s.StartDate)
-	d.Set("interval", s.Interval)
-	return nil
+
+	var diags diag.Diagnostics
+
+	for key, value := range values {
+		if err := d.Set(key, value); err != nil {
+			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
+		}
+	}
+
+	return diags
 }
 
 func prepareScheduler(d *schema.ResourceData) *client.Scheduler {

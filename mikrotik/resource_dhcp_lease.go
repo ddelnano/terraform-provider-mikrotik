@@ -60,12 +60,7 @@ func resourceLeaseCreate(ctx context.Context, d *schema.ResourceData, m interfac
 		return diag.FromErr(err)
 	}
 
-	err = leaseToData(lease, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return leaseToData(lease, d)
 }
 
 func resourceLeaseRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -83,12 +78,7 @@ func resourceLeaseRead(ctx context.Context, d *schema.ResourceData, m interface{
 		return nil
 	}
 
-	err = leaseToData(lease, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return leaseToData(lease, d)
 }
 
 func resourceLeaseUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -104,12 +94,7 @@ func resourceLeaseUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 		return diag.FromErr(err)
 	}
 
-	err = leaseToData(lease, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return leaseToData(lease, d)
 }
 
 func resourceLeaseDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -125,15 +110,27 @@ func resourceLeaseDelete(ctx context.Context, d *schema.ResourceData, m interfac
 	return nil
 }
 
-func leaseToData(lease *client.DhcpLease, d *schema.ResourceData) error {
+func leaseToData(lease *client.DhcpLease, d *schema.ResourceData) diag.Diagnostics {
+	values := map[string]interface{}{
+		"blocked":    strconv.FormatBool(lease.BlockAccess),
+		"comment":    lease.Comment,
+		"address":    lease.Address,
+		"macaddress": lease.MacAddress,
+		"hostname":   lease.Hostname,
+		"dynamic":    lease.Dynamic,
+	}
+
 	d.SetId(lease.Id)
-	d.Set("blocked", strconv.FormatBool(lease.BlockAccess))
-	d.Set("comment", lease.Comment)
-	d.Set("address", lease.Address)
-	d.Set("macaddress", lease.MacAddress)
-	d.Set("hostname", lease.Hostname)
-	d.Set("dynamic", lease.Dynamic)
-	return nil
+
+	var diags diag.Diagnostics
+
+	for key, value := range values {
+		if err := d.Set(key, value); err != nil {
+			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
+		}
+	}
+
+	return diags
 }
 
 func prepareDhcpLease(d *schema.ResourceData) *client.DhcpLease {

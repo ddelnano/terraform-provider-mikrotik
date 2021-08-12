@@ -110,12 +110,7 @@ func resourceBgpInstanceCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
-	err = bgpInstanceToData(bgpInstance, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return bgpInstanceToData(bgpInstance, d)
 }
 
 func resourceBgpInstanceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -128,12 +123,7 @@ func resourceBgpInstanceRead(ctx context.Context, d *schema.ResourceData, m inte
 		return nil
 	}
 
-	err = bgpInstanceToData(bgpInstance, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return bgpInstanceToData(bgpInstance, d)
 }
 
 func resourceBgpInstanceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -150,12 +140,7 @@ func resourceBgpInstanceUpdate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
-	err = bgpInstanceToData(bgpInstance, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return bgpInstanceToData(bgpInstance, d)
 }
 
 func resourceBgpInstanceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -171,61 +156,38 @@ func resourceBgpInstanceDelete(ctx context.Context, d *schema.ResourceData, m in
 	return nil
 }
 
-func bgpInstanceToData(b *client.BgpInstance, d *schema.ResourceData) error {
+func bgpInstanceToData(b *client.BgpInstance, d *schema.ResourceData) diag.Diagnostics {
+	values := map[string]interface{}{
+		"name":                        b.Name,
+		"as":                          b.As,
+		"client_to_client_reflection": b.ClientToClientReflection,
+		"comment":                     b.Comment,
+		"confederation_peers":         b.ConfederationPeers,
+		"disabled":                    b.Disabled,
+		"ignore_as_path_len":          b.IgnoreAsPathLen,
+		"out_filter":                  b.OutFilter,
+		"redistribute_connected":      b.RedistributeConnected,
+		"redistribute_ospf":           b.RedistributeOspf,
+		"redistribute_other_bgp":      b.RedistributeOtherBgp,
+		"redistribute_rip":            b.RedistributeRip,
+		"redistribute_static":         b.RedistributeStatic,
+		"router_id":                   b.RouterID,
+		"routing_table":               b.RoutingTable,
+		"cluster_id":                  b.ClusterID,
+		"confederation":               b.Confederation,
+	}
+
 	d.SetId(b.Name)
 
-	if err := d.Set("name", b.Name); err != nil {
-		return err
+	var diags diag.Diagnostics
+
+	for key, value := range values {
+		if err := d.Set(key, value); err != nil {
+			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
+		}
 	}
-	if err := d.Set("as", b.As); err != nil {
-		return err
-	}
-	if err := d.Set("client_to_client_reflection", b.ClientToClientReflection); err != nil {
-		return err
-	}
-	if err := d.Set("comment", b.Comment); err != nil {
-		return err
-	}
-	if err := d.Set("confederation_peers", b.ConfederationPeers); err != nil {
-		return err
-	}
-	if err := d.Set("disabled", b.Disabled); err != nil {
-		return err
-	}
-	if err := d.Set("ignore_as_path_len", b.IgnoreAsPathLen); err != nil {
-		return err
-	}
-	if err := d.Set("out_filter", b.OutFilter); err != nil {
-		return err
-	}
-	if err := d.Set("redistribute_connected", b.RedistributeConnected); err != nil {
-		return err
-	}
-	if err := d.Set("redistribute_ospf", b.RedistributeOspf); err != nil {
-		return err
-	}
-	if err := d.Set("redistribute_other_bgp", b.RedistributeOtherBgp); err != nil {
-		return err
-	}
-	if err := d.Set("redistribute_rip", b.RedistributeRip); err != nil {
-		return err
-	}
-	if err := d.Set("redistribute_static", b.RedistributeStatic); err != nil {
-		return err
-	}
-	if err := d.Set("router_id", b.RouterID); err != nil {
-		return err
-	}
-	if err := d.Set("routing_table", b.RoutingTable); err != nil {
-		return err
-	}
-	if err := d.Set("cluster_id", b.ClusterID); err != nil {
-		return err
-	}
-	if err := d.Set("confederation", b.Confederation); err != nil {
-		return err
-	}
-	return nil
+
+	return diags
 }
 
 func prepareBgpInstance(d *schema.ResourceData) *client.BgpInstance {

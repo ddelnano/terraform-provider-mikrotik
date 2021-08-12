@@ -71,25 +71,29 @@ func resourceScriptCreate(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 
-	err = scriptToData(script, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return scriptToData(script, d)
 }
 
-func scriptToData(s *client.Script, d *schema.ResourceData) error {
-	d.SetId(s.Name)
-	d.Set("name", s.Name)
-	d.Set("owner", s.Owner)
-	d.Set("source", s.Source)
-	err := d.Set("policy", s.Policy())
-	if err != nil {
-		return err
+func scriptToData(s *client.Script, d *schema.ResourceData) diag.Diagnostics {
+	values := map[string]interface{}{
+		"name":                     s.Name,
+		"owner":                    s.Owner,
+		"source":                   s.Source,
+		"policy":                   s.Policy(),
+		"dont_require_permissions": s.DontRequirePermissions,
 	}
-	d.Set("dont_require_permissions", s.DontRequirePermissions)
-	return nil
+
+	d.SetId(s.Name)
+
+	var diags diag.Diagnostics
+
+	for key, value := range values {
+		if err := d.Set(key, value); err != nil {
+			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
+		}
+	}
+
+	return diags
 }
 
 func resourceScriptRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -102,12 +106,7 @@ func resourceScriptRead(ctx context.Context, d *schema.ResourceData, m interface
 		return nil
 	}
 
-	err = scriptToData(script, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return scriptToData(script, d)
 }
 func resourceScriptUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	name := d.Get("name").(string)
@@ -130,12 +129,7 @@ func resourceScriptUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 
-	err = scriptToData(script, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return scriptToData(script, d)
 }
 func resourceScriptDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	name := d.Id()

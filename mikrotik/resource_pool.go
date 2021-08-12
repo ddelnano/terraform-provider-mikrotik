@@ -19,15 +19,15 @@ func resourcePool() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"ranges": &schema.Schema{
+			"ranges": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"comment": &schema.Schema{
+			"comment": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -45,12 +45,7 @@ func resourcePoolCreate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 
-	err = poolToData(pool, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return poolToData(pool, d)
 }
 
 func resourcePoolRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -63,12 +58,7 @@ func resourcePoolRead(ctx context.Context, d *schema.ResourceData, m interface{}
 		return nil
 	}
 
-	err = poolToData(pool, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return poolToData(pool, d)
 }
 
 func resourcePoolUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -83,12 +73,7 @@ func resourcePoolUpdate(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 
-	err = poolToData(pool, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return poolToData(pool, d)
 }
 
 func resourcePoolDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -104,18 +89,24 @@ func resourcePoolDelete(ctx context.Context, d *schema.ResourceData, m interface
 	return nil
 }
 
-func poolToData(pool *client.Pool, d *schema.ResourceData) error {
+func poolToData(pool *client.Pool, d *schema.ResourceData) diag.Diagnostics {
+	values := map[string]interface{}{
+		"name":    pool.Name,
+		"ranges":  pool.Ranges,
+		"comment": pool.Comment,
+	}
+
 	d.SetId(pool.Id)
-	if err := d.Set("name", pool.Name); err != nil {
-		return err
+
+	var diags diag.Diagnostics
+
+	for key, value := range values {
+		if err := d.Set(key, value); err != nil {
+			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
+		}
 	}
-	if err := d.Set("ranges", pool.Ranges); err != nil {
-		return err
-	}
-	if err := d.Set("comment", pool.Comment); err != nil {
-		return err
-	}
-	return nil
+
+	return diags
 }
 
 func preparePool(d *schema.ResourceData) *client.Pool {

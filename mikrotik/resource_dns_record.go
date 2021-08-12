@@ -47,12 +47,7 @@ func resourceServerCreate(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 
-	err = recordToData(dnsRecord, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return recordToData(dnsRecord, d)
 }
 
 func resourceServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -65,12 +60,7 @@ func resourceServerRead(ctx context.Context, d *schema.ResourceData, m interface
 		return nil
 	}
 
-	err = recordToData(record, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return recordToData(record, d)
 }
 
 func resourceServerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -90,12 +80,7 @@ func resourceServerUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 
-	err = recordToData(dnsRecord, d)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+	return recordToData(dnsRecord, d)
 }
 
 func resourceServerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -117,12 +102,24 @@ func resourceServerDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	return nil
 }
 
-func recordToData(record *client.DnsRecord, d *schema.ResourceData) error {
+func recordToData(record *client.DnsRecord, d *schema.ResourceData) diag.Diagnostics {
+	values := map[string]interface{}{
+		"name":    record.Name,
+		"address": record.Address,
+		"ttl":     record.Ttl,
+	}
+
 	d.SetId(record.Name)
-	d.Set("name", record.Name)
-	d.Set("address", record.Address)
-	d.Set("ttl", record.Ttl)
-	return nil
+
+	var diags diag.Diagnostics
+
+	for key, value := range values {
+		if err := d.Set(key, value); err != nil {
+			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
+		}
+	}
+
+	return diags
 }
 
 func prepareDnsRecord(d *schema.ResourceData) *client.DnsRecord {
