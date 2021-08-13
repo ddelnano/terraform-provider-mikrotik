@@ -18,13 +18,14 @@ func main() {
 	if debugMode {
 		err := plugin.Debug(context.Background(), "registry.terraform.io/ddelnano/mikrotik",
 			&plugin.ServeOpts{
-				ProviderFunc: mikrotik.Provider,
+				ProviderFunc: mikrotik.NewProvider,
 			})
 		if err != nil {
 			log.Println(err.Error())
 		}
 	} else {
 		plugin.Serve(&plugin.ServeOpts{
-			ProviderFunc: mikrotik.Provider})
+			ProviderFunc: mikrotik.NewProvider,
+		})
 	}
 }

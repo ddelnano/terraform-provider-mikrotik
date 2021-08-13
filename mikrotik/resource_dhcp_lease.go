@@ -53,7 +53,7 @@ func resourceLease() *schema.Resource {
 func resourceLeaseCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	dhcpLease := prepareDhcpLease(d)
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	lease, err := c.AddDhcpLease(dhcpLease)
 	if err != nil {
@@ -64,7 +64,7 @@ func resourceLeaseCreate(ctx context.Context, d *schema.ResourceData, m interfac
 }
 
 func resourceLeaseRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	lease, err := c.FindDhcpLease(d.Id())
 
@@ -82,7 +82,7 @@ func resourceLeaseRead(ctx context.Context, d *schema.ResourceData, m interface{
 }
 
 func resourceLeaseUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	dhcpLease := prepareDhcpLease(d)
 	dhcpLease.Id = d.Id()
@@ -98,7 +98,7 @@ func resourceLeaseUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 }
 
 func resourceLeaseDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	err := c.DeleteDhcpLease(d.Id())
 

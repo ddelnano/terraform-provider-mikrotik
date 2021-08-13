@@ -103,7 +103,7 @@ func resourceBgpInstance() *schema.Resource {
 func resourceBgpInstanceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	instance := prepareBgpInstance(d)
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	bgpInstance, err := c.AddBgpInstance(instance)
 	if err != nil {
@@ -114,7 +114,7 @@ func resourceBgpInstanceCreate(ctx context.Context, d *schema.ResourceData, m in
 }
 
 func resourceBgpInstanceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	bgpInstance, err := c.FindBgpInstance(d.Id())
 
@@ -127,7 +127,7 @@ func resourceBgpInstanceRead(ctx context.Context, d *schema.ResourceData, m inte
 }
 
 func resourceBgpInstanceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	currentBgpInstance, err := c.FindBgpInstance(d.Get("name").(string))
 
@@ -144,7 +144,7 @@ func resourceBgpInstanceUpdate(ctx context.Context, d *schema.ResourceData, m in
 }
 
 func resourceBgpInstanceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	err := c.DeleteBgpInstance(d.Get("name").(string))
 
@@ -191,25 +191,23 @@ func bgpInstanceToData(b *client.BgpInstance, d *schema.ResourceData) diag.Diagn
 }
 
 func prepareBgpInstance(d *schema.ResourceData) *client.BgpInstance {
-	bgpInstance := new(client.BgpInstance)
-
-	bgpInstance.Name = d.Get("name").(string)
-	bgpInstance.As = d.Get("as").(int)
-	bgpInstance.ClientToClientReflection = d.Get("client_to_client_reflection").(bool)
-	bgpInstance.Comment = d.Get("comment").(string)
-	bgpInstance.ConfederationPeers = d.Get("confederation_peers").(string)
-	bgpInstance.Disabled = d.Get("disabled").(bool)
-	bgpInstance.IgnoreAsPathLen = d.Get("ignore_as_path_len").(bool)
-	bgpInstance.OutFilter = d.Get("out_filter").(string)
-	bgpInstance.RedistributeConnected = d.Get("redistribute_connected").(bool)
-	bgpInstance.RedistributeOspf = d.Get("redistribute_ospf").(bool)
-	bgpInstance.RedistributeOtherBgp = d.Get("redistribute_other_bgp").(bool)
-	bgpInstance.RedistributeRip = d.Get("redistribute_rip").(bool)
-	bgpInstance.RedistributeStatic = d.Get("redistribute_static").(bool)
-	bgpInstance.RouterID = d.Get("router_id").(string)
-	bgpInstance.RoutingTable = d.Get("routing_table").(string)
-	bgpInstance.ClusterID = d.Get("cluster_id").(string)
-	bgpInstance.Confederation = d.Get("confederation").(int)
-
-	return bgpInstance
+	return &client.BgpInstance{
+		Name:                     d.Get("name").(string),
+		As:                       d.Get("as").(int),
+		ClientToClientReflection: d.Get("client_to_client_reflection").(bool),
+		Comment:                  d.Get("comment").(string),
+		ConfederationPeers:       d.Get("confederation_peers").(string),
+		Disabled:                 d.Get("disabled").(bool),
+		IgnoreAsPathLen:          d.Get("ignore_as_path_len").(bool),
+		OutFilter:                d.Get("out_filter").(string),
+		RedistributeConnected:    d.Get("redistribute_connected").(bool),
+		RedistributeOspf:         d.Get("redistribute_ospf").(bool),
+		RedistributeOtherBgp:     d.Get("redistribute_other_bgp").(bool),
+		RedistributeRip:          d.Get("redistribute_rip").(bool),
+		RedistributeStatic:       d.Get("redistribute_static").(bool),
+		RouterID:                 d.Get("router_id").(string),
+		RoutingTable:             d.Get("routing_table").(string),
+		ClusterID:                d.Get("cluster_id").(string),
+		Confederation:            d.Get("confederation").(int),
+	}
 }

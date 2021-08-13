@@ -47,7 +47,7 @@ func resourceScheduler() *schema.Resource {
 func resourceSchedulerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	sched := prepareScheduler(d)
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	scheduler, err := c.CreateScheduler(sched)
 	if err != nil {
@@ -58,7 +58,7 @@ func resourceSchedulerCreate(ctx context.Context, d *schema.ResourceData, m inte
 }
 
 func resourceSchedulerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	scheduler, err := c.FindScheduler(d.Id())
 	if err != nil {
@@ -69,7 +69,7 @@ func resourceSchedulerRead(ctx context.Context, d *schema.ResourceData, m interf
 }
 
 func resourceSchedulerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	sched := prepareScheduler(d)
 	sched.Id = d.Id()
@@ -85,7 +85,7 @@ func resourceSchedulerUpdate(ctx context.Context, d *schema.ResourceData, m inte
 func resourceSchedulerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	name := d.Id()
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	err := c.DeleteScheduler(name)
 

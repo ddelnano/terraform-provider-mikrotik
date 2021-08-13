@@ -58,7 +58,7 @@ func resourceScriptCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 	dontReqPerms := d.Get("dont_require_permissions").(bool)
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	script, err := c.CreateScript(
 		name,
@@ -97,7 +97,7 @@ func scriptToData(s *client.Script, d *schema.ResourceData) diag.Diagnostics {
 }
 
 func resourceScriptRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	script, err := c.FindScript(d.Id())
 
@@ -122,7 +122,7 @@ func resourceScriptUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 		}
 	}
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	script, err := c.UpdateScript(name, owner, source, policies, dontReqPerms)
 	if err != nil {
@@ -134,7 +134,7 @@ func resourceScriptUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 func resourceScriptDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	name := d.Id()
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	err := c.DeleteScript(name)
 

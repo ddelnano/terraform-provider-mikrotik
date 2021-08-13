@@ -146,7 +146,7 @@ func resourceBgpPeer() *schema.Resource {
 func resourceBgpPeerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	peer := prepareBgpPeer(d)
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	bgpPeer, err := c.AddBgpPeer(peer)
 	if err != nil {
@@ -157,7 +157,7 @@ func resourceBgpPeerCreate(ctx context.Context, d *schema.ResourceData, m interf
 }
 
 func resourceBgpPeerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	bgpPeer, err := c.FindBgpPeer(d.Id())
 	if _, ok := err.(*client.NotFound); ok {
@@ -169,7 +169,7 @@ func resourceBgpPeerRead(ctx context.Context, d *schema.ResourceData, m interfac
 }
 
 func resourceBgpPeerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	currentBgpPeer, err := c.FindBgpPeer(d.Get("name").(string))
 
@@ -185,7 +185,7 @@ func resourceBgpPeerUpdate(ctx context.Context, d *schema.ResourceData, m interf
 }
 
 func resourceBgpPeerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	err := c.DeleteBgpPeer(d.Get("name").(string))
 

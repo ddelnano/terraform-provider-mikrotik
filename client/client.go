@@ -25,6 +25,8 @@ type Mikrotik struct {
 	TLS      bool
 	CA       string
 	Insecure bool
+
+	connection *routeros.Client
 }
 
 func Unmarshal(reply routeros.Reply, v interface{}) error {
@@ -142,8 +144,8 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func NewClient(host, username, password string, tls bool, caCertificate string, insecure bool) Mikrotik {
-	return Mikrotik{
+func NewClient(host, username, password string, tls bool, caCertificate string, insecure bool) *Mikrotik {
+	return &Mikrotik{
 		Host:     host,
 		Username: username,
 		Password: password,
@@ -176,10 +178,17 @@ func GetConfigFromEnv() (host, username, password string, tls bool, caCertificat
 	return host, username, password, tls, caCertificate, insecure
 }
 
-func (client Mikrotik) getMikrotikClient() (c *routeros.Client, err error) {
+func (client *Mikrotik) getMikrotikClient() (*routeros.Client, error) {
+	if client.connection != nil {
+		return client.connection, nil
+	}
+
 	address := client.Host
 	username := client.Username
 	password := client.Password
+
+	var mikrotikClient *routeros.Client
+	var err error
 
 	if client.TLS {
 		var tlsCfg tls.Config
@@ -196,15 +205,21 @@ func (client Mikrotik) getMikrotikClient() (c *routeros.Client, err error) {
 			tlsCfg.RootCAs = certPool
 		}
 
-		c, err = routeros.DialTLS(address, username, password, &tlsCfg)
+		mikrotikClient, err = routeros.DialTLS(address, username, password, &tlsCfg)
+		if err != nil {
+			return nil, err
+		}
 	} else {
-		c, err = routeros.Dial(address, username, password)
+		mikrotikClient, err = routeros.Dial(address, username, password)
 	}
+
 	if err != nil {
 		log.Printf("[ERROR] Failed to login to routerOS with error: %v", err)
 	}
 
-	return
+	client.connection = mikrotikClient
+
+	return mikrotikClient, nil
 }
 
 func boolToMikrotikBool(b bool) string {

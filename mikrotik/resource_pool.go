@@ -38,7 +38,7 @@ func resourcePool() *schema.Resource {
 func resourcePoolCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	p := preparePool(d)
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	pool, err := c.AddPool(p)
 	if err != nil {
@@ -49,7 +49,7 @@ func resourcePoolCreate(ctx context.Context, d *schema.ResourceData, m interface
 }
 
 func resourcePoolRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	pool, err := c.FindPool(d.Id())
 
@@ -62,7 +62,7 @@ func resourcePoolRead(ctx context.Context, d *schema.ResourceData, m interface{}
 }
 
 func resourcePoolUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	p := preparePool(d)
 	p.Id = d.Id()
@@ -77,7 +77,7 @@ func resourcePoolUpdate(ctx context.Context, d *schema.ResourceData, m interface
 }
 
 func resourcePoolDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	err := c.DeletePool(d.Id())
 

@@ -3,13 +3,13 @@ package mikrotik
 import (
 	"context"
 
-	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	mt "github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func Provider() *schema.Provider {
-	return &schema.Provider{
+func Provider(client *mt.Mikrotik) *schema.Provider {
+	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"host": {
 				Type:        schema.TypeString,
@@ -57,17 +57,26 @@ func Provider() *schema.Provider {
 			"mikrotik_bgp_instance": resourceBgpInstance(),
 			"mikrotik_bgp_peer":     resourceBgpPeer(),
 		},
-		ConfigureContextFunc: mikrotikConfigure,
 	}
+
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+		if client != nil {
+			return client, nil
+		}
+
+		address := d.Get("host").(string)
+		username := d.Get("username").(string)
+		password := d.Get("password").(string)
+		tls := d.Get("tls").(bool)
+		caCertificate := d.Get("ca_certificate").(string)
+		insecure := d.Get("insecure").(bool)
+
+		return mt.NewClient(address, username, password, tls, caCertificate, insecure), nil
+	}
+
+	return provider
 }
 
-func mikrotikConfigure(ctx context.Context, d *schema.ResourceData) (c interface{}, diags diag.Diagnostics) {
-	address := d.Get("host").(string)
-	username := d.Get("username").(string)
-	password := d.Get("password").(string)
-	tls := d.Get("tls").(bool)
-	caCertificate := d.Get("ca_certificate").(string)
-	insecure := d.Get("insecure").(bool)
-	c = client.NewClient(address, username, password, tls, caCertificate, insecure)
-	return
+func NewProvider() *schema.Provider {
+	return Provider(nil)
 }

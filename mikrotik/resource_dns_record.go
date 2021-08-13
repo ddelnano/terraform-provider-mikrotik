@@ -40,7 +40,7 @@ func resourceRecord() *schema.Resource {
 func resourceServerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	record := prepareDnsRecord(d)
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	dnsRecord, err := c.AddDnsRecord(record)
 	if err != nil {
@@ -51,7 +51,7 @@ func resourceServerCreate(ctx context.Context, d *schema.ResourceData, m interfa
 }
 
 func resourceServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	record, err := c.FindDnsRecord(d.Id())
 
@@ -64,7 +64,7 @@ func resourceServerRead(ctx context.Context, d *schema.ResourceData, m interface
 }
 
 func resourceServerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	currentRecord, err := c.FindDnsRecord(d.Id())
 	record := prepareDnsRecord(d)
@@ -86,7 +86,7 @@ func resourceServerUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 func resourceServerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	name := d.Id()
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	record, err := c.FindDnsRecord(name)
 

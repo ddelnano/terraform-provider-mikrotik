@@ -5,34 +5,32 @@ import (
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-var originalIpAddress string = "1.1.1.1"
-var originalMacAddress string = "11:11:11:11:11:11"
-var originalComment string = "multi word comment"
-var updatedIpAddress string = "2.2.2.2"
-var updatedMacAddress string = "22:22:22:22:22:22"
-var updatedBlockAccess string = "true"
-var updatedLeaseComment string = "New multi line comment"
-
 func TestAccMikrotikDhcpLease_create(t *testing.T) {
+	ipAddr := internal.GetNewIpAddr()
+	macAddr := internal.GetNewMacAddr()
+	comment := acctest.RandomWithPrefix("tf-acc-comment")
+
 	resourceName := "mikrotik_dhcp_lease.bar"
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMikrotikDhcpLeaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDhcpLease(),
+				Config: testAccDhcpLease(ipAddr, macAddr, comment),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccDhcpLeaseExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "address", originalIpAddress),
-					resource.TestCheckResourceAttr(resourceName, "macaddress", originalMacAddress),
+					resource.TestCheckResourceAttr(resourceName, "address", ipAddr),
+					resource.TestCheckResourceAttr(resourceName, "macaddress", macAddr),
 					resource.TestCheckResourceAttr(resourceName, "dynamic", "false"),
-					resource.TestCheckResourceAttr(resourceName, "comment", originalComment),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 				),
 			},
 		},
@@ -40,56 +38,63 @@ func TestAccMikrotikDhcpLease_create(t *testing.T) {
 }
 
 func TestAccMikrotikDhcpLease_updateLease(t *testing.T) {
+	ipAddr := internal.GetNewIpAddr()
+	updatedIpAddr := internal.GetNewIpAddr()
+	macAddr := internal.GetNewMacAddr()
+	updatedMacAddr := internal.GetNewMacAddr()
+	comment := acctest.RandomWithPrefix("tf-acc-comment")
+	updatedComment := acctest.RandomWithPrefix("tf-acc-comment")
+
 	resourceName := "mikrotik_dhcp_lease.bar"
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMikrotikDhcpLeaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDhcpLease(),
+				Config: testAccDhcpLease(ipAddr, macAddr, comment),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccDhcpLeaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "address", originalIpAddress),
-					resource.TestCheckResourceAttr(resourceName, "macaddress", originalMacAddress),
-					resource.TestCheckResourceAttr(resourceName, "comment", originalComment),
+					resource.TestCheckResourceAttr(resourceName, "address", ipAddr),
+					resource.TestCheckResourceAttr(resourceName, "macaddress", macAddr),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 				),
 			},
 			{
-				Config: testAccDhcpLeaseUpdatedIpAddress(),
+				Config: testAccDhcpLease(updatedIpAddr, macAddr, comment),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccDhcpLeaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "address", updatedIpAddress),
-					resource.TestCheckResourceAttr(resourceName, "macaddress", originalMacAddress),
-					resource.TestCheckResourceAttr(resourceName, "comment", originalComment),
+					resource.TestCheckResourceAttr(resourceName, "address", updatedIpAddr),
+					resource.TestCheckResourceAttr(resourceName, "macaddress", macAddr),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 				),
 			},
 			{
-				Config: testAccDhcpLeaseUpdatedComment(),
+				Config: testAccDhcpLease(ipAddr, macAddr, updatedComment),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccDhcpLeaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "address", originalIpAddress),
-					resource.TestCheckResourceAttr(resourceName, "macaddress", originalMacAddress),
-					resource.TestCheckResourceAttr(resourceName, "comment", updatedLeaseComment),
+					resource.TestCheckResourceAttr(resourceName, "address", ipAddr),
+					resource.TestCheckResourceAttr(resourceName, "macaddress", macAddr),
+					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment),
 				),
 			},
 			{
-				Config: testAccDhcpLeaseUpdatedMacAddress(),
+				Config: testAccDhcpLease(ipAddr, updatedMacAddr, comment),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccDhcpLeaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "address", originalIpAddress),
-					resource.TestCheckResourceAttr(resourceName, "macaddress", updatedMacAddress),
-					resource.TestCheckResourceAttr(resourceName, "comment", originalComment),
+					resource.TestCheckResourceAttr(resourceName, "address", ipAddr),
+					resource.TestCheckResourceAttr(resourceName, "macaddress", updatedMacAddr),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
 				),
 			},
 			{
-				Config: testAccDhcpLeaseUpdatedBlockAccess(),
+				Config: testAccDhcpLeaseUpdatedBlockAccess(ipAddr, macAddr, comment, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccDhcpLeaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "address", originalIpAddress),
-					resource.TestCheckResourceAttr(resourceName, "macaddress", originalMacAddress),
-					resource.TestCheckResourceAttr(resourceName, "blocked", updatedBlockAccess),
-					resource.TestCheckResourceAttr(resourceName, "comment", originalComment),
+					resource.TestCheckResourceAttr(resourceName, "address", ipAddr),
+					resource.TestCheckResourceAttr(resourceName, "macaddress", macAddr),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+					resource.TestCheckResourceAttr(resourceName, "blocked", "true"),
 				),
 			},
 		},
@@ -97,14 +102,18 @@ func TestAccMikrotikDhcpLease_updateLease(t *testing.T) {
 }
 
 func TestAccMikrotikDhcpLease_import(t *testing.T) {
+	ipAddr := internal.GetNewIpAddr()
+	macAddr := internal.GetNewMacAddr()
+	comment := acctest.RandomWithPrefix("tf-acc-comment")
+
 	resourceName := "mikrotik_dhcp_lease.bar"
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMikrotikDhcpLeaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDhcpLease(),
+				Config: testAccDhcpLease(ipAddr, macAddr, comment),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccDhcpLeaseExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id")),
@@ -119,14 +128,18 @@ func TestAccMikrotikDhcpLease_import(t *testing.T) {
 }
 
 func TestAccMikrotikDhcpLease_createDynamicDiff(t *testing.T) {
+	ipAddr := internal.GetNewIpAddr()
+	macAddr := internal.GetNewMacAddr()
+	comment := acctest.RandomWithPrefix("tf-acc-comment")
+
 	resourceName := "mikrotik_dhcp_lease.bar"
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckMikrotikDhcpLeaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDhcpLeaseDynamic(),
+				Config: testAccDhcpLeaseDynamic(ipAddr, macAddr, comment),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccDhcpLeaseExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id")),
@@ -136,17 +149,17 @@ func TestAccMikrotikDhcpLease_createDynamicDiff(t *testing.T) {
 	})
 }
 
-func testAccDhcpLease() string {
+func testAccDhcpLease(ipAddr, macAddr, comment string) string {
 	return fmt.Sprintf(`
 resource "mikrotik_dhcp_lease" "bar" {
     address = "%s"
     macaddress = "%s"
     comment = "%s"
 }
-`, originalIpAddress, originalMacAddress, originalComment)
+`, ipAddr, macAddr, comment)
 }
 
-func testAccDhcpLeaseDynamic() string {
+func testAccDhcpLeaseDynamic(ipAddr, macAddr, comment string) string {
 	return fmt.Sprintf(`
 resource "mikrotik_dhcp_lease" "bar" {
     address = "%s"
@@ -154,48 +167,18 @@ resource "mikrotik_dhcp_lease" "bar" {
     comment = "%s"
     dynamic = true
 }
-`, originalIpAddress, originalMacAddress, originalComment)
+`, ipAddr, macAddr, comment)
 }
 
-func testAccDhcpLeaseUpdatedIpAddress() string {
+func testAccDhcpLeaseUpdatedBlockAccess(ipAddr, macAddr, comment string, blocked bool) string {
 	return fmt.Sprintf(`
 resource "mikrotik_dhcp_lease" "bar" {
     address = "%s"
     macaddress = "%s"
+    blocked = "%t"
     comment = "%s"
 }
-`, updatedIpAddress, originalMacAddress, originalComment)
-}
-
-func testAccDhcpLeaseUpdatedMacAddress() string {
-	return fmt.Sprintf(`
-resource "mikrotik_dhcp_lease" "bar" {
-    address = "%s"
-    macaddress = "%s"
-    comment = "%s"
-}
-`, originalIpAddress, updatedMacAddress, originalComment)
-}
-
-func testAccDhcpLeaseUpdatedBlockAccess() string {
-	return fmt.Sprintf(`
-resource "mikrotik_dhcp_lease" "bar" {
-    address = "%s"
-    macaddress = "%s"
-    blocked= "%s"
-    comment = "%s"
-}
-`, originalIpAddress, originalMacAddress, updatedBlockAccess, originalComment)
-}
-
-func testAccDhcpLeaseUpdatedComment() string {
-	return fmt.Sprintf(`
-resource "mikrotik_dhcp_lease" "bar" {
-    address = "%s"
-    macaddress = "%s"
-    comment = "%s"
-}
-`, originalIpAddress, originalMacAddress, updatedLeaseComment)
+`, ipAddr, macAddr, blocked, comment)
 }
 
 func testAccDhcpLeaseExists(resourceName string) resource.TestCheckFunc {
@@ -224,36 +207,6 @@ func testAccDhcpLeaseExists(resourceName string) resource.TestCheckFunc {
 		if dhcpLease.Id == rs.Primary.ID {
 			return nil
 		}
-		return nil
-	}
-}
-
-func testAccCheckMikrotikDhcpLeaseDestroyNow(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("No dhcp lease Id is set")
-		}
-
-		c := client.NewClient(client.GetConfigFromEnv())
-
-		dhcpLease, err := c.FindDhcpLease(rs.Primary.ID)
-
-		_, ok = err.(*client.NotFound)
-		if !ok && err != nil {
-			return err
-		}
-
-		err = c.DeleteDhcpLease(dhcpLease.Id)
-
-		if err != nil {
-			return err
-		}
-
 		return nil
 	}
 }
