@@ -2,37 +2,36 @@ package mikrotik
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-var originalBgpName string = "test-bgp-instance"
-var originalConfederation string = "8"
-var originalAs string = "65532"
-var updatedAs string = "65533"
-var originalRouterId string = "172.21.16.1"
-var originalClusterId string = "172.21.17.1"
-var updatedRouterId string = "172.21.16.2"
-var commentBgpInstance string = "test-comment"
-
 func TestAccMikrotikBgpInstance_create(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-create")
+	routerId := internal.GetNewIpAddr()
+	as := acctest.RandIntRange(1, 65535)
+
 	resourceName := "mikrotik_bgp_instance.bar"
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikBgpInstanceDestroy,
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikBgpInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBgpInstance(),
+				Config: testAccBgpInstance(name, as, routerId),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccBgpInstanceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "name", originalBgpName),
-					resource.TestCheckResourceAttr(resourceName, "as", originalAs),
-					resource.TestCheckResourceAttr(resourceName, "router_id", originalRouterId),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "as", strconv.Itoa(as)),
+					resource.TestCheckResourceAttr(resourceName, "router_id", routerId),
 				),
 			},
 		},
@@ -40,75 +39,76 @@ func TestAccMikrotikBgpInstance_create(t *testing.T) {
 }
 
 func TestAccMikrotikBgpInstance_createAndPlanWithNonExistantBgpInstance(t *testing.T) {
-	resourceName := "mikrotik_bgp_instance.bar"
-	removeBgpInstance := func() {
+	name := acctest.RandomWithPrefix("tf-acc-create_with_plan")
+	routerId := internal.GetNewIpAddr()
+	as := acctest.RandIntRange(1, 65535)
 
-		c := client.NewClient(client.GetConfigFromEnv())
-		bgpInstance, err := c.FindBgpInstance(originalBgpName)
-		if err != nil {
-			t.Fatalf("Error finding the bgp instance by name: %s", err)
-		}
-		err = c.DeleteBgpInstance(bgpInstance.Name)
-		if err != nil {
-			t.Fatalf("Error removing the bgp instance: %s", err)
-		}
-	}
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikBgpInstanceDestroy,
+	resourceName := "mikrotik_bgp_instance.bar"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikBgpInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBgpInstance(),
-				Check: resource.ComposeAggregateTestCheckFunc(
+				Config: testAccBgpInstance(name, as, routerId),
+				Check: resource.ComposeTestCheckFunc(
 					testAccBgpInstanceExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "id")),
-			},
-			{
-				PreConfig:          removeBgpInstance,
-				Config:             testAccBgpInstance(),
-				ExpectNonEmptyPlan: false,
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					testAccCheckResourceDisappears(testAccProvider, resourceBgpInstance(), resourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
 }
 
 func TestAccMikrotikBgpInstance_updateBgpInstance(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-update")
+	routerId := internal.GetNewIpAddr()
+	updatedRouterId := internal.GetNewIpAddr()
+	clusterId := internal.GetNewIpAddr()
+	as := acctest.RandIntRange(1, 65535)
+	updatedAs := acctest.RandIntRange(1, 65535)
+	comment := acctest.RandomWithPrefix("test comment ")
+	confederation := 8
+
 	resourceName := "mikrotik_bgp_instance.bar"
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikBgpInstanceDestroy,
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikBgpInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBgpInstance(),
+				Config: testAccBgpInstance(name, as, routerId),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccBgpInstanceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", originalBgpName),
-					resource.TestCheckResourceAttr(resourceName, "as", originalAs),
-					resource.TestCheckResourceAttr(resourceName, "router_id", originalRouterId),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "as", strconv.Itoa(as)),
+					resource.TestCheckResourceAttr(resourceName, "router_id", routerId),
 				),
 			},
 			{
-				Config: testAccBgpInstanceUpdatedAsAndRouterId(),
+				Config: testAccBgpInstanceUpdatedAsAndRouterId(name, updatedAs, updatedRouterId),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccBgpInstanceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", originalBgpName),
-					resource.TestCheckResourceAttr(resourceName, "as", updatedAs),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "as", strconv.Itoa(updatedAs)),
 					resource.TestCheckResourceAttr(resourceName, "router_id", updatedRouterId),
 				),
 			},
 			{
-				Config: testAccBgpInstanceUpdatedOptionalFields(),
+				Config: testAccBgpInstanceUpdatedOptionalFields(name, updatedAs, updatedRouterId, comment, clusterId, confederation),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccBgpInstanceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", originalBgpName),
-					resource.TestCheckResourceAttr(resourceName, "as", updatedAs),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "as", strconv.Itoa(updatedAs)),
 					resource.TestCheckResourceAttr(resourceName, "router_id", updatedRouterId),
-					resource.TestCheckResourceAttr(resourceName, "comment", commentBgpInstance),
-					resource.TestCheckResourceAttr(resourceName, "cluster_id", originalClusterId),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+					resource.TestCheckResourceAttr(resourceName, "cluster_id", clusterId),
 					resource.TestCheckResourceAttr(resourceName, "client_to_client_reflection", "false"),
-					resource.TestCheckResourceAttr(resourceName, "confederation", originalConfederation),
+					resource.TestCheckResourceAttr(resourceName, "confederation", strconv.Itoa(confederation)),
 				),
 			},
 		},
@@ -116,14 +116,19 @@ func TestAccMikrotikBgpInstance_updateBgpInstance(t *testing.T) {
 }
 
 func TestAccMikrotikBgpInstance_import(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-import")
+	routerId := internal.GetNewIpAddr()
+	as := acctest.RandIntRange(1, 65535)
+
 	resourceName := "mikrotik_bgp_instance.bar"
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikBgpInstanceDestroy,
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikBgpInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBgpInstance(),
+				Config: testAccBgpInstance(name, as, routerId),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccBgpInstanceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id")),
@@ -137,54 +142,52 @@ func TestAccMikrotikBgpInstance_import(t *testing.T) {
 	})
 }
 
-func testAccBgpInstance() string {
+func testAccBgpInstance(name string, as int, routerId string) string {
 	return fmt.Sprintf(`
 resource "mikrotik_bgp_instance" "bar" {
     name = "%s"
-    as = 65532
+    as = %d
     router_id = "%s"
 }
-`, originalBgpName, originalRouterId)
+`, name, as, routerId)
 }
 
-func testAccBgpInstanceUpdatedAsAndRouterId() string {
+func testAccBgpInstanceUpdatedAsAndRouterId(name string, as int, routerId string) string {
 	return fmt.Sprintf(`
 resource "mikrotik_bgp_instance" "bar" {
     name = "%s"
-    as = 65533
+    as = %d
     router_id = "%s"
 }
-`, originalBgpName, updatedRouterId)
+`, name, as, routerId)
 }
 
-func testAccBgpInstanceUpdatedOptionalFields() string {
+func testAccBgpInstanceUpdatedOptionalFields(name string, as int, routerId, comment, clusterId string, confederation int) string {
 	return fmt.Sprintf(`
 resource "mikrotik_bgp_instance" "bar" {
     name = "%s"
-    as = 65533
+    as = %d
     router_id = "%s"
     comment = "%s"
     cluster_id = "%s"
     client_to_client_reflection = false
-    confederation = 8
+    confederation = %d
 }
-`, originalBgpName, updatedRouterId, commentBgpInstance, originalClusterId)
+`, name, as, routerId, comment, clusterId, confederation)
 }
 
 func testAccBgpInstanceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
+			return fmt.Errorf("resource not found: %s", resourceName)
 		}
 
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("mikrotik_bgp_instance does not exist in the statefile")
 		}
 
-		c := client.NewClient(client.GetConfigFromEnv())
-
-		bgpInstance, err := c.FindBgpInstance(rs.Primary.ID)
+		bgpInstance, err := apiClient.FindBgpInstance(rs.Primary.ID)
 
 		if err != nil {
 			return fmt.Errorf("Unable to get the bgp instance with error: %v", err)
@@ -202,13 +205,12 @@ func testAccBgpInstanceExists(resourceName string) resource.TestCheckFunc {
 }
 
 func testAccCheckMikrotikBgpInstanceDestroy(s *terraform.State) error {
-	c := client.NewClient(client.GetConfigFromEnv())
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "mikrotik_bgp_instance" {
 			continue
 		}
 
-		bgpInstance, err := c.FindBgpInstance(rs.Primary.ID)
+		bgpInstance, err := apiClient.FindBgpInstance(rs.Primary.ID)
 
 		_, ok := err.(*client.NotFound)
 		if !ok && err != nil {

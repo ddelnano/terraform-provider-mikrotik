@@ -1,30 +1,33 @@
 package mikrotik
 
 import (
+	"context"
+
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourcePool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourcePoolCreate,
-		Read:   resourcePoolRead,
-		Update: resourcePoolUpdate,
-		Delete: resourcePoolDelete,
+		CreateContext: resourcePoolCreate,
+		ReadContext:   resourcePoolRead,
+		UpdateContext: resourcePoolUpdate,
+		DeleteContext: resourcePoolDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"ranges": &schema.Schema{
+			"ranges": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"comment": &schema.Schema{
+			"comment": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -32,21 +35,21 @@ func resourcePool() *schema.Resource {
 	}
 }
 
-func resourcePoolCreate(d *schema.ResourceData, m interface{}) error {
+func resourcePoolCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	p := preparePool(d)
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	pool, err := c.AddPool(p)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	return poolToData(pool, d)
 }
 
-func resourcePoolRead(d *schema.ResourceData, m interface{}) error {
-	c := m.(client.Mikrotik)
+func resourcePoolRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	c := m.(*client.Mikrotik)
 
 	pool, err := c.FindPool(d.Id())
 
@@ -58,8 +61,8 @@ func resourcePoolRead(d *schema.ResourceData, m interface{}) error {
 	return poolToData(pool, d)
 }
 
-func resourcePoolUpdate(d *schema.ResourceData, m interface{}) error {
-	c := m.(client.Mikrotik)
+func resourcePoolUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	c := m.(*client.Mikrotik)
 
 	p := preparePool(d)
 	p.Id = d.Id()
@@ -67,37 +70,43 @@ func resourcePoolUpdate(d *schema.ResourceData, m interface{}) error {
 	pool, err := c.UpdatePool(p)
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	return poolToData(pool, d)
 }
 
-func resourcePoolDelete(d *schema.ResourceData, m interface{}) error {
-	c := m.(client.Mikrotik)
+func resourcePoolDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	c := m.(*client.Mikrotik)
 
 	err := c.DeletePool(d.Id())
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId("")
 	return nil
 }
 
-func poolToData(pool *client.Pool, d *schema.ResourceData) error {
+func poolToData(pool *client.Pool, d *schema.ResourceData) diag.Diagnostics {
+	values := map[string]interface{}{
+		"name":    pool.Name,
+		"ranges":  pool.Ranges,
+		"comment": pool.Comment,
+	}
+
 	d.SetId(pool.Id)
-	if err := d.Set("name", pool.Name); err != nil {
-		return err
+
+	var diags diag.Diagnostics
+
+	for key, value := range values {
+		if err := d.Set(key, value); err != nil {
+			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
+		}
 	}
-	if err := d.Set("ranges", pool.Ranges); err != nil {
-		return err
-	}
-	if err := d.Set("comment", pool.Comment); err != nil {
-		return err
-	}
-	return nil
+
+	return diags
 }
 
 func preparePool(d *schema.ResourceData) *client.Pool {

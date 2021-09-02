@@ -2,23 +2,21 @@ package mikrotik
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-var bgpPeerName string = "test-peer"
-var remoteAs string = "65533"
-var remoteAddress string = "172.21.16.0"
-var instanceName string = "test"
+var instanceName string = "default"
 var peerTTL string = "default"
 var addressFamilies string = "ip"
 var defaultOriginate string = "never"
 var holdTime string = "3m"
 var nextHopChoice string = "default"
-var commentBgpPeer string = "test-comment"
 
 var maxPrefixRestartTime string = "1w3d"
 var tcpMd5Key string = "test-tcp-md5-key"
@@ -26,19 +24,23 @@ var updatedTTL string = "255"
 var updatedUseBfd string = "true"
 
 func TestAccMikrotikBgpPeer_create(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-create")
+	remoteAs := acctest.RandIntRange(1, 65535)
+	remoteAddress, _ := acctest.RandIpAddress("192.168.0.0/24")
+
 	resourceName := "mikrotik_bgp_peer.bar"
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikBgpPeerDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikBgpPeerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBgpPeer(),
+				Config: testAccBgpPeer(name, remoteAs, remoteAddress),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccBgpPeerExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "name", bgpPeerName),
-					resource.TestCheckResourceAttr(resourceName, "remote_as", remoteAs),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "remote_as", strconv.Itoa(remoteAs)),
 					resource.TestCheckResourceAttr(resourceName, "instance", instanceName),
 					resource.TestCheckResourceAttr(resourceName, "ttl", peerTTL),
 					resource.TestCheckResourceAttr(resourceName, "address_families", addressFamilies),
@@ -59,11 +61,15 @@ func TestAccMikrotikBgpPeer_create(t *testing.T) {
 }
 
 func TestAccMikrotikBgpPeer_createAndPlanWithNonExistantBgpPeer(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-create_with_plan")
+	remoteAs := acctest.RandIntRange(1, 65535)
+	remoteAddress, _ := acctest.RandIpAddress("192.168.1.0/24")
+
 	resourceName := "mikrotik_bgp_peer.bar"
 	removeBgpPeer := func() {
 
 		c := client.NewClient(client.GetConfigFromEnv())
-		bgpPeer, err := c.FindBgpPeer(bgpPeerName)
+		bgpPeer, err := c.FindBgpPeer(name)
 		if err != nil {
 			t.Fatalf("Error finding the bgp peer by name: %s", err)
 		}
@@ -72,20 +78,20 @@ func TestAccMikrotikBgpPeer_createAndPlanWithNonExistantBgpPeer(t *testing.T) {
 			t.Fatalf("Error removing the bgp peer: %s", err)
 		}
 	}
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikBgpPeerDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikBgpPeerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBgpPeer(),
+				Config: testAccBgpPeer(name, remoteAs, remoteAddress),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccBgpPeerExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id")),
 			},
 			{
 				PreConfig:          removeBgpPeer,
-				Config:             testAccBgpPeer(),
+				Config:             testAccBgpPeer(name, remoteAs, remoteAddress),
 				ExpectNonEmptyPlan: false,
 			},
 		},
@@ -93,19 +99,23 @@ func TestAccMikrotikBgpPeer_createAndPlanWithNonExistantBgpPeer(t *testing.T) {
 }
 
 func TestAccMikrotikBgpPeer_updateBgpPeer(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-update")
+	remoteAs := acctest.RandIntRange(1, 65535)
+	remoteAddress, _ := acctest.RandIpAddress("192.168.3.0/24")
+
 	resourceName := "mikrotik_bgp_peer.bar"
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikBgpPeerDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikBgpPeerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBgpPeer(),
+				Config: testAccBgpPeer(name, remoteAs, remoteAddress),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccBgpPeerExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "name", bgpPeerName),
-					resource.TestCheckResourceAttr(resourceName, "remote_as", remoteAs),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "remote_as", strconv.Itoa(remoteAs)),
 					resource.TestCheckResourceAttr(resourceName, "instance", instanceName),
 					resource.TestCheckResourceAttr(resourceName, "ttl", peerTTL),
 					resource.TestCheckResourceAttr(resourceName, "address_families", addressFamilies),
@@ -122,12 +132,12 @@ func TestAccMikrotikBgpPeer_updateBgpPeer(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBgpPeerUpdatedUseBfdTCPMd5KeyTTLAndMaxPrefixRestartTime(),
+				Config: testAccBgpPeerUpdatedUseBfdTCPMd5KeyTTLAndMaxPrefixRestartTime(name, remoteAs, remoteAddress),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccBgpPeerExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					resource.TestCheckResourceAttr(resourceName, "name", bgpPeerName),
-					resource.TestCheckResourceAttr(resourceName, "remote_as", remoteAs),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "remote_as", strconv.Itoa(remoteAs)),
 					resource.TestCheckResourceAttr(resourceName, "instance", instanceName),
 					resource.TestCheckResourceAttr(resourceName, "address_families", addressFamilies),
 					resource.TestCheckResourceAttr(resourceName, "default_originate", defaultOriginate),
@@ -150,14 +160,19 @@ func TestAccMikrotikBgpPeer_updateBgpPeer(t *testing.T) {
 }
 
 func TestAccMikrotikBgpPeer_import(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-import")
+	remoteAs := acctest.RandIntRange(1, 65535)
+	remoteAddress, _ := acctest.RandIpAddress("192.168.4.0/24")
+
 	resourceName := "mikrotik_bgp_peer.bar"
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikBgpPeerDestroy,
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikBgpPeerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBgpPeer(),
+				Config: testAccBgpPeer(name, remoteAs, remoteAddress),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccBgpPeerExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id")),
@@ -171,11 +186,11 @@ func TestAccMikrotikBgpPeer_import(t *testing.T) {
 	})
 }
 
-func testAccBgpPeer() string {
+func testAccBgpPeer(name string, remoteAs int, remoteAddress string) string {
 	return fmt.Sprintf(`
 resource "mikrotik_bgp_peer" "bar" {
     name = "%s"
-    remote_as = 65533
+    remote_as = %d
     remote_address = "%s"
     instance = "%s"
     ttl = "%s"
@@ -184,14 +199,14 @@ resource "mikrotik_bgp_peer" "bar" {
     hold_time = "%s"
     nexthop_choice = "%s"
 }
-`, bgpPeerName, remoteAddress, instanceName, peerTTL, addressFamilies, defaultOriginate, holdTime, nextHopChoice)
+`, name, remoteAs, remoteAddress, instanceName, peerTTL, addressFamilies, defaultOriginate, holdTime, nextHopChoice)
 }
 
-func testAccBgpPeerUpdatedUseBfdTCPMd5KeyTTLAndMaxPrefixRestartTime() string {
+func testAccBgpPeerUpdatedUseBfdTCPMd5KeyTTLAndMaxPrefixRestartTime(name string, remoteAs int, remoteAddress string) string {
 	return fmt.Sprintf(`
 resource "mikrotik_bgp_peer" "bar" {
     name = "%s"
-    remote_as = 65533
+    remote_as = %d
     remote_address = "%s"
     instance = "%s"
     ttl = "%s"
@@ -204,7 +219,7 @@ resource "mikrotik_bgp_peer" "bar" {
     use_bfd = true
     tcp_md5_key = "%s"
 }
-`, bgpPeerName, remoteAddress, instanceName, updatedTTL, addressFamilies, defaultOriginate, holdTime, nextHopChoice, maxPrefixRestartTime, tcpMd5Key)
+`, name, remoteAs, remoteAddress, instanceName, updatedTTL, addressFamilies, defaultOriginate, holdTime, nextHopChoice, maxPrefixRestartTime, tcpMd5Key)
 }
 
 func testAccBgpPeerExists(resourceName string) resource.TestCheckFunc {

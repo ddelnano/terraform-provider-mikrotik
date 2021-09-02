@@ -5,25 +5,27 @@ import (
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-var schOrigName string = "scheduler-terraform-acc-testing"
 var origOnEvent string = "testing"
 var origInterval int = 0
 var updatedOnEvent string = "updated"
 var updatedInterval int = 300
 
 func TestAccMikrotikScheduler_create(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-create")
+
 	resourceName := "mikrotik_scheduler.bar"
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikSchedulerDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikSchedulerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccScheduler(),
+				Config: testAccScheduler(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccSchedulerExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
@@ -38,20 +40,22 @@ func TestAccMikrotikScheduler_create(t *testing.T) {
 }
 
 func TestAccMikrotikScheduler_updateInterval(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-update")
+
 	resourceName := "mikrotik_scheduler.bar"
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikSchedulerDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikSchedulerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccScheduler(),
+				Config: testAccScheduler(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccSchedulerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "interval", "0")),
 			},
 			{
-				Config: testAccSchedulerUpdatedInterval(),
+				Config: testAccSchedulerUpdatedInterval(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccSchedulerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "interval", "300")),
@@ -61,20 +65,22 @@ func TestAccMikrotikScheduler_updateInterval(t *testing.T) {
 }
 
 func TestAccMikrotikScheduler_updatedOnEvent(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-update-event")
+
 	resourceName := "mikrotik_scheduler.bar"
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikSchedulerDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikSchedulerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccScheduler(),
+				Config: testAccScheduler(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccSchedulerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "on_event", origOnEvent)),
 			},
 			{
-				Config: testAccSchedulerUpdatedOnEvent(),
+				Config: testAccSchedulerUpdatedOnEvent(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccSchedulerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "on_event", updatedOnEvent)),
@@ -84,14 +90,16 @@ func TestAccMikrotikScheduler_updatedOnEvent(t *testing.T) {
 }
 
 func TestAccMikrotikScheduler_import(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-import")
+
 	resourceName := "mikrotik_scheduler.bar"
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikSchedulerDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikSchedulerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccScheduler(),
+				Config: testAccScheduler(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccSchedulerExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id")),
@@ -105,33 +113,33 @@ func TestAccMikrotikScheduler_import(t *testing.T) {
 	})
 }
 
-func testAccScheduler() string {
+func testAccScheduler(name string) string {
 	return fmt.Sprintf(`
 resource "mikrotik_scheduler" "bar" {
     name = "%s"
     on_event = "%s"
 }
-`, schOrigName, origOnEvent)
+`, name, origOnEvent)
 }
 
-func testAccSchedulerUpdatedInterval() string {
+func testAccSchedulerUpdatedInterval(name string) string {
 	return fmt.Sprintf(`
 resource "mikrotik_scheduler" "bar" {
     name = "%s"
     on_event = "%s"
     interval = "%d"
 }
-`, schOrigName, origOnEvent, updatedInterval)
+`, name, origOnEvent, updatedInterval)
 }
 
-func testAccSchedulerUpdatedOnEvent() string {
+func testAccSchedulerUpdatedOnEvent(name string) string {
 	return fmt.Sprintf(`
 resource "mikrotik_scheduler" "bar" {
     name = "%s"
     on_event = "%s"
     interval = "%d"
 }
-`, schOrigName, updatedOnEvent, origInterval)
+`, name, updatedOnEvent, origInterval)
 }
 
 func testAccCheckMikrotikSchedulerDestroy(s *terraform.State) error {
