@@ -16,7 +16,7 @@ If you get value out this project and want to show your support you can find me 
 
 ### Dependencies
 - RouterOS v6.45.2+ (It may work on older versions but it is untested)
-- Terraform 0.11+
+- Terraform 0.12+
 
 ### Testing
 
