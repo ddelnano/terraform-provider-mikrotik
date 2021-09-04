@@ -10,10 +10,19 @@ jobs:
   build:
     name: Build
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
+        experimental: [false]
         go: ["1.16"]
         os: [ubuntu-latest]
+        # Test against latest stable release, v6 beta and v7 beta
+        routeros: ["6.48.3", "6.49beta54"]
+        include:
+          - experimental: true
+            go: 1.16
+            os: ubuntu-latest
+            routeros: "latest"
     steps:
       - name: Set up Go
         uses: actions/setup-go@v1
@@ -40,7 +49,7 @@ jobs:
 
     services:
       routeros:
-        image: evilfreelancer/docker-routeros:6.48.3
+        image: evilfreelancer/docker-routeros:${{ matrix.routeros }}
         ports:
           - 8728:8728
         volumes:
