@@ -10,12 +10,17 @@ jobs:
   build:
     name: Build
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
+        experimental: false
         go: ["1.16"]
         os: [ubuntu-latest]
         # Test against latest stable release, v6 beta and v7 beta
-        routeros: ["6.48.3", "6.49beta54", "latest"]
+        routeros: ["6.48.3", "6.49beta54"]
+        include:
+          experimental: true
+          routeros: ["latest"]
     steps:
       - name: Set up Go
         uses: actions/setup-go@v1
