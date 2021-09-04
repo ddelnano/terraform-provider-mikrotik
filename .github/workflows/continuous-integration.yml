@@ -19,8 +19,8 @@ jobs:
         # Test against latest stable release, v6 beta and v7 beta
         routeros: ["6.48.3", "6.49beta54"]
         include:
-          experimental: true
-          routeros: ["latest"]
+          - experimental: true
+            routeros: "latest"
     steps:
       - name: Set up Go
         uses: actions/setup-go@v1
