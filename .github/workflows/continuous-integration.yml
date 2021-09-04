@@ -13,7 +13,7 @@ jobs:
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
-        experimental: false
+        experimental: [false]
         go: ["1.16"]
         os: [ubuntu-latest]
         # Test against latest stable release, v6 beta and v7 beta
