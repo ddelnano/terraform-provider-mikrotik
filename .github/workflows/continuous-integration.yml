@@ -21,6 +21,8 @@ jobs:
         include:
           - experimental: true
             routeros: "latest"
+            go: 1.16
+            os: ubuntu-latest
     steps:
       - name: Set up Go
         uses: actions/setup-go@v1
