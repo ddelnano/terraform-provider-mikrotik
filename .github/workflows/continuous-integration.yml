@@ -20,9 +20,9 @@ jobs:
         routeros: ["6.48.3", "6.49beta54"]
         include:
           - experimental: true
-            routeros: "latest"
             go: 1.16
             os: ubuntu-latest
+            routeros: "latest"
     steps:
       - name: Set up Go
         uses: actions/setup-go@v1
