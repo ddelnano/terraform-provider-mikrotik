@@ -42,7 +42,7 @@ jobs:
 
     services:
       routeros:
-        image: evilfreelancer/docker-routeros:6.48.3
+        image: evilfreelancer/docker-routeros:${{ matrix.routeros }}
         ports:
           - 8728:8728
         volumes:
