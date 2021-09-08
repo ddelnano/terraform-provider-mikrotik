@@ -50,10 +50,6 @@ func (client Mikrotik) AddBgpInstance(b *BgpInstance) (*BgpInstance, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	if legacyBgpUnsupported(err) {
-		return nil, LegacyBgpUnsupported{}
-	}
 	cmd := Marshal("/routing/bgp/instance/add", b)
 
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
@@ -61,6 +57,9 @@ func (client Mikrotik) AddBgpInstance(b *BgpInstance) (*BgpInstance, error) {
 	log.Printf("[DEBUG] /routing/bgp/instance/add returned %v", r)
 
 	if err != nil {
+		if legacyBgpUnsupported(err) {
+			return nil, LegacyBgpUnsupported{}
+		}
 		return nil, err
 	}
 

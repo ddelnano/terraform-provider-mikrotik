@@ -2,6 +2,7 @@ package mikrotik
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"testing"
 
@@ -13,7 +14,7 @@ import (
 )
 
 func TestAccMikrotikBgpInstance_create(t *testing.T) {
-	client.SkipBgpIfUnsupported(t)
+	client.SkipLegacyBgpIfUnsupported(t)
 	name := acctest.RandomWithPrefix("tf-acc-create")
 	routerId := internal.GetNewIpAddr()
 	as := acctest.RandIntRange(1, 65535)
@@ -39,8 +40,30 @@ func TestAccMikrotikBgpInstance_create(t *testing.T) {
 	})
 }
 
+func TestAccMikrotikBgpInstance_createFailsOnRouterOSv7(t *testing.T) {
+	if client.IsLegacyBgpSupported() {
+		t.Skip()
+	}
+
+	name := acctest.RandomWithPrefix("tf-acc-create")
+	routerId := internal.GetNewIpAddr()
+	as := acctest.RandIntRange(1, 65535)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikBgpInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccBgpInstance(name, as, routerId),
+				ExpectError: regexp.MustCompile(`Your RouterOS version does not support`),
+			},
+		},
+	})
+}
+
 func TestAccMikrotikBgpInstance_createAndPlanWithNonExistantBgpInstance(t *testing.T) {
-	client.SkipBgpIfUnsupported(t)
+	client.SkipLegacyBgpIfUnsupported(t)
 	name := acctest.RandomWithPrefix("tf-acc-create_with_plan")
 	routerId := internal.GetNewIpAddr()
 	as := acctest.RandIntRange(1, 65535)
@@ -66,7 +89,7 @@ func TestAccMikrotikBgpInstance_createAndPlanWithNonExistantBgpInstance(t *testi
 }
 
 func TestAccMikrotikBgpInstance_updateBgpInstance(t *testing.T) {
-	client.SkipBgpIfUnsupported(t)
+	client.SkipLegacyBgpIfUnsupported(t)
 	name := acctest.RandomWithPrefix("tf-acc-update")
 	routerId := internal.GetNewIpAddr()
 	updatedRouterId := internal.GetNewIpAddr()
@@ -119,7 +142,7 @@ func TestAccMikrotikBgpInstance_updateBgpInstance(t *testing.T) {
 }
 
 func TestAccMikrotikBgpInstance_import(t *testing.T) {
-	client.SkipBgpIfUnsupported(t)
+	client.SkipLegacyBgpIfUnsupported(t)
 	name := acctest.RandomWithPrefix("tf-acc-import")
 	routerId := internal.GetNewIpAddr()
 	as := acctest.RandIntRange(1, 65535)
