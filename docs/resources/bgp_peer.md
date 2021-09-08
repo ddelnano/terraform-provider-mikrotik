@@ -1,6 +1,8 @@
-# mikrotik_pool
+# mikrotik_bgp_peer
 
 Creates a Mikrotik [BGP Peer](https://wiki.mikrotik.com/wiki/Manual:Routing/BGP#Peer).
+
+This resource will not be supported in RouterOS v7+. Mikrotik has deprecated the underlying commands so future BGP support will need new resources created (See #52 for status of this work).
 
 ## Example Usage
 
