@@ -13,8 +13,10 @@ func (LegacyBgpUnsupported) Error() string {
 }
 
 func legacyBgpUnsupported(err error) bool {
-	if strings.Contains(err.Error(), "no such command prefix") {
-		return true
+	if err != nil {
+		if strings.Contains(err.Error(), "no such command prefix") {
+			return true
+		}
 	}
 	return false
 }
