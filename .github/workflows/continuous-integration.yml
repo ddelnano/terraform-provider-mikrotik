@@ -42,7 +42,7 @@ jobs:
         run: go build -v .
 
       - name: Run provider tests
-        run: cd mikrotik && go test -v ./...
+        run: make testacc
         env:
           MIKROTIK_HOST: 127.0.0.1:8728
           MIKROTIK_USER: admin
@@ -51,7 +51,7 @@ jobs:
           LEGACY_BPG_SUPPORT: ${{ matrix.legacy_bgp_support }}
 
       - name: Run client tests
-        run: cd ../client && go test -v ./...
+        run: make testclient
         env:
           MIKROTIK_HOST: 127.0.0.1:8728
           MIKROTIK_USER: admin
