@@ -49,8 +49,10 @@ func (client Mikrotik) AddBgpPeer(b *BgpPeer) (*BgpPeer, error) {
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
 	log.Printf("[DEBUG] /routing/bgp/peer/add returned %v", r)
-
 	if err != nil {
+		if legacyBgpUnsupported(err) {
+			return nil, LegacyBgpUnsupported{}
+		}
 		return nil, err
 	}
 
@@ -68,6 +70,9 @@ func (client Mikrotik) FindBgpPeer(name string) (*BgpPeer, error) {
 	r, err := c.RunArgs(cmd)
 
 	if err != nil {
+		if legacyBgpUnsupported(err) {
+			return nil, LegacyBgpUnsupported{}
+		}
 		return nil, err
 	}
 
@@ -101,6 +106,9 @@ func (client Mikrotik) UpdateBgpPeer(b *BgpPeer) (*BgpPeer, error) {
 	_, err = c.RunArgs(cmd)
 
 	if err != nil {
+		if legacyBgpUnsupported(err) {
+			return nil, LegacyBgpUnsupported{}
+		}
 		return nil, err
 	}
 

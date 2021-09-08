@@ -18,11 +18,13 @@ jobs:
         os: [ubuntu-latest]
         # Test against latest stable release, v6 beta and v7 beta
         routeros: ["6.48.3", "6.49beta54"]
+        legacy_bgp_support: [true]
         include:
           - experimental: true
             go: 1.16
             os: ubuntu-latest
             routeros: "latest"
+            legacy_bgp_support: false
     steps:
       - name: Set up Go
         uses: actions/setup-go@v1
@@ -40,12 +42,22 @@ jobs:
         run: go build -v .
 
       - name: Run provider tests
-        run: cd mikrotik && go test -v ./...
+        run: make testacc
         env:
           MIKROTIK_HOST: 127.0.0.1:8728
           MIKROTIK_USER: admin
           MIKROTIK_PASSWORD: ''
           TF_ACC: 1
+          LEGACY_BGP_SUPPORT: ${{ matrix.legacy_bgp_support }}
+
+      - name: Run client tests
+        run: make testclient
+        env:
+          MIKROTIK_HOST: 127.0.0.1:8728
+          MIKROTIK_USER: admin
+          MIKROTIK_PASSWORD: ''
+          TF_ACC: 1
+          LEGACY_BGP_SUPPORT: ${{ matrix.legacy_bgp_support }}
 
     services:
       routeros:
