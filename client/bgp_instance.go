@@ -3,7 +3,21 @@ package client
 import (
 	"fmt"
 	"log"
+	"strings"
 )
+
+type LegacyBgpUnsupported struct{}
+
+func (LegacyBgpUnsupported) Error() string {
+	return "Your RouterOS version does not support /routing/bgp/{instance,peer} commands"
+}
+
+func legacyBgpUnsupported(err error) bool {
+	if strings.Contains(err.Error(), "no such command prefix") {
+		return true
+	}
+	return false
+}
 
 // BgpInstance Mikrotik resource
 type BgpInstance struct {
@@ -35,6 +49,9 @@ func (client Mikrotik) AddBgpInstance(b *BgpInstance) (*BgpInstance, error) {
 		return nil, err
 	}
 
+	if legacyBgpUnsupported(err) {
+		return nil, LegacyBgpUnsupported{}
+	}
 	cmd := Marshal("/routing/bgp/instance/add", b)
 
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
@@ -58,8 +75,10 @@ func (client Mikrotik) FindBgpInstance(name string) (*BgpInstance, error) {
 	cmd := []string{"/routing/bgp/instance/print", "?name=" + name}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
-
 	if err != nil {
+		if legacyBgpUnsupported(err) {
+			return nil, LegacyBgpUnsupported{}
+		}
 		return nil, err
 	}
 
@@ -95,6 +114,9 @@ func (client Mikrotik) UpdateBgpInstance(b *BgpInstance) (*BgpInstance, error) {
 	_, err = c.RunArgs(cmd)
 
 	if err != nil {
+		if legacyBgpUnsupported(err) {
+			return nil, LegacyBgpUnsupported{}
+		}
 		return nil, err
 	}
 

@@ -118,6 +118,10 @@ func resourceBgpInstanceRead(ctx context.Context, d *schema.ResourceData, m inte
 
 	bgpInstance, err := c.FindBgpInstance(d.Id())
 
+	if _, ok := err.(client.LegacyBgpUnsupported); ok {
+		return diag.FromErr(err)
+	}
+
 	if _, ok := err.(*client.NotFound); ok {
 		d.SetId("")
 		return nil
@@ -130,6 +134,9 @@ func resourceBgpInstanceUpdate(ctx context.Context, d *schema.ResourceData, m in
 	c := m.(*client.Mikrotik)
 
 	currentBgpInstance, err := c.FindBgpInstance(d.Get("name").(string))
+	if _, ok := err.(client.LegacyBgpUnsupported); ok {
+		return diag.FromErr(err)
+	}
 
 	instance := prepareBgpInstance(d)
 	instance.ID = currentBgpInstance.ID
@@ -147,6 +154,9 @@ func resourceBgpInstanceDelete(ctx context.Context, d *schema.ResourceData, m in
 	c := m.(*client.Mikrotik)
 
 	err := c.DeleteBgpInstance(d.Get("name").(string))
+	if _, ok := err.(client.LegacyBgpUnsupported); ok {
+		return diag.FromErr(err)
+	}
 
 	if err != nil {
 		return diag.FromErr(err)
