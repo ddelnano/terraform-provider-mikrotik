@@ -1,6 +1,6 @@
 ## mikrotik_ip_address
 
-Assignes an IP address to an interface
+Assigns an IP address to an interface
 
 ### Example Usage
 

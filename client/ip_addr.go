@@ -87,7 +87,7 @@ func (client Mikrotik) FindIpAddress(id string) (*IpAddress, error) {
 	}
 
 	if ipaddr.Id == "" {
-		return nil, NewNotFound(fmt.Sprintf("ip address `%s`not found", id))
+		return nil, NewNotFound(fmt.Sprintf("ip address `%s` not found", id))
 	}
 
 	return &ipaddr, nil

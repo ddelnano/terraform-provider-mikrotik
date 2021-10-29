@@ -63,14 +63,16 @@ func resourceIpAddressRead(ctx context.Context, d *schema.ResourceData, m interf
 
 	ipaddr, err := c.FindIpAddress(d.Id())
 
-	if err != nil {
+	// Clear the state if the error represents that the resource no longer exists
+	_, resourceMissing := err.(*client.NotFound)
+	if resourceMissing && err != nil {
 		d.SetId("")
 		return nil
 	}
 
-	if ipaddr == nil {
-		d.SetId("")
-		return nil
+	// Make sure all other errors are propagated
+	if err != nil {
+		return diag.FromErr(err)
 	}
 
 	return addrToData(ipaddr, d)

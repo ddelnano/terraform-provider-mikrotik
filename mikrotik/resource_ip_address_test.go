@@ -41,7 +41,9 @@ func TestAccMikrotikResourceIpAddress_updateAddr(t *testing.T) {
 	updatedIpAddr := internal.GetNewIpAddr() + "/24"
 	ifName := "ether1"
 	comment := acctest.RandomWithPrefix("tf-acc-comment")
+	disabled := "false"
 	updatedComment := acctest.RandomWithPrefix("tf-acc-comment")
+	updatedDisabled := "true"
 
 	resourceName := "mikrotik_ip_address.test"
 	resource.ParallelTest(t, resource.TestCase{
@@ -56,6 +58,7 @@ func TestAccMikrotikResourceIpAddress_updateAddr(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "address", ipAddr),
 					resource.TestCheckResourceAttr(resourceName, "interface", ifName),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+					resource.TestCheckResourceAttr(resourceName, "disabled", disabled),
 				),
 			},
 			{
@@ -65,6 +68,7 @@ func TestAccMikrotikResourceIpAddress_updateAddr(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "address", updatedIpAddr),
 					resource.TestCheckResourceAttr(resourceName, "interface", ifName),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+					resource.TestCheckResourceAttr(resourceName, "disabled", disabled),
 				),
 			},
 			{
@@ -74,16 +78,17 @@ func TestAccMikrotikResourceIpAddress_updateAddr(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "address", ipAddr),
 					resource.TestCheckResourceAttr(resourceName, "interface", ifName),
 					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment),
+					resource.TestCheckResourceAttr(resourceName, "disabled", disabled),
 				),
 			},
 			{
-				Config: testAccIpAddressUpdatedDisabled(ipAddr, ifName, comment, true),
+				Config: testAccIpAddressUpdatedDisabled(ipAddr, ifName, comment, updatedDisabled),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccIpAddressExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "address", ipAddr),
 					resource.TestCheckResourceAttr(resourceName, "interface", ifName),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
-					resource.TestCheckResourceAttr(resourceName, "disabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "disabled", updatedDisabled),
 				),
 			},
 		},
@@ -100,13 +105,13 @@ resource "mikrotik_ip_address" "test" {
 `, ipAddr, ifName, comment)
 }
 
-func testAccIpAddressUpdatedDisabled(ipAddr, ifName, comment string, disabled bool) string {
+func testAccIpAddressUpdatedDisabled(ipAddr, ifName, comment string, disabled string) string {
 	return fmt.Sprintf(`
 resource "mikrotik_ip_address" "test" {
 	address = "%s"
 	interface = "%s"
 	comment = "%s"
-	disabled = "%t"
+	disabled = "%s"
 }
 `, ipAddr, ifName, comment, disabled)
 }
