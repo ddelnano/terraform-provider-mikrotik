@@ -51,6 +51,7 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 		ResourcesMap: map[string]*schema.Resource{
 			"mikrotik_dns_record":   resourceRecord(),
 			"mikrotik_dhcp_lease":   resourceLease(),
+			"mikrotik_ip_address":   resourceIpAddress(),
 			"mikrotik_scheduler":    resourceScheduler(),
 			"mikrotik_script":       resourceScript(),
 			"mikrotik_pool":         resourcePool(),
