@@ -6,10 +6,8 @@ import (
 )
 
 // required BGP Peer fields
-var bgpPeerName string = "test-peer"
 var remoteAs int = 65533
 var remoteAddress string = "172.21.16.0"
-var instanceName string = "test"
 
 var peerTTL string = "default"
 var addressFamilies string = "ip"
@@ -18,7 +16,19 @@ var holdTime string = "3m"
 var nextHopChoice string = "default"
 
 func TestAddBgpPeerAndDeleteBgpPeer(t *testing.T) {
+	SkipLegacyBgpIfUnsupported(t)
 	c := NewClient(GetConfigFromEnv())
+
+	instanceName := "peer-test"
+	bgpPeerName := "test-peer"
+
+	_, err := c.AddBgpInstance(&BgpInstance{Name: instanceName, As: 65530, RouterID: "172.16.0.254"})
+	if err != nil {
+		t.Fatalf("unable to create BGP instance used for testing: %v", err)
+	}
+	defer func(c *Mikrotik, name string) {
+		_ = c.DeleteBgpInstance(name)
+	}(c, instanceName)
 
 	expectedBgpPeer := &BgpPeer{
 		Name:             bgpPeerName,
@@ -50,7 +60,19 @@ func TestAddBgpPeerAndDeleteBgpPeer(t *testing.T) {
 }
 
 func TestAddAndUpdateBgpPeerWithOptionalFieldsAndDeleteBgpPeer(t *testing.T) {
+	SkipLegacyBgpIfUnsupported(t)
 	c := NewClient(GetConfigFromEnv())
+
+	instanceName := "peer-update-test"
+	bgpPeerName := "test-peer-update"
+
+	_, err := c.AddBgpInstance(&BgpInstance{Name: instanceName, As: 65530, RouterID: "172.16.1.254"})
+	if err != nil {
+		t.Fatalf("unable to create BGP instance used for testing: %v", err)
+	}
+	defer func(c *Mikrotik, name string) {
+		_ = c.DeleteBgpInstance(name)
+	}(c, instanceName)
 
 	expectedBgpPeer := &BgpPeer{
 		Name:             bgpPeerName,
@@ -101,6 +123,7 @@ func TestAddAndUpdateBgpPeerWithOptionalFieldsAndDeleteBgpPeer(t *testing.T) {
 }
 
 func TestFindBgpPeer_onNonExistantBgpPeer(t *testing.T) {
+	SkipLegacyBgpIfUnsupported(t)
 	c := NewClient(GetConfigFromEnv())
 
 	name := "bgp peer does not exist"

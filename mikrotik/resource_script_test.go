@@ -2,36 +2,31 @@ package mikrotik
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-var origName string = "terraform-acc-testing"
-
 // TODO: Add dependent resources for owner
-var origOwner string = "admin"
-var origSource string = ":put testing"
-var originalPolicy []string = []string{
-	"ftp",
-}
-var updatedOwner string = "prometheus"
-var updatedSource string = ":put updated"
-var updatedPolicy []string = []string{
-	"ftp", "dude",
-}
+var defaultOwner = "admin"
+var defaultSource = ":put testing"
+var defaultPolicies = []string{"ftp", "reboot"}
 
 func TestAccMikrotikScript_create(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-create")
+
 	resourceName := "mikrotik_script.bar"
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikScriptDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccScriptRecord(),
+				Config: testAccScriptRecord(name, defaultOwner, defaultSource, defaultPolicies),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccScriptExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id")),
@@ -41,20 +36,23 @@ func TestAccMikrotikScript_create(t *testing.T) {
 }
 
 func TestAccMikrotikScript_updateSource(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-update-src")
+	updatedSource := ":put updated"
+
 	resourceName := "mikrotik_script.bar"
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikScriptDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccScriptRecord(),
+				Config: testAccScriptRecord(name, defaultOwner, defaultSource, defaultPolicies),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccScriptExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "source", origSource)),
+					resource.TestCheckResourceAttr(resourceName, "source", defaultSource)),
 			},
 			{
-				Config: testAccScriptRecordUpdatedSource(),
+				Config: testAccScriptRecord(name, defaultOwner, updatedSource, defaultPolicies),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccScriptExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "source", updatedSource)),
@@ -64,20 +62,23 @@ func TestAccMikrotikScript_updateSource(t *testing.T) {
 }
 
 func TestAccMikrotikScript_updateOwner(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-update-owner")
+	updatedOwner := "prometheus"
+
 	resourceName := "mikrotik_script.bar"
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikScriptDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccScriptRecord(),
+				Config: testAccScriptRecord(name, defaultOwner, defaultSource, defaultPolicies),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccScriptExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "owner", origOwner)),
+					resource.TestCheckResourceAttr(resourceName, "owner", defaultOwner)),
 			},
 			{
-				Config: testAccScriptRecordUpdatedOwner(),
+				Config: testAccScriptRecord(name, updatedOwner, defaultSource, defaultPolicies),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccScriptExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "owner", updatedOwner)),
@@ -87,20 +88,22 @@ func TestAccMikrotikScript_updateOwner(t *testing.T) {
 }
 
 func TestAccMikrotikScript_updateDontReqPerms(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-update-perm")
+
 	resourceName := "mikrotik_script.bar"
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikScriptDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccScriptRecord(),
+				Config: testAccScriptRecord(name, defaultOwner, defaultSource, defaultPolicies),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccScriptExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "dont_require_permissions", "false")),
 			},
 			{
-				Config: testAccScriptRecordUpdatedDontReqPerms(),
+				Config: testAccScriptRecordWithPerms(name, defaultOwner, defaultSource, defaultPolicies, true),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccScriptExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "dont_require_permissions", "true")),
@@ -110,40 +113,45 @@ func TestAccMikrotikScript_updateDontReqPerms(t *testing.T) {
 }
 
 func TestAccMikrotikScript_updatePolicies(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-update-pol")
+	updatedPolicies := []string{"ftp"}
+
 	resourceName := "mikrotik_script.bar"
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikScriptDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccScriptRecord(),
+				Config: testAccScriptRecord(name, defaultOwner, defaultSource, defaultPolicies),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccScriptExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "policy.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "policy.0", "ftp"),
-					resource.TestCheckResourceAttr(resourceName, "policy.1", "reboot")),
+					resource.TestCheckResourceAttr(resourceName, "policy.0", defaultPolicies[0]),
+					resource.TestCheckResourceAttr(resourceName, "policy.1", defaultPolicies[1])),
 			},
 			{
-				Config: testAccScriptRecordUpdatedPolicy(),
+				Config: testAccScriptRecord(name, defaultOwner, defaultSource, updatedPolicies),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccScriptExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "policy.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "policy.0", "ftp")),
+					resource.TestCheckResourceAttr(resourceName, "policy.0", updatedPolicies[0])),
 			},
 		},
 	})
 }
 
 func TestAccMikrotikScript_import(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-import")
+
 	resourceName := "mikrotik_script.bar"
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckMikrotikScriptDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccScriptRecord(),
+				Config: testAccScriptRecord(name, defaultOwner, defaultSource, defaultPolicies),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccScriptExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "dont_require_permissions", "false")),
@@ -157,73 +165,27 @@ func TestAccMikrotikScript_import(t *testing.T) {
 	})
 }
 
-func testAccScriptRecord() string {
+func testAccScriptRecord(name, owner, source string, policies []string) string {
 	return fmt.Sprintf(`
 resource "mikrotik_script" "bar" {
     name = "%s"
     owner = "%s"
     source = "%s"
-    // These require a very specific order otherwise
-    // the mikrotik command fails to create it.
-    // TODO: Add an error to the client to fail this.
-    policy = [
-	"ftp", "reboot"
-    ]
+    policy = ["%s"]
 }
-`, origName, origOwner, origSource)
+`, name, owner, source, strings.Join(policies, "\",\""))
 }
 
-func testAccScriptRecordUpdatedSource() string {
+func testAccScriptRecordWithPerms(name, owner, source string, policies []string, dontRequirePermissions bool) string {
 	return fmt.Sprintf(`
 resource "mikrotik_script" "bar" {
     name = "%s"
     owner = "%s"
     source = "%s"
-    policy = [
-	"ftp"
-    ]
+    policy = ["%s"]
+    dont_require_permissions = %t
 }
-`, origName, origOwner, updatedSource)
-}
-
-func testAccScriptRecordUpdatedOwner() string {
-	return fmt.Sprintf(`
-resource "mikrotik_script" "bar" {
-    name = "%s"
-    owner = "%s"
-    source = "%s"
-    policy = [
-	"ftp"
-    ]
-}
-`, origName, updatedOwner, origSource)
-}
-
-func testAccScriptRecordUpdatedDontReqPerms() string {
-	return fmt.Sprintf(`
-resource "mikrotik_script" "bar" {
-    name = "%s"
-    owner = "%s"
-    source = "%s"
-    policy = [
-	"ftp"
-    ]
-    dont_require_permissions = true
-}
-`, origName, updatedOwner, origSource)
-}
-
-func testAccScriptRecordUpdatedPolicy() string {
-	return fmt.Sprintf(`
-resource "mikrotik_script" "bar" {
-    name = "%s"
-    owner = "%s"
-    source = "%s"
-    policy = [
-	"ftp",
-    ]
-}
-`, origName, origOwner, origSource)
+`, name, owner, source, strings.Join(policies, "\",\""), dontRequirePermissions)
 }
 
 func testAccCheckMikrotikScriptDestroy(s *terraform.State) error {

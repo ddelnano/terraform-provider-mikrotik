@@ -1,45 +1,47 @@
 package mikrotik
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceLease() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceLeaseCreate,
-		Read:   resourceLeaseRead,
-		Update: resourceLeaseUpdate,
-		Delete: resourceLeaseDelete,
+		CreateContext: resourceLeaseCreate,
+		ReadContext:   resourceLeaseRead,
+		UpdateContext: resourceLeaseUpdate,
+		DeleteContext: resourceLeaseDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"address": &schema.Schema{
+			"address": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"macaddress": &schema.Schema{
+			"macaddress": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"comment": &schema.Schema{
+			"comment": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"hostname": &schema.Schema{
+			"hostname": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"blocked": &schema.Schema{
+			"blocked": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "false",
 			},
-			"dynamic": &schema.Schema{
+			"dynamic": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -48,22 +50,21 @@ func resourceLease() *schema.Resource {
 	}
 }
 
-func resourceLeaseCreate(d *schema.ResourceData, m interface{}) error {
+func resourceLeaseCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	dhcpLease := prepareDhcpLease(d)
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	lease, err := c.AddDhcpLease(dhcpLease)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	leaseToData(lease, d)
-	return nil
+	return leaseToData(lease, d)
 }
 
-func resourceLeaseRead(d *schema.ResourceData, m interface{}) error {
-	c := m.(client.Mikrotik)
+func resourceLeaseRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	c := m.(*client.Mikrotik)
 
 	lease, err := c.FindDhcpLease(d.Id())
 
@@ -77,12 +78,11 @@ func resourceLeaseRead(d *schema.ResourceData, m interface{}) error {
 		return nil
 	}
 
-	leaseToData(lease, d)
-	return nil
+	return leaseToData(lease, d)
 }
 
-func resourceLeaseUpdate(d *schema.ResourceData, m interface{}) error {
-	c := m.(client.Mikrotik)
+func resourceLeaseUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	c := m.(*client.Mikrotik)
 
 	dhcpLease := prepareDhcpLease(d)
 	dhcpLease.Id = d.Id()
@@ -91,35 +91,46 @@ func resourceLeaseUpdate(d *schema.ResourceData, m interface{}) error {
 	lease.Dynamic = dhcpLease.Dynamic
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	leaseToData(lease, d)
-	return nil
+	return leaseToData(lease, d)
 }
 
-func resourceLeaseDelete(d *schema.ResourceData, m interface{}) error {
-	c := m.(client.Mikrotik)
+func resourceLeaseDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	c := m.(*client.Mikrotik)
 
 	err := c.DeleteDhcpLease(d.Id())
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId("")
 	return nil
 }
 
-func leaseToData(lease *client.DhcpLease, d *schema.ResourceData) error {
+func leaseToData(lease *client.DhcpLease, d *schema.ResourceData) diag.Diagnostics {
+	values := map[string]interface{}{
+		"blocked":    strconv.FormatBool(lease.BlockAccess),
+		"comment":    lease.Comment,
+		"address":    lease.Address,
+		"macaddress": lease.MacAddress,
+		"hostname":   lease.Hostname,
+		"dynamic":    lease.Dynamic,
+	}
+
 	d.SetId(lease.Id)
-	d.Set("blocked", strconv.FormatBool(lease.BlockAccess))
-	d.Set("comment", lease.Comment)
-	d.Set("address", lease.Address)
-	d.Set("macaddress", lease.MacAddress)
-	d.Set("hostname", lease.Hostname)
-	d.Set("dynamic", lease.Dynamic)
-	return nil
+
+	var diags diag.Diagnostics
+
+	for key, value := range values {
+		if err := d.Set(key, value); err != nil {
+			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
+		}
+	}
+
+	return diags
 }
 
 func prepareDhcpLease(d *schema.ResourceData) *client.DhcpLease {

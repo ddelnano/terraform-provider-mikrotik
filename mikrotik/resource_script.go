@@ -1,41 +1,44 @@
 package mikrotik
 
 import (
+	"context"
+
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceScript() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceScriptCreate,
-		Read:   resourceScriptRead,
-		Update: resourceScriptUpdate,
-		Delete: resourceScriptDelete,
+		CreateContext: resourceScriptCreate,
+		ReadContext:   resourceScriptRead,
+		UpdateContext: resourceScriptUpdate,
+		DeleteContext: resourceScriptDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"owner": &schema.Schema{
+			"owner": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"source": &schema.Schema{
+			"source": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"policy": &schema.Schema{
+			"policy": {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
-			"dont_require_permissions": &schema.Schema{
+			"dont_require_permissions": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -44,7 +47,7 @@ func resourceScript() *schema.Resource {
 	}
 }
 
-func resourceScriptCreate(d *schema.ResourceData, m interface{}) error {
+func resourceScriptCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	name := d.Get("name").(string)
 	owner := d.Get("owner").(string)
 	source := d.Get("source").(string)
@@ -55,7 +58,7 @@ func resourceScriptCreate(d *schema.ResourceData, m interface{}) error {
 	}
 	dontReqPerms := d.Get("dont_require_permissions").(bool)
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	script, err := c.CreateScript(
 		name,
@@ -65,28 +68,36 @@ func resourceScriptCreate(d *schema.ResourceData, m interface{}) error {
 		dontReqPerms,
 	)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	scriptToData(script, d)
-	return nil
+	return scriptToData(script, d)
 }
 
-func scriptToData(s *client.Script, d *schema.ResourceData) error {
+func scriptToData(s *client.Script, d *schema.ResourceData) diag.Diagnostics {
+	values := map[string]interface{}{
+		"name":                     s.Name,
+		"owner":                    s.Owner,
+		"source":                   s.Source,
+		"policy":                   s.Policy(),
+		"dont_require_permissions": s.DontRequirePermissions,
+	}
+
 	d.SetId(s.Name)
-	d.Set("name", s.Name)
-	d.Set("owner", s.Owner)
-	d.Set("source", s.Source)
-	err := d.Set("policy", s.Policy())
-	if err != nil {
-		return err
+
+	var diags diag.Diagnostics
+
+	for key, value := range values {
+		if err := d.Set(key, value); err != nil {
+			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
+		}
 	}
-	d.Set("dont_require_permissions", s.DontRequirePermissions)
-	return nil
+
+	return diags
 }
 
-func resourceScriptRead(d *schema.ResourceData, m interface{}) error {
-	c := m.(client.Mikrotik)
+func resourceScriptRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	c := m.(*client.Mikrotik)
 
 	script, err := c.FindScript(d.Id())
 
@@ -94,10 +105,10 @@ func resourceScriptRead(d *schema.ResourceData, m interface{}) error {
 		d.SetId("")
 		return nil
 	}
-	scriptToData(script, d)
-	return nil
+
+	return scriptToData(script, d)
 }
-func resourceScriptUpdate(d *schema.ResourceData, m interface{}) error {
+func resourceScriptUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	name := d.Get("name").(string)
 	owner := d.Get("owner").(string)
 	source := d.Get("source").(string)
@@ -111,26 +122,24 @@ func resourceScriptUpdate(d *schema.ResourceData, m interface{}) error {
 		}
 	}
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	script, err := c.UpdateScript(name, owner, source, policies, dontReqPerms)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	scriptToData(script, d)
-
-	return nil
+	return scriptToData(script, d)
 }
-func resourceScriptDelete(d *schema.ResourceData, m interface{}) error {
+func resourceScriptDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	name := d.Id()
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	err := c.DeleteScript(name)
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	d.SetId("")
 	return nil

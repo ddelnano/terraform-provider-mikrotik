@@ -1,137 +1,140 @@
 package mikrotik
 
 import (
+	"context"
+
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceBgpPeer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBgpPeerCreate,
-		Read:   resourceBgpPeerRead,
-		Update: resourceBgpPeerUpdate,
-		Delete: resourceBgpPeerDelete,
+		CreateContext: resourceBgpPeerCreate,
+		ReadContext:   resourceBgpPeerRead,
+		UpdateContext: resourceBgpPeerUpdate,
+		DeleteContext: resourceBgpPeerDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"remote_as": &schema.Schema{
+			"remote_as": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			"remote_address": &schema.Schema{
+			"remote_address": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"instance": &schema.Schema{
+			"instance": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"address_families": &schema.Schema{
+			"address_families": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "ip",
 			},
-			"ttl": &schema.Schema{
+			"ttl": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "default",
 			},
-			"default_originate": &schema.Schema{
+			"default_originate": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "never",
 			},
-			"hold_time": &schema.Schema{
+			"hold_time": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "3m",
 			},
-			"nexthop_choice": &schema.Schema{
+			"nexthop_choice": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "default",
 			},
-			"out_filter": &schema.Schema{
+			"out_filter": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"in_filter": &schema.Schema{
+			"in_filter": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"allow_as_in": &schema.Schema{
+			"allow_as_in": {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
-			"as_override": &schema.Schema{
+			"as_override": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"cisco_vpls_nlri_len_fmt": &schema.Schema{
+			"cisco_vpls_nlri_len_fmt": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"comment": &schema.Schema{
+			"comment": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"disabled": &schema.Schema{
+			"disabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"keepalive_time": &schema.Schema{
+			"keepalive_time": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"max_prefix_limit": &schema.Schema{
+			"max_prefix_limit": {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
-			"max_prefix_restart_time": &schema.Schema{
+			"max_prefix_restart_time": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"multihop": &schema.Schema{
+			"multihop": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"passive": &schema.Schema{
+			"passive": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"remote_port": &schema.Schema{
+			"remote_port": {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
-			"remove_private_as": &schema.Schema{
+			"remove_private_as": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"route_reflect": &schema.Schema{
+			"route_reflect": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"tcp_md5_key": &schema.Schema{
+			"tcp_md5_key": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"update_source": &schema.Schema{
+			"update_source": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"use_bfd": &schema.Schema{
+			"use_bfd": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -140,24 +143,23 @@ func resourceBgpPeer() *schema.Resource {
 	}
 }
 
-func resourceBgpPeerCreate(d *schema.ResourceData, m interface{}) error {
+func resourceBgpPeerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	peer := prepareBgpPeer(d)
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	bgpPeer, err := c.AddBgpPeer(peer)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	return bgpPeerToData(bgpPeer, d)
 }
 
-func resourceBgpPeerRead(d *schema.ResourceData, m interface{}) error {
-	c := m.(client.Mikrotik)
+func resourceBgpPeerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	c := m.(*client.Mikrotik)
 
 	bgpPeer, err := c.FindBgpPeer(d.Id())
-
 	if _, ok := err.(*client.NotFound); ok {
 		d.SetId("")
 		return nil
@@ -166,8 +168,8 @@ func resourceBgpPeerRead(d *schema.ResourceData, m interface{}) error {
 	return bgpPeerToData(bgpPeer, d)
 }
 
-func resourceBgpPeerUpdate(d *schema.ResourceData, m interface{}) error {
-	c := m.(client.Mikrotik)
+func resourceBgpPeerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	c := m.(*client.Mikrotik)
 
 	currentBgpPeer, err := c.FindBgpPeer(d.Get("name").(string))
 
@@ -175,112 +177,68 @@ func resourceBgpPeerUpdate(d *schema.ResourceData, m interface{}) error {
 	peer.ID = currentBgpPeer.ID
 
 	bgpPeer, err := c.UpdateBgpPeer(peer)
-
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	return bgpPeerToData(bgpPeer, d)
 }
 
-func resourceBgpPeerDelete(d *schema.ResourceData, m interface{}) error {
-	c := m.(client.Mikrotik)
+func resourceBgpPeerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	c := m.(*client.Mikrotik)
 
 	err := c.DeleteBgpPeer(d.Get("name").(string))
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId("")
 	return nil
 }
 
-func bgpPeerToData(b *client.BgpPeer, d *schema.ResourceData) error {
+func bgpPeerToData(b *client.BgpPeer, d *schema.ResourceData) diag.Diagnostics {
+	values := map[string]interface{}{
+		"name":                    b.Name,
+		"address_families":        b.AddressFamilies,
+		"allow_as_in":             b.AllowAsIn,
+		"as_override":             b.AsOverride,
+		"cisco_vpls_nlri_len_fmt": b.CiscoVplsNlriLenFmt,
+		"comment":                 b.Comment,
+		"default_originate":       b.DefaultOriginate,
+		"disabled":                b.Disabled,
+		"hold_time":               b.HoldTime,
+		"in_filter":               b.InFilter,
+		"instance":                b.Instance,
+		"keepalive_time":          b.KeepAliveTime,
+		"max_prefix_limit":        b.MaxPrefixLimit,
+		"max_prefix_restart_time": b.MaxPrefixRestartTime,
+		"multihop":                b.Multihop,
+		"nexthop_choice":          b.NexthopChoice,
+		"out_filter":              b.OutFilter,
+		"passive":                 b.Passive,
+		"remote_address":          b.RemoteAddress,
+		"remote_as":               b.RemoteAs,
+		"remote_port":             b.RemotePort,
+		"remove_private_as":       b.RemovePrivateAs,
+		"route_reflect":           b.RouteReflect,
+		"tcp_md5_key":             b.TCPMd5Key,
+		"ttl":                     b.TTL,
+		"update_source":           b.UpdateSource,
+		"use_bfd":                 b.UseBfd,
+	}
+
 	d.SetId(b.Name)
 
-	if err := d.Set("name", b.Name); err != nil {
-		return err
+	var diags diag.Diagnostics
+
+	for key, value := range values {
+		if err := d.Set(key, value); err != nil {
+			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
+		}
 	}
-	if err := d.Set("address_families", b.AddressFamilies); err != nil {
-		return err
-	}
-	if err := d.Set("allow_as_in", b.AllowAsIn); err != nil {
-		return err
-	}
-	if err := d.Set("as_override", b.AsOverride); err != nil {
-		return err
-	}
-	if err := d.Set("cisco_vpls_nlri_len_fmt", b.CiscoVplsNlriLenFmt); err != nil {
-		return err
-	}
-	if err := d.Set("comment", b.Comment); err != nil {
-		return err
-	}
-	if err := d.Set("default_originate", b.DefaultOriginate); err != nil {
-		return err
-	}
-	if err := d.Set("disabled", b.Disabled); err != nil {
-		return err
-	}
-	if err := d.Set("hold_time", b.HoldTime); err != nil {
-		return err
-	}
-	if err := d.Set("in_filter", b.InFilter); err != nil {
-		return err
-	}
-	if err := d.Set("instance", b.Instance); err != nil {
-		return err
-	}
-	if err := d.Set("keepalive_time", b.KeepAliveTime); err != nil {
-		return err
-	}
-	if err := d.Set("max_prefix_limit", b.MaxPrefixLimit); err != nil {
-		return err
-	}
-	if err := d.Set("max_prefix_restart_time", b.MaxPrefixRestartTime); err != nil {
-		return err
-	}
-	if err := d.Set("multihop", b.Multihop); err != nil {
-		return err
-	}
-	if err := d.Set("nexthop_choice", b.NexthopChoice); err != nil {
-		return err
-	}
-	if err := d.Set("out_filter", b.OutFilter); err != nil {
-		return err
-	}
-	if err := d.Set("passive", b.Passive); err != nil {
-		return err
-	}
-	if err := d.Set("remote_address", b.RemoteAddress); err != nil {
-		return err
-	}
-	if err := d.Set("remote_as", b.RemoteAs); err != nil {
-		return err
-	}
-	if err := d.Set("remote_port", b.RemotePort); err != nil {
-		return err
-	}
-	if err := d.Set("remove_private_as", b.RemovePrivateAs); err != nil {
-		return err
-	}
-	if err := d.Set("route_reflect", b.RouteReflect); err != nil {
-		return err
-	}
-	if err := d.Set("tcp_md5_key", b.TCPMd5Key); err != nil {
-		return err
-	}
-	if err := d.Set("ttl", b.TTL); err != nil {
-		return err
-	}
-	if err := d.Set("update_source", b.UpdateSource); err != nil {
-		return err
-	}
-	if err := d.Set("use_bfd", b.UseBfd); err != nil {
-		return err
-	}
-	return nil
+
+	return diags
 }
 
 func prepareBgpPeer(d *schema.ResourceData) *client.BgpPeer {

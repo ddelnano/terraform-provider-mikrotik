@@ -1,95 +1,98 @@
 package mikrotik
 
 import (
+	"context"
+
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceBgpInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceBgpInstanceCreate,
-		Read:   resourceBgpInstanceRead,
-		Update: resourceBgpInstanceUpdate,
-		Delete: resourceBgpInstanceDelete,
+		CreateContext: resourceBgpInstanceCreate,
+		ReadContext:   resourceBgpInstanceRead,
+		UpdateContext: resourceBgpInstanceUpdate,
+		DeleteContext: resourceBgpInstanceDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"as": &schema.Schema{
+			"as": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			"client_to_client_reflection": &schema.Schema{
+			"client_to_client_reflection": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
-			"comment": &schema.Schema{
+			"comment": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"confederation_peers": &schema.Schema{
+			"confederation_peers": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"disabled": &schema.Schema{
+			"disabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-			"ignore_as_path_len": &schema.Schema{
+			"ignore_as_path_len": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"out_filter": &schema.Schema{
+			"out_filter": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "",
 			},
-			"redistribute_connected": &schema.Schema{
+			"redistribute_connected": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"redistribute_ospf": &schema.Schema{
+			"redistribute_ospf": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"redistribute_other_bgp": &schema.Schema{
+			"redistribute_other_bgp": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"redistribute_rip": &schema.Schema{
+			"redistribute_rip": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"redistribute_static": &schema.Schema{
+			"redistribute_static": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
 			},
-			"router_id": &schema.Schema{
+			"router_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"routing_table": &schema.Schema{
+			"routing_table": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "",
 			},
-			"cluster_id": &schema.Schema{
+			"cluster_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"confederation": &schema.Schema{
+			"confederation": {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
@@ -97,23 +100,27 @@ func resourceBgpInstance() *schema.Resource {
 	}
 }
 
-func resourceBgpInstanceCreate(d *schema.ResourceData, m interface{}) error {
+func resourceBgpInstanceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	instance := prepareBgpInstance(d)
 
-	c := m.(client.Mikrotik)
+	c := m.(*client.Mikrotik)
 
 	bgpInstance, err := c.AddBgpInstance(instance)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	return bgpInstanceToData(bgpInstance, d)
 }
 
-func resourceBgpInstanceRead(d *schema.ResourceData, m interface{}) error {
-	c := m.(client.Mikrotik)
+func resourceBgpInstanceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	c := m.(*client.Mikrotik)
 
 	bgpInstance, err := c.FindBgpInstance(d.Id())
+
+	if _, ok := err.(client.LegacyBgpUnsupported); ok {
+		return diag.FromErr(err)
+	}
 
 	if _, ok := err.(*client.NotFound); ok {
 		d.SetId("")
@@ -123,10 +130,13 @@ func resourceBgpInstanceRead(d *schema.ResourceData, m interface{}) error {
 	return bgpInstanceToData(bgpInstance, d)
 }
 
-func resourceBgpInstanceUpdate(d *schema.ResourceData, m interface{}) error {
-	c := m.(client.Mikrotik)
+func resourceBgpInstanceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	c := m.(*client.Mikrotik)
 
 	currentBgpInstance, err := c.FindBgpInstance(d.Get("name").(string))
+	if _, ok := err.(client.LegacyBgpUnsupported); ok {
+		return diag.FromErr(err)
+	}
 
 	instance := prepareBgpInstance(d)
 	instance.ID = currentBgpInstance.ID
@@ -134,102 +144,80 @@ func resourceBgpInstanceUpdate(d *schema.ResourceData, m interface{}) error {
 	bgpInstance, err := c.UpdateBgpInstance(instance)
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	return bgpInstanceToData(bgpInstance, d)
 }
 
-func resourceBgpInstanceDelete(d *schema.ResourceData, m interface{}) error {
-	c := m.(client.Mikrotik)
+func resourceBgpInstanceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	c := m.(*client.Mikrotik)
 
 	err := c.DeleteBgpInstance(d.Get("name").(string))
+	if _, ok := err.(client.LegacyBgpUnsupported); ok {
+		return diag.FromErr(err)
+	}
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId("")
 	return nil
 }
 
-func bgpInstanceToData(b *client.BgpInstance, d *schema.ResourceData) error {
+func bgpInstanceToData(b *client.BgpInstance, d *schema.ResourceData) diag.Diagnostics {
+	values := map[string]interface{}{
+		"name":                        b.Name,
+		"as":                          b.As,
+		"client_to_client_reflection": b.ClientToClientReflection,
+		"comment":                     b.Comment,
+		"confederation_peers":         b.ConfederationPeers,
+		"disabled":                    b.Disabled,
+		"ignore_as_path_len":          b.IgnoreAsPathLen,
+		"out_filter":                  b.OutFilter,
+		"redistribute_connected":      b.RedistributeConnected,
+		"redistribute_ospf":           b.RedistributeOspf,
+		"redistribute_other_bgp":      b.RedistributeOtherBgp,
+		"redistribute_rip":            b.RedistributeRip,
+		"redistribute_static":         b.RedistributeStatic,
+		"router_id":                   b.RouterID,
+		"routing_table":               b.RoutingTable,
+		"cluster_id":                  b.ClusterID,
+		"confederation":               b.Confederation,
+	}
+
 	d.SetId(b.Name)
 
-	if err := d.Set("name", b.Name); err != nil {
-		return err
+	var diags diag.Diagnostics
+
+	for key, value := range values {
+		if err := d.Set(key, value); err != nil {
+			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
+		}
 	}
-	if err := d.Set("as", b.As); err != nil {
-		return err
-	}
-	if err := d.Set("client_to_client_reflection", b.ClientToClientReflection); err != nil {
-		return err
-	}
-	if err := d.Set("comment", b.Comment); err != nil {
-		return err
-	}
-	if err := d.Set("confederation_peers", b.ConfederationPeers); err != nil {
-		return err
-	}
-	if err := d.Set("disabled", b.Disabled); err != nil {
-		return err
-	}
-	if err := d.Set("ignore_as_path_len", b.IgnoreAsPathLen); err != nil {
-		return err
-	}
-	if err := d.Set("out_filter", b.OutFilter); err != nil {
-		return err
-	}
-	if err := d.Set("redistribute_connected", b.RedistributeConnected); err != nil {
-		return err
-	}
-	if err := d.Set("redistribute_ospf", b.RedistributeOspf); err != nil {
-		return err
-	}
-	if err := d.Set("redistribute_other_bgp", b.RedistributeOtherBgp); err != nil {
-		return err
-	}
-	if err := d.Set("redistribute_rip", b.RedistributeRip); err != nil {
-		return err
-	}
-	if err := d.Set("redistribute_static", b.RedistributeStatic); err != nil {
-		return err
-	}
-	if err := d.Set("router_id", b.RouterID); err != nil {
-		return err
-	}
-	if err := d.Set("routing_table", b.RoutingTable); err != nil {
-		return err
-	}
-	if err := d.Set("cluster_id", b.ClusterID); err != nil {
-		return err
-	}
-	if err := d.Set("confederation", b.Confederation); err != nil {
-		return err
-	}
-	return nil
+
+	return diags
 }
 
 func prepareBgpInstance(d *schema.ResourceData) *client.BgpInstance {
-	bgpInstance := new(client.BgpInstance)
-
-	bgpInstance.Name = d.Get("name").(string)
-	bgpInstance.As = d.Get("as").(int)
-	bgpInstance.ClientToClientReflection = d.Get("client_to_client_reflection").(bool)
-	bgpInstance.Comment = d.Get("comment").(string)
-	bgpInstance.ConfederationPeers = d.Get("confederation_peers").(string)
-	bgpInstance.Disabled = d.Get("disabled").(bool)
-	bgpInstance.IgnoreAsPathLen = d.Get("ignore_as_path_len").(bool)
-	bgpInstance.OutFilter = d.Get("out_filter").(string)
-	bgpInstance.RedistributeConnected = d.Get("redistribute_connected").(bool)
-	bgpInstance.RedistributeOspf = d.Get("redistribute_ospf").(bool)
-	bgpInstance.RedistributeOtherBgp = d.Get("redistribute_other_bgp").(bool)
-	bgpInstance.RedistributeRip = d.Get("redistribute_rip").(bool)
-	bgpInstance.RedistributeStatic = d.Get("redistribute_static").(bool)
-	bgpInstance.RouterID = d.Get("router_id").(string)
-	bgpInstance.RoutingTable = d.Get("routing_table").(string)
-	bgpInstance.ClusterID = d.Get("cluster_id").(string)
-	bgpInstance.Confederation = d.Get("confederation").(int)
-
-	return bgpInstance
+	return &client.BgpInstance{
+		Name:                     d.Get("name").(string),
+		As:                       d.Get("as").(int),
+		ClientToClientReflection: d.Get("client_to_client_reflection").(bool),
+		Comment:                  d.Get("comment").(string),
+		ConfederationPeers:       d.Get("confederation_peers").(string),
+		Disabled:                 d.Get("disabled").(bool),
+		IgnoreAsPathLen:          d.Get("ignore_as_path_len").(bool),
+		OutFilter:                d.Get("out_filter").(string),
+		RedistributeConnected:    d.Get("redistribute_connected").(bool),
+		RedistributeOspf:         d.Get("redistribute_ospf").(bool),
+		RedistributeOtherBgp:     d.Get("redistribute_other_bgp").(bool),
+		RedistributeRip:          d.Get("redistribute_rip").(bool),
+		RedistributeStatic:       d.Get("redistribute_static").(bool),
+		RouterID:                 d.Get("router_id").(string),
+		RoutingTable:             d.Get("routing_table").(string),
+		ClusterID:                d.Get("cluster_id").(string),
+		Confederation:            d.Get("confederation").(int),
+	}
 }
