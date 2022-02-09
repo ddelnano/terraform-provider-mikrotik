@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"net"
 )
 
 const ipv6U uint64 = 0x2001000000000000 // upper half of ipv6 address
@@ -48,7 +49,7 @@ func formatIPv4(ipAddr uint) string {
 }
 
 func formatIPv6(ipv6Addr uint64) string {
-	return fmt.Sprintf(
+	return net.ParseIP(fmt.Sprintf(
 		"%x:%x:%x:%x:%x:%x:%x:%x",
 		(ipv6U>>48)&0xFFFF,
 		(ipv6U>>32)&0xFFFF,
@@ -58,5 +59,5 @@ func formatIPv6(ipv6Addr uint64) string {
 		(ipv6Addr>>32)&0xFFFF,
 		(ipv6Addr>>16)&0xFFFF,
 		ipv6Addr&0xFFFF,
-	)
+	)).String()
 }
