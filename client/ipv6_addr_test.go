@@ -6,6 +6,10 @@ import (
 )
 
 func TestAddIpv6AddressAndDeleteIpv6Address(t *testing.T) {
+	if IsLegacyBgpSupported() {
+		t.Skip()
+	}
+
 	c := NewClient(GetConfigFromEnv())
 
 	address := "1:1:1:1:1:1:1:1/64"

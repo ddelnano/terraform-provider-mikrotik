@@ -12,6 +12,10 @@ import (
 )
 
 func TestAccMikrotikResourceIpv6Address_create(t *testing.T) {
+	if client.IsLegacyBgpSupported() {
+		t.Skip()
+	}
+
 	ipv6Addr := internal.GetNewIpv6Addr() + "/64"
 	ifName := "ether1"
 	comment := acctest.RandomWithPrefix("tf-acc-comment")
@@ -37,6 +41,10 @@ func TestAccMikrotikResourceIpv6Address_create(t *testing.T) {
 }
 
 func TestAccMikrotikResourceIpv6Address_updateAddr(t *testing.T) {
+	if client.IsLegacyBgpSupported() {
+		t.Skip()
+	}
+
 	ipAddr := internal.GetNewIpv6Addr() + "/64"
 	updatedIpv6Addr := internal.GetNewIpv6Addr() + "/64"
 	ifName := "ether1"
