@@ -22,9 +22,9 @@ const (
 		func resource{{ .ResourceName }}() *schema.Resource {
 			return &schema.Resource{
 				CreateContext: resource{{ .ResourceName }}Create,
-				ReadContext:   resource{{ .ResourceName }}Read,
-				UpdateContext: resource{{ .ResourceName }}Update,
-				DeleteContext: resource{{ .ResourceName }}Delete,
+				// ReadContext:   resource{{ .ResourceName }}Read,
+				// UpdateContext: resource{{ .ResourceName }}Update,
+				// DeleteContext: resource{{ .ResourceName }}Delete,
 				Importer: &schema.ResourceImporter{
 					StateContext: schema.ImportStatePassthroughContext,
 				},
@@ -41,7 +41,7 @@ const (
 		}
 
 	func resource{{ .ResourceName }}Create(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-		record := prepare{{ .ResourceName }}(d)
+		record := dataTo{{ .ResourceName }}(d)
 
 		c := m.(*client.Mikrotik)
 
@@ -50,7 +50,7 @@ const (
 			return diag.FromErr(err)
 		}
 
-		return recordToData(mikrotikRecord, d)
+		return {{ .ResourceName | firstLower }}ToData(mikrotikRecord, d)
 	}
 
 	func dataTo{{ .ResourceName }}(d *schema.ResourceData) *client.{{ .ResourceName }} {

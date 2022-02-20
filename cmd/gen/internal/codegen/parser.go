@@ -1,6 +1,7 @@
 package codegen
 
 import (
+	"errors"
 	"fmt"
 	"go/ast"
 )
@@ -19,11 +20,23 @@ type (
 )
 
 func Parse(node ast.Node, structName string) (*Struct, error) {
-	return findStruct(node, structName)
+	structNode, err := findStruct(node, structName)
+	if err != nil {
+		return nil, err
+	}
+
+	parsedStruct, err := parseStruct(structNode)
+	if err != nil {
+		return nil, err
+	}
+	parsedStruct.Name = structName
+
+	return parsedStruct, nil
 }
 
-func findStruct(node ast.Node, structName string) (*Struct, error) {
+func findStruct(node ast.Node, structName string) (*ast.StructType, error) {
 	result := &Struct{}
+	var structNode *ast.StructType
 
 	ast.Inspect(node, func(n ast.Node) bool {
 		typeSpec, ok := n.(*ast.TypeSpec)
@@ -33,28 +46,42 @@ func findStruct(node ast.Node, structName string) (*Struct, error) {
 		if typeSpec.Type == nil {
 			return true
 		}
-		result.Name = typeSpec.Name.Name
-
-		structType, ok := typeSpec.Type.(*ast.StructType)
-		if !ok {
+		if typeSpec.Name.Name != structName {
 			return true
 		}
 
-		for _, field := range structType.Fields.List {
-			tag := ""
-			if field.Tag != nil {
-				tag = field.Tag.Value
-			}
-			result.Fields = append(result.Fields,
-				Field{
-					Name: field.Names[0].Name,
-					Tag:  tag,
-					Type: fmt.Sprintf("%v", field.Type),
-				},
-			)
+		result.Name = typeSpec.Name.Name
+		t, ok := typeSpec.Type.(*ast.StructType)
+		if !ok {
+			return true
 		}
+		structNode = t
 
+		// stop after first struct is found
 		return false
 	})
+	if result.Name == "" {
+		return nil, errors.New("struct not found")
+	}
+	return structNode, nil
+}
+
+func parseStruct(structNode *ast.StructType) (*Struct, error) {
+	result := &Struct{}
+
+	for _, field := range structNode.Fields.List {
+		tag := ""
+		if field.Tag != nil {
+			tag = field.Tag.Value
+		}
+		result.Fields = append(result.Fields,
+			Field{
+				Name: field.Names[0].Name,
+				Tag:  tag,
+				Type: fmt.Sprintf("%v", field.Type),
+			},
+		)
+	}
+
 	return result, nil
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/format"
 	"go/parser"
@@ -18,7 +19,9 @@ func main() {
 }
 
 func realMain(args []string) int {
-	if err := processFile("client/dns.go"); err != nil {
+	// filename := "client/dns.go"
+	filename := args[0]
+	if err := processFile(filename); err != nil {
 		log.Print(err)
 		return 1
 	}
@@ -33,8 +36,13 @@ func processFile(filename string) error {
 		return err
 	}
 
+	if aFile == nil {
+		return errors.New("parsing of the file failed")
+	}
+
+	// ast.Print(fSet, aFile)
 	structName := "DnsRecord"
-	s, err := codegen.Parse(aFile.Decls[0], structName)
+	s, err := codegen.Parse(aFile, structName)
 	if err != nil {
 		return err
 	}
@@ -43,7 +51,6 @@ func processFile(filename string) error {
 		return err
 	}
 
-	// ast.Print(fSet, aFile)
 	return nil
 }
 
