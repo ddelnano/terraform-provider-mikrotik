@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/cmd/gen/internal/codegen"
 )
@@ -162,5 +163,20 @@ func toAbsPath(filename string, workdirs ...string) (string, error) {
 }
 
 func structNameToResourceFilename(structName string) string {
-	return structName
+	var isPrevLower bool
+	var buf strings.Builder
+
+	for _, r := range structName {
+		if 'A' <= r && r <= 'Z' && isPrevLower {
+			isPrevLower = false
+			buf.WriteByte('_')
+			buf.WriteString(strings.ToLower(string(r)))
+			continue
+		}
+
+		isPrevLower = true
+		buf.WriteRune(r)
+	}
+
+	return "resource_" + buf.String() + ".go"
 }

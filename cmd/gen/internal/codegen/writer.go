@@ -30,7 +30,7 @@ const (
 				},
 
 				Schema: map[string]*schema.Schema{
-					{{ range .TerraformFields }}
+					{{ range .TerraformFields -}}
 					"{{ .Name }}": {
 						Type:     schema.{{ .Type }},
 						Required: {{ .Required }},
@@ -213,7 +213,7 @@ func convertoToTerraformDefinition(fields []Field) []TerraformField {
 
 	for _, f := range fields {
 		result = append(result, TerraformField{
-			Name:     f.Name,
+			Name:     strings.ToLower(f.Name),
 			Type:     typeToTerraformType(f.Type),
 			Required: true,
 		})
