@@ -8,8 +8,9 @@ import (
 
 type (
 	Struct struct {
-		Name   string
-		Fields []Field
+		Name        string
+		IDFieldName string
+		Fields      []Field
 	}
 
 	Field struct {

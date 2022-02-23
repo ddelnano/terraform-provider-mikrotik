@@ -22,9 +22,9 @@ const (
 		func resource{{ .ResourceName }}() *schema.Resource {
 			return &schema.Resource{
 				CreateContext: resource{{ .ResourceName }}Create,
-				// ReadContext:   resource{{ .ResourceName }}Read,
-				// UpdateContext: resource{{ .ResourceName }}Update,
-				// DeleteContext: resource{{ .ResourceName }}Delete,
+				ReadContext:   resource{{ .ResourceName }}Read,
+				UpdateContext: resource{{ .ResourceName }}Update,
+				DeleteContext: resource{{ .ResourceName }}Delete,
 				Importer: &schema.ResourceImporter{
 					StateContext: schema.ImportStatePassthroughContext,
 				},
@@ -69,7 +69,7 @@ const (
 			{{ end }}
 		}
 
-		d.SetId(record.{{ (index .Fields 0).Name }})
+		d.SetId(record.{{ .IDFieldName }})
 
 		var diags diag.Diagnostics
 
@@ -80,6 +80,57 @@ const (
 		}
 
 		return diags
+	}
+
+	func resource{{ .ResourceName }}Read(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+		c := m.(*client.Mikrotik)
+
+		record, err := c.Find{{ .ResourceName }}(d.Id())
+
+		if _, ok := err.(*client.NotFound); ok {
+			d.SetId("")
+			return nil
+		}
+
+		return {{ .ResourceName | firstLower }}ToData(record, d)
+	}
+
+	func resource{{ .ResourceName }}Update(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+		c := m.(*client.Mikrotik)
+
+		currentRecord, err := c.Find{{ .ResourceName }}(d.Id())
+		record := dataTo{{ .ResourceName }}(d)
+		record.Id = currentRecord.Id
+
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		updatedRecord, err := c.Update{{ .ResourceName }}(record)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		return {{ .ResourceName | firstLower }}ToData(updatedRecord, d)
+	}
+
+	func resource{{ .ResourceName }}Delete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+		name := d.Id()
+
+		c := m.(*client.Mikrotik)
+
+		record, err := c.Find{{ .ResourceName }}(name)
+
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		err = c.Delete{{ .ResourceName }}(record.{{ .IDFieldName }})
+
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		d.SetId("")
+		return nil
 	}
 
 	`
@@ -110,6 +161,7 @@ type (
 		ResourceName    string
 		TerraformFields []TerraformField
 		Fields          []Field
+		IDFieldName     string
 	}
 )
 
@@ -142,7 +194,9 @@ func WriteSource(w sourceWriter, s Struct) error {
 			TerraformFields: fields,
 			Fields:          s.Fields,
 			Package:         "mikrotik",
+			IDFieldName:     s.IDFieldName,
 			Imports: []string{
+				"context",
 				"github.com/ddelnano/terraform-provider-mikrotik/client",
 				"github.com/hashicorp/terraform-plugin-sdk/v2/diag",
 				"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema",
