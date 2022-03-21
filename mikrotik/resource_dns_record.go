@@ -28,6 +28,11 @@ func resourceRecord() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "A",
+			},
 			"ttl": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -128,6 +133,7 @@ func prepareDnsRecord(d *schema.ResourceData) *client.DnsRecord {
 	dnsRecord.Name = d.Get("name").(string)
 	dnsRecord.Ttl = d.Get("ttl").(int)
 	dnsRecord.Address = d.Get("address").(string)
+	dnsRecord.Type = d.Get("type").(string)
 
 	return dnsRecord
 }

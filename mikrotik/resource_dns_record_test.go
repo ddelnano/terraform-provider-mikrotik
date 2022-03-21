@@ -21,10 +21,33 @@ func TestAccMikrotikDnsRecord_create(t *testing.T) {
 		CheckDestroy:      testAccCheckMikrotikDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDnsRecord(dnsName, ipAddr),
+				Config: testAccDnsRecord(dnsName, ipAddr, "A"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccDnsRecordExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "id")),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "type"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccMikrotikDnsRecord_createTXTRecord(t *testing.T) {
+	dnsName := internal.GetNewDnsName()
+
+	resourceName := "mikrotik_dns_record.bar"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikDnsRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDnsRecord(dnsName, "google.com.", "TXT"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccDnsRecordExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "type"),
+				),
 			},
 		},
 	})
@@ -54,14 +77,14 @@ func TestAccMikrotikDnsRecord_createAndPlanWithNonExistantRecord(t *testing.T) {
 		CheckDestroy:      testAccCheckMikrotikDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDnsRecord(dnsName, ipAddr),
+				Config: testAccDnsRecord(dnsName, ipAddr, "A"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccDnsRecordExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id")),
 			},
 			{
 				PreConfig:          removeDnsRecord,
-				Config:             testAccDnsRecord(dnsName, ipAddr),
+				Config:             testAccDnsRecord(dnsName, ipAddr, "A"),
 				ExpectNonEmptyPlan: false,
 			},
 		},
@@ -80,14 +103,14 @@ func TestAccMikrotikDnsRecord_updateAddress(t *testing.T) {
 		CheckDestroy:      testAccCheckMikrotikDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDnsRecord(dnsName, ipAddr),
+				Config: testAccDnsRecord(dnsName, ipAddr, "A"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccDnsRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "address", ipAddr),
 				),
 			},
 			{
-				Config: testAccDnsRecord(dnsName, updatedIpAddr),
+				Config: testAccDnsRecord(dnsName, updatedIpAddr, "A"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccDnsRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "address", updatedIpAddr)),
@@ -107,7 +130,7 @@ func TestAccMikrotikDnsRecord_import(t *testing.T) {
 		CheckDestroy:      testAccCheckMikrotikDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDnsRecord(dnsName, ipAddr),
+				Config: testAccDnsRecord(dnsName, ipAddr, "A"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccDnsRecordExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id")),
@@ -121,14 +144,15 @@ func TestAccMikrotikDnsRecord_import(t *testing.T) {
 	})
 }
 
-func testAccDnsRecord(dnsName, ipAddr string) string {
+func testAccDnsRecord(dnsName, ipAddr, recordType string) string {
 	return fmt.Sprintf(`
 resource "mikrotik_dns_record" "bar" {
     name = "%s"
     address = "%s"
     ttl = "300"
+    type = "%s"
 }
-`, dnsName, ipAddr)
+`, dnsName, ipAddr, recordType)
 }
 
 func testAccDnsRecordExists(resourceName string) resource.TestCheckFunc {
