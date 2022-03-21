@@ -16,6 +16,7 @@ resource "mikrotik_dns_record" "record" {
 * name - (Required) The name of the DNS hostname to be created
 * address - (Required) The A record to be returend from the DNS hostname
 * ttl - (Optional) The ttl of the DNS record.
+* comment - (Optional) The comment text associated with the DNS record.
 
 ## Attributes Reference
 

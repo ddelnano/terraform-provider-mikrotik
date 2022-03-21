@@ -10,6 +10,7 @@ type DnsRecord struct {
 	Name    string `mikrotik:"name"`
 	Ttl     int    `mikrotik:"ttl,ttlToSeconds"`
 	Address string `mikrotik:"address"`
+	Comment string `mikrotik:"comment"`
 }
 
 func (client Mikrotik) AddDnsRecord(d *DnsRecord) (*DnsRecord, error) {
