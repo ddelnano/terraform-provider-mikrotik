@@ -96,6 +96,35 @@ func TestAccMikrotikDnsRecord_updateAddress(t *testing.T) {
 	})
 }
 
+func TestAccMikrotikDnsRecord_updateComment(t *testing.T) {
+	dnsName := internal.GetNewDnsName()
+	ipAddr := internal.GetNewIpAddr()
+	comment := "Initial comment"
+	updatedComment := "new comment"
+
+	resourceName := "mikrotik_dns_record.bar"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikDnsRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDnsRecordWithComment(dnsName, ipAddr, comment),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccDnsRecordExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+				),
+			},
+			{
+				Config: testAccDnsRecordWithComment(dnsName, ipAddr, updatedComment),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccDnsRecordExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment)),
+			},
+		},
+	})
+}
+
 func TestAccMikrotikDnsRecord_import(t *testing.T) {
 	dnsName := internal.GetNewDnsName()
 	ipAddr := internal.GetNewIpAddr()
@@ -129,6 +158,17 @@ resource "mikrotik_dns_record" "bar" {
     ttl = "300"
 }
 `, dnsName, ipAddr)
+}
+
+func testAccDnsRecordWithComment(dnsName, ipAddr, comment string) string {
+	return fmt.Sprintf(`
+resource "mikrotik_dns_record" "bar" {
+    name = "%s"
+    address = "%s"
+    ttl = "300"
+    comment = "%s"
+}
+`, dnsName, ipAddr, comment)
 }
 
 func testAccDnsRecordExists(resourceName string) resource.TestCheckFunc {
