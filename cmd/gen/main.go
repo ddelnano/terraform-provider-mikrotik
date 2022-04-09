@@ -34,6 +34,12 @@ func main() {
 	os.Exit(0)
 }
 
+// todo:
+// 		optional fields
+// 		omit fields
+// 		omit fields by default: Id
+// 		different fields for update/delete client funcs
+// 			(sometimes it is Id, sometimes it's Name, etc)
 func realMain(args []string) error {
 	var (
 		destFile       = flag.String("dest", "", "File to write result to")
@@ -168,14 +174,14 @@ func structNameToResourceFilename(structName string) string {
 
 	for _, r := range structName {
 		if 'A' <= r && r <= 'Z' && isPrevLower {
-			isPrevLower = false
 			buf.WriteByte('_')
 			buf.WriteString(strings.ToLower(string(r)))
+			isPrevLower = false
 			continue
 		}
 
-		isPrevLower = true
-		buf.WriteRune(r)
+		isPrevLower = 'a' <= r && r <= 'z'
+		buf.WriteString(strings.ToLower(string(r)))
 	}
 
 	return "resource_" + buf.String() + ".go"
