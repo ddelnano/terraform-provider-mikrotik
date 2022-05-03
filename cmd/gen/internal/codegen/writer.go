@@ -34,6 +34,8 @@ const (
 					"{{ .Name }}": {
 						Type:     schema.{{ .Type }},
 						Required: {{ .Required }},
+						Optional: {{ .Optional }},
+						Computed: {{ .Computed }},
 					},
 					{{ end }}
 				},
@@ -153,6 +155,8 @@ type (
 		Name     string
 		Type     schema.ValueType
 		Required bool
+		Optional bool
+		Computed bool
 	}
 
 	templateData struct {
@@ -215,7 +219,9 @@ func convertoToTerraformDefinition(fields []Field) []TerraformField {
 		result = append(result, TerraformField{
 			Name:     strings.ToLower(f.Name),
 			Type:     typeToTerraformType(f.Type),
-			Required: true,
+			Required: f.Required,
+			Optional: f.Optional,
+			Computed: f.Computed,
 		})
 	}
 

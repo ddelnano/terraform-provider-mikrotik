@@ -5,6 +5,7 @@ import (
 	"log"
 )
 
+//go:generate gen -struct=DnsRecord -requiredFields=name,address -omitFields=id -optionalFields=ttl -computedFields=ttl
 type DnsRecord struct {
 	Id      string `mikrotik:".id"`
 	Name    string `mikrotik:"name"`

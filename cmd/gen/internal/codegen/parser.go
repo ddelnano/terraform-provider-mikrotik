@@ -14,9 +14,12 @@ type (
 	}
 
 	Field struct {
-		Name string
-		Tag  string
-		Type string
+		Name     string
+		Tag      string
+		Type     string
+		Required bool
+		Optional bool
+		Computed bool
 	}
 )
 
