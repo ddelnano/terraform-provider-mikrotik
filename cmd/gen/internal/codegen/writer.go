@@ -59,7 +59,7 @@ const (
 		record := new(client.{{ .ResourceName }})
 
 		{{ range .Fields -}}
-		record.{{ .Name }} = d.Get("{{ .Name | lowercase }}").({{ .Type }})
+		record.{{ .OriginalName }} = d.Get("{{ .Name }}").({{ .Type }})
 		{{ end }}
 		return record
 	}
@@ -67,7 +67,7 @@ const (
 	func {{ .ResourceName | firstLower }}ToData(record *client.{{ .ResourceName }}, d *schema.ResourceData) diag.Diagnostics {
 		values := map[string]interface{}{
 			{{ range .Fields -}}
-			"{{ .Name | lowercase }}":    record.{{ .Name }},
+			"{{ .Name }}":    record.{{ .OriginalName }},
 			{{ end }}
 		}
 

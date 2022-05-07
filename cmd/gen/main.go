@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"flag"
+	"fmt"
 	"go/format"
 	"go/parser"
 	"go/token"
@@ -12,6 +13,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/cmd/gen/internal/codegen"
@@ -98,15 +100,36 @@ func realMain(args []string) error {
 	config.OptionalFields = optionalFields
 	config.ComputedFields = computedFields
 
-	if config.StructName == "" {
-		return errors.New("struct name must be set")
-	}
 	if config.SrcFile == "" {
 		var err error
 		config.SrcFile, err = toAbsPath(os.Getenv("GOFILE"), ".")
 		if err != nil {
 			return err
 		}
+	}
+
+	if config.IDFieldName == "" {
+		return errors.New("idField name must be present")
+	}
+
+	startLine := 1
+	lineStr := os.Getenv("GOLINE")
+	if lineStr != "" {
+		lineInt, err := strconv.Atoi(lineStr)
+		if err != nil {
+			return fmt.Errorf("fail to parse GOLINE: %v", err.Error())
+		}
+		startLine = lineInt
+	}
+	s, err := processFile(config.SrcFile, startLine, config.StructName)
+	if err != nil {
+		return err
+	}
+	if config.StructName == "" {
+		config.StructName = s.Name
+	}
+	// we delay this initialisation, because struct name might be available only after file parsing
+	if *destFile == "" {
 		config.DestFile, err = toAbsPath(path.Join("../mikrotik", structNameToResourceFilename(config.StructName)), "./")
 		if err != nil {
 			return err
@@ -115,26 +138,7 @@ func realMain(args []string) error {
 	if config.DestFile == "" {
 		return errors.New("destination file must be set via flags or 'go:generate' mode must be used")
 	}
-	if config.IDFieldName == "" {
-		return errors.New("idField name must be present")
-	}
 
-	s, err := processFile(config.SrcFile, config.StructName)
-	if err != nil {
-		return err
-	}
-	filteredFields := []codegen.Field{}
-	for _, f := range s.Fields {
-		normalizedFieldName := strings.ToLower(f.Name)
-		if _, omit := config.OmitFields[normalizedFieldName]; omit {
-			continue
-		}
-		_, f.Required = config.RequiredFields[normalizedFieldName]
-		_, f.Optional = config.OptionalFields[normalizedFieldName]
-		_, f.Computed = config.ComputedFields[normalizedFieldName]
-		filteredFields = append(filteredFields, f)
-	}
-	s.Fields = filteredFields
 	s.IDFieldName = config.IDFieldName
 
 	var out io.Writer
@@ -153,7 +157,7 @@ func realMain(args []string) error {
 	return generateResource(s, out, !*skipFormatting)
 }
 
-func processFile(filename, structName string) (*codegen.Struct, error) {
+func processFile(filename string, startLine int, structName string) (*codegen.Struct, error) {
 	_, err := os.Stat(filename)
 	if err != nil {
 		return nil, err
@@ -169,7 +173,7 @@ func processFile(filename, structName string) (*codegen.Struct, error) {
 		return nil, errors.New("parsing of the file failed")
 	}
 
-	s, err := codegen.Parse(aFile, structName)
+	s, err := codegen.Parse(fSet, aFile, startLine, structName)
 	if err != nil {
 		return nil, err
 	}

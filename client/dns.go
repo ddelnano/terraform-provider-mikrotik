@@ -5,12 +5,12 @@ import (
 	"log"
 )
 
-//go:generate gen -struct=DnsRecord -requiredFields=name,address -omitFields=id -optionalFields=ttl -computedFields=ttl
+//go:generate gen
 type DnsRecord struct {
 	Id      string `mikrotik:".id"`
-	Name    string `mikrotik:"name"`
-	Ttl     int    `mikrotik:"ttl,ttlToSeconds"`
-	Address string `mikrotik:"address"`
+	Name    string `mikrotik:"name" gen:"name,required"`
+	Ttl     int    `mikrotik:"ttl,ttlToSeconds" gen:"ttl,optional,computed"`
+	Address string `mikrotik:"address" gen:"address,required"`
 }
 
 func (client Mikrotik) AddDnsRecord(d *DnsRecord) (*DnsRecord, error) {
