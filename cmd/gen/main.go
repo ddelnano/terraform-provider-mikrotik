@@ -21,6 +21,7 @@ type (
 		DestFile    string
 		StructName  string
 		IDFieldName string
+		FormatCode  bool
 	}
 )
 
@@ -37,35 +38,9 @@ func main() {
 // 		different fields for update/delete client funcs
 // 			(sometimes it is Id, sometimes it's Name, etc)
 func realMain(args []string) error {
-	var (
-		destFile       = flag.String("dest", "", "File to write result to")
-		srcFile        = flag.String("src", "", "Source file to parse struct from")
-		structName     = flag.String("struct", "", "Name of a struct to process")
-		idField        = flag.String("idField", "Id", "Name of a struct field to use as Terraform ID of resource")
-		skipFormatting = flag.Bool("skipFormatting", false, "Whether code formatting should be skipped")
-	)
-
-	if err := flag.CommandLine.Parse(args); err != nil {
+	config, err := parseConfig(args)
+	if err != nil {
 		return err
-	}
-
-	config := Configuration{}
-	config.DestFile = *destFile
-	config.SrcFile = *srcFile
-	config.IDFieldName = *idField
-	config.StructName = *structName
-	config.IDFieldName = *idField
-
-	if config.SrcFile == "" {
-		var err error
-		config.SrcFile, err = filepath.Abs(os.Getenv("GOFILE"))
-		if err != nil {
-			return err
-		}
-	}
-
-	if config.IDFieldName == "" {
-		return errors.New("idField name must be present")
 	}
 
 	startLine := 1
@@ -77,6 +52,7 @@ func realMain(args []string) error {
 		}
 		startLine = lineInt
 	}
+
 	s, err := codegen.ParseFile(config.SrcFile, startLine, config.StructName)
 	if err != nil {
 		return err
@@ -84,8 +60,9 @@ func realMain(args []string) error {
 	if config.StructName == "" {
 		config.StructName = s.Name
 	}
-	// we delay this initialization, because struct name might be available only after file parsing
-	if *destFile == "" {
+	// if destination was not provided via args, build it using struct name
+	// the initialization is delayed, because config.StructName might not be provided, so we get it after actual file parsing
+	if config.DestFile == "" {
 		config.DestFile, err = filepath.Abs(path.Join("../mikrotik", "resource_"+utils.ToSnakeCase(config.StructName)) + ".go")
 		if err != nil {
 			return err
@@ -110,5 +87,41 @@ func realMain(args []string) error {
 			file.Close()
 		}()
 	}
-	return codegen.GenerateResource(s, out, !*skipFormatting)
+	return codegen.GenerateResource(s, out, config.FormatCode)
+}
+
+func parseConfig(args []string) (*Configuration, error) {
+	var (
+		destFile   = flag.String("dest", "", "File to write result to")
+		srcFile    = flag.String("src", "", "Source file to parse struct from")
+		structName = flag.String("struct", "", "Name of a struct to process")
+		idField    = flag.String("idField", "Id", "Name of a struct field to use as Terraform ID of resource")
+		formatCode = flag.Bool("formatCode", true, "Whether to format resulting code")
+	)
+
+	if err := flag.CommandLine.Parse(args); err != nil {
+		return nil, err
+	}
+
+	config := Configuration{}
+	config.DestFile = *destFile
+	config.SrcFile = *srcFile
+	config.IDFieldName = *idField
+	config.StructName = *structName
+	config.IDFieldName = *idField
+	config.FormatCode = *formatCode
+
+	if config.SrcFile == "" {
+		var err error
+		config.SrcFile, err = filepath.Abs(os.Getenv("GOFILE"))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if config.IDFieldName == "" {
+		return nil, errors.New("idField name must be present")
+	}
+
+	return &config, nil
 }
