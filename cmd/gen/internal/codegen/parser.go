@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"go/ast"
+	"go/parser"
 	"go/token"
+	"os"
 	"reflect"
 	"strings"
 )
@@ -27,7 +29,31 @@ type (
 	}
 )
 
-func Parse(fSet *token.FileSet, node ast.Node, startLine int, structName string) (*Struct, error) {
+func ParseFile(filename string, startLine int, structName string) (*Struct, error) {
+	_, err := os.Stat(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	fSet := token.NewFileSet()
+	aFile, err := parser.ParseFile(fSet, filename, nil, parser.ParseComments)
+	if err != nil {
+		return nil, err
+	}
+
+	if aFile == nil {
+		return nil, errors.New("parsing of the file failed")
+	}
+
+	s, err := parse(fSet, aFile, startLine, structName)
+	if err != nil {
+		return nil, err
+	}
+
+	return s, nil
+}
+
+func parse(fSet *token.FileSet, node ast.Node, startLine int, structName string) (*Struct, error) {
 	structNode, foundName, err := findStruct(fSet, node, startLine, structName)
 	if err != nil {
 		return nil, err

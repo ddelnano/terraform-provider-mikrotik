@@ -4,8 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"go/parser"
-	"go/token"
 	"io"
 	"log"
 	"os"
@@ -79,7 +77,7 @@ func realMain(args []string) error {
 		}
 		startLine = lineInt
 	}
-	s, err := processFile(config.SrcFile, startLine, config.StructName)
+	s, err := codegen.ParseFile(config.SrcFile, startLine, config.StructName)
 	if err != nil {
 		return err
 	}
@@ -113,28 +111,4 @@ func realMain(args []string) error {
 		}()
 	}
 	return codegen.GenerateResource(s, out, !*skipFormatting)
-}
-
-func processFile(filename string, startLine int, structName string) (*codegen.Struct, error) {
-	_, err := os.Stat(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	fSet := token.NewFileSet()
-	aFile, err := parser.ParseFile(fSet, filename, nil, parser.ParseComments)
-	if err != nil {
-		return nil, err
-	}
-
-	if aFile == nil {
-		return nil, errors.New("parsing of the file failed")
-	}
-
-	s, err := codegen.Parse(fSet, aFile, startLine, structName)
-	if err != nil {
-		return nil, err
-	}
-
-	return s, nil
 }
