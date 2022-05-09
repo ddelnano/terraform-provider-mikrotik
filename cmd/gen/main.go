@@ -14,9 +14,9 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
-	"strings"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/cmd/gen/internal/codegen"
+	"github.com/ddelnano/terraform-provider-mikrotik/cmd/gen/internal/utils"
 )
 
 type (
@@ -90,7 +90,7 @@ func realMain(args []string) error {
 	}
 	// we delay this initialization, because struct name might be available only after file parsing
 	if *destFile == "" {
-		config.DestFile, err = toAbsPath(path.Join("../mikrotik", structNameToResourceFilename(config.StructName)), "./")
+		config.DestFile, err = toAbsPath(path.Join("../mikrotik", "resource_"+utils.ToSnakeCase(config.StructName))+".go", "./")
 		if err != nil {
 			return err
 		}
@@ -180,23 +180,4 @@ func toAbsPath(filename string, workdirs ...string) (string, error) {
 	}
 
 	return filepath.Abs(absPath)
-}
-
-func structNameToResourceFilename(structName string) string {
-	var isPrevLower bool
-	var buf strings.Builder
-
-	for _, r := range structName {
-		if 'A' <= r && r <= 'Z' && isPrevLower {
-			buf.WriteByte('_')
-			buf.WriteString(strings.ToLower(string(r)))
-			isPrevLower = false
-			continue
-		}
-
-		isPrevLower = 'a' <= r && r <= 'z'
-		buf.WriteString(strings.ToLower(string(r)))
-	}
-
-	return "resource_" + buf.String() + ".go"
 }
