@@ -1,6 +1,8 @@
 package utils
 
-import "strings"
+import (
+	"strings"
+)
 
 // ToSnakeCase converts in string to snake_case
 func ToSnakeCase(in string) string {

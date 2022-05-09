@@ -62,7 +62,7 @@ func realMain(args []string) error {
 
 	if config.SrcFile == "" {
 		var err error
-		config.SrcFile, err = toAbsPath(os.Getenv("GOFILE"), ".")
+		config.SrcFile, err = filepath.Abs(os.Getenv("GOFILE"))
 		if err != nil {
 			return err
 		}
@@ -90,7 +90,7 @@ func realMain(args []string) error {
 	}
 	// we delay this initialization, because struct name might be available only after file parsing
 	if *destFile == "" {
-		config.DestFile, err = toAbsPath(path.Join("../mikrotik", "resource_"+utils.ToSnakeCase(config.StructName))+".go", "./")
+		config.DestFile, err = filepath.Abs(path.Join("../mikrotik", "resource_"+utils.ToSnakeCase(config.StructName)) + ".go")
 		if err != nil {
 			return err
 		}
@@ -164,20 +164,4 @@ func generateResource(s *codegen.Struct, w io.Writer, formatCode bool) error {
 	}
 
 	return nil
-}
-
-func toAbsPath(filename string, workdirs ...string) (string, error) {
-	if path.IsAbs(filename) {
-		return filename, nil
-	}
-
-	absPath := filename
-	for _, w := range workdirs {
-		if len(w) > 0 {
-			absPath = path.Join(w, filename)
-			break
-		}
-	}
-
-	return filepath.Abs(absPath)
 }
