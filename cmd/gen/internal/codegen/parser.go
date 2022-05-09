@@ -29,6 +29,17 @@ type (
 	}
 )
 
+const (
+	optRequired = "required"
+	optOptional = "optional"
+	optComputed = "computed"
+	optOmit     = "omit"
+)
+
+// ParseFile parses a .go file with struct declaration.
+//
+// This functions searches for struct named `structName` or, in case of empty `structName`,
+// finds first struct after the line where '//go:generate' is placed.
 func ParseFile(filename string, startLine int, structName string) (*Struct, error) {
 	_, err := os.Stat(filename)
 	if err != nil {
@@ -42,7 +53,7 @@ func ParseFile(filename string, startLine int, structName string) (*Struct, erro
 	}
 
 	if aFile == nil {
-		return nil, errors.New("parsing of the file failed")
+		return nil, errors.New("parsing of the file returned unexpected nil as *ast.File")
 	}
 
 	s, err := parse(fSet, aFile, startLine, structName)
@@ -111,25 +122,6 @@ func findStruct(fSet *token.FileSet, node ast.Node, startLine int, structName st
 	return structNode, foundName, nil
 }
 
-func parseStruct(structNode *ast.StructType) (*Struct, error) {
-	result := &Struct{}
-
-	for _, field := range structNode.Fields.List {
-		tag := ""
-		if field.Tag != nil {
-			tag = field.Tag.Value
-		}
-		result.Fields = append(result.Fields,
-			Field{
-				Name: field.Names[0].Name,
-				Tag:  tag,
-				Type: fmt.Sprintf("%v", field.Type),
-			},
-		)
-	}
-	return result, nil
-}
-
 func parseStructUsingTags(structNode *ast.StructType) (*Struct, error) {
 	result := &Struct{}
 
@@ -146,12 +138,7 @@ func parseStructUsingTags(structNode *ast.StructType) (*Struct, error) {
 		}
 		parts := strings.Split(tagValue, ",")
 		name, opts := parts[0], parts[1:]
-		var (
-			optRequired = "required"
-			optOptional = "optional"
-			optComputed = "computed"
-			optOmit     = "omit"
-		)
+
 		field := Field{
 			OriginalName: astField.Names[0].Name,
 			Name:         name,
