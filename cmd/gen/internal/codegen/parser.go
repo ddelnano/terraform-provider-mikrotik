@@ -33,7 +33,6 @@ func Parse(fSet *token.FileSet, node ast.Node, startLine int, structName string)
 		return nil, err
 	}
 
-	// parsedStruct, err := parseStruct(structNode)
 	parsedStruct, err := parseStructUsingTags(structNode)
 	if err != nil {
 		return nil, err

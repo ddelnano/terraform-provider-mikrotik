@@ -21,14 +21,10 @@ import (
 
 type (
 	Configuration struct {
-		SrcFile        string
-		DestFile       string
-		StructName     string
-		IDFieldName    string
-		RequiredFields map[string]bool
-		OptionalFields map[string]bool
-		ComputedFields map[string]bool
-		OmitFields     map[string]bool
+		SrcFile     string
+		DestFile    string
+		StructName  string
+		IDFieldName string
 	}
 )
 
@@ -41,8 +37,6 @@ func main() {
 }
 
 // todo:
-// 		optional fields
-// 		omit fields
 // 		omit fields by default: Id
 // 		different fields for update/delete client funcs
 // 			(sometimes it is Id, sometimes it's Name, etc)
@@ -53,37 +47,7 @@ func realMain(args []string) error {
 		structName     = flag.String("struct", "", "Name of a struct to process")
 		idField        = flag.String("idField", "Id", "Name of a struct field to use as Terraform ID of resource")
 		skipFormatting = flag.Bool("skipFormatting", false, "Whether code formatting should be skipped")
-		requiredFields = map[string]bool{}
-		optionalFields = map[string]bool{}
-		computedFields = map[string]bool{}
-		omitFields     = map[string]bool{}
 	)
-	flag.Func("requiredFields", "A comma separated list of required fields", func(s string) error {
-		for _, v := range strings.Split(s, ",") {
-			requiredFields[strings.ToLower(v)] = true
-		}
-		return nil
-	})
-
-	flag.Func("optionalFields", "A comma separated list of optional fields", func(s string) error {
-		for _, v := range strings.Split(s, ",") {
-			optionalFields[strings.ToLower(v)] = true
-		}
-		return nil
-	})
-
-	flag.Func("computedFields", "A comma separated list of computed fields", func(s string) error {
-		for _, v := range strings.Split(s, ",") {
-			computedFields[strings.ToLower(v)] = true
-		}
-		return nil
-	})
-	flag.Func("omitFields", "A comma separated list of fields to omit", func(s string) error {
-		for _, v := range strings.Split(s, ",") {
-			omitFields[strings.ToLower(v)] = true
-		}
-		return nil
-	})
 
 	if err := flag.CommandLine.Parse(args); err != nil {
 		return err
@@ -95,10 +59,6 @@ func realMain(args []string) error {
 	config.IDFieldName = *idField
 	config.StructName = *structName
 	config.IDFieldName = *idField
-	config.RequiredFields = requiredFields
-	config.OmitFields = omitFields
-	config.OptionalFields = optionalFields
-	config.ComputedFields = computedFields
 
 	if config.SrcFile == "" {
 		var err error
@@ -128,7 +88,7 @@ func realMain(args []string) error {
 	if config.StructName == "" {
 		config.StructName = s.Name
 	}
-	// we delay this initialisation, because struct name might be available only after file parsing
+	// we delay this initialization, because struct name might be available only after file parsing
 	if *destFile == "" {
 		config.DestFile, err = toAbsPath(path.Join("../mikrotik", structNameToResourceFilename(config.StructName)), "./")
 		if err != nil {
