@@ -87,7 +87,11 @@ func realMain(args []string) error {
 			file.Close()
 		}()
 	}
-	return codegen.GenerateResource(s, out, config.FormatCode)
+	writeHooks := []codegen.SourceWriteHookFunc{}
+	if config.FormatCode {
+		writeHooks = append(writeHooks, codegen.SourceFormatHook)
+	}
+	return codegen.GenerateResource(s, out, writeHooks...)
 }
 
 func parseConfig(args []string) (*Configuration, error) {
