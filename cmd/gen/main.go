@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"errors"
 	"flag"
 	"fmt"
-	"go/format"
 	"go/parser"
 	"go/token"
 	"io"
@@ -114,7 +112,7 @@ func realMain(args []string) error {
 			file.Close()
 		}()
 	}
-	return generateResource(s, out, !*skipFormatting)
+	return codegen.GenerateResource(s, out, !*skipFormatting)
 }
 
 func processFile(filename string, startLine int, structName string) (*codegen.Struct, error) {
@@ -139,29 +137,4 @@ func processFile(filename string, startLine int, structName string) (*codegen.St
 	}
 
 	return s, nil
-}
-
-func generateResource(s *codegen.Struct, w io.Writer, formatCode bool) error {
-	var result []byte
-	var buf bytes.Buffer
-
-	if err := codegen.WriteSource(&buf, *s); err != nil {
-		return err
-	}
-	result = buf.Bytes()
-
-	if formatCode {
-		var err error
-		result, err = format.Source(buf.Bytes())
-		if err != nil {
-			return err
-		}
-	}
-
-	_, err := w.Write(result)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
