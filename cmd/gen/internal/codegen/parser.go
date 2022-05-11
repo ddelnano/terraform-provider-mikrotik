@@ -8,6 +8,7 @@ import (
 	"go/token"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -21,7 +22,6 @@ type (
 	Field struct {
 		OriginalName string
 		Name         string
-		Tag          string
 		Type         string
 		Required     bool
 		Optional     bool
@@ -130,7 +130,12 @@ func parseStructUsingTags(structNode *ast.StructType) (*Struct, error) {
 			continue
 		}
 
-		tag := reflect.StructTag(astField.Tag.Value)
+		// always unquote tag literal, otherwise it is treated as '`key:"options,here"`'
+		unquoted, err := strconv.Unquote(astField.Tag.Value)
+		if err != nil {
+			return nil, err
+		}
+		tag := reflect.StructTag(unquoted)
 		tagKey := "gen"
 		tagValue, ok := tag.Lookup(tagKey)
 		if !ok {
@@ -142,7 +147,6 @@ func parseStructUsingTags(structNode *ast.StructType) (*Struct, error) {
 		field := Field{
 			OriginalName: astField.Names[0].Name,
 			Name:         name,
-			Tag:          tagValue,
 			Type:         fmt.Sprintf("%v", astField.Type),
 		}
 		omit := false
