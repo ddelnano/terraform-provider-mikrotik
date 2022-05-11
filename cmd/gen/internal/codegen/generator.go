@@ -146,6 +146,13 @@ var (
 		"bool":   schema.TypeBool,
 		"int":    schema.TypeInt,
 	}
+
+	defaultImports = []string{
+		"context",
+		"github.com/ddelnano/terraform-provider-mikrotik/client",
+		"github.com/hashicorp/terraform-plugin-sdk/v2/diag",
+		"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema",
+	}
 )
 
 type (
@@ -229,12 +236,7 @@ func generateResource(w sourceWriter, s Struct) error {
 			Fields:          s.Fields,
 			Package:         "mikrotik",
 			IDFieldName:     s.IDFieldName,
-			Imports: []string{
-				"context",
-				"github.com/ddelnano/terraform-provider-mikrotik/client",
-				"github.com/hashicorp/terraform-plugin-sdk/v2/diag",
-				"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema",
-			},
+			Imports:         defaultImports,
 		}); err != nil {
 		return err
 	}
