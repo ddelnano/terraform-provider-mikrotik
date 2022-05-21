@@ -30,6 +30,7 @@ type (
 )
 
 const (
+	optID       = "id"
 	optRequired = "required"
 	optOptional = "optional"
 	optComputed = "computed"
@@ -152,6 +153,8 @@ func parseStructUsingTags(structNode *ast.StructType) (*Struct, error) {
 		omit := false
 		for _, o := range opts {
 			switch {
+			case o == optID:
+				result.IDFieldName = field.OriginalName
 			case o == optRequired:
 				field.Required = true
 			case o == optOptional:

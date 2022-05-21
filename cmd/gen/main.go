@@ -110,7 +110,6 @@ func parseConfig(args []string) (*Configuration, error) {
 	config := Configuration{}
 	config.DestFile = *destFile
 	config.SrcFile = *srcFile
-	config.IDFieldName = *idField
 	config.StructName = *structName
 	config.IDFieldName = *idField
 	config.FormatCode = *formatCode

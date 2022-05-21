@@ -52,6 +52,44 @@ type DnsRecord struct {
 				},
 			},
 		},
+		{
+			name: "id field is parsed",
+			source: []byte(`
+package testpackage
+
+type DnsRecord struct {
+	Name 			   string` + " `gen:\"name,id,required\"`" + `
+	GeneratedNumber	   string` + " `gen:\"internal_id,computed\"`" + `
+	Enabled 		   bool` + " `gen:\"enabled,optional\"`" + `
+	ExplicitlyOmitted  bool` + " `gen:\"-,omit\"`" + `
+}
+			`),
+
+			expected: &Struct{
+				Name:        "DnsRecord",
+				IDFieldName: "Name",
+				Fields: []Field{
+					{
+						OriginalName: "Name",
+						Name:         "name",
+						Type:         "string",
+						Required:     true,
+					},
+					{
+						OriginalName: "GeneratedNumber",
+						Name:         "internal_id",
+						Type:         "string",
+						Computed:     true,
+					},
+					{
+						OriginalName: "Enabled",
+						Name:         "enabled",
+						Type:         "bool",
+						Optional:     true,
+					},
+				},
+			},
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
