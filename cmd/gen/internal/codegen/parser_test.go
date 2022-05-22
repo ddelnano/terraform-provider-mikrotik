@@ -136,6 +136,49 @@ type DnsRecord struct {
 			},
 		},
 		{
+			name: "default values are parsed",
+			source: []byte(`
+package testpackage
+
+type DnsRecord struct {
+	ID	 			   string` + " `gen:\"-,mikrotikID\"`" + `
+	Name 			   string` + " `gen:\"name,id,deleteID,required\"`" + `
+	GeneratedNumber	   int` + " `gen:\"internal_id,optional,default=10\"`" + `
+	Enabled 		   bool` + " `gen:\"enabled,optional,default=true\"`" + `
+	ExplicitlyOmitted  bool` + " `gen:\"-,omit\"`" + `
+}
+			`),
+
+			expected: &Struct{
+				Name:             "DnsRecord",
+				TerraformIDField: "Name",
+				MikrotikIDField:  "ID",
+				DeleteField:      "Name",
+				Fields: []Field{
+					{
+						OriginalName: "Name",
+						Name:         "name",
+						Type:         "string",
+						Required:     true,
+					},
+					{
+						OriginalName:    "GeneratedNumber",
+						Name:            "internal_id",
+						Type:            "int",
+						Optional:        true,
+						DefaultValueStr: "10",
+					},
+					{
+						OriginalName:    "Enabled",
+						Name:            "enabled",
+						Type:            "bool",
+						Optional:        true,
+						DefaultValueStr: "true",
+					},
+				},
+			},
+		},
+		{
 			name: "terraform id field set multiple times",
 			source: []byte(`
 package testpackage

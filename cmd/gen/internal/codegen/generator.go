@@ -2,6 +2,7 @@ package codegen
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"strings"
 	"text/template"
@@ -38,6 +39,9 @@ const (
 						Required: {{ .Required }},
 						Optional: {{ .Optional }},
 						Computed: {{ .Computed }},
+						{{ if ne .DefaultValue "" -}}
+						Default: {{ .DefaultValue }},
+						{{- end }}
 					},
 					{{ end }}
 				},
@@ -165,11 +169,12 @@ type (
 	}
 
 	terraformField struct {
-		Name     string
-		Type     schema.ValueType
-		Required bool
-		Optional bool
-		Computed bool
+		Name         string
+		Type         schema.ValueType
+		DefaultValue string
+		Required     bool
+		Optional     bool
+		Computed     bool
 	}
 
 	templateData struct {
@@ -214,7 +219,11 @@ func generateResource(w sourceWriter, s Struct) error {
 	if err := writeWrapper(w, []byte(generatedNotice)); err != nil {
 		return err
 	}
-	fields := convertToTerraformDefinition(s.Fields)
+	fields, err := convertToTerraformDefinition(s.Fields)
+	if err != nil {
+		return err
+	}
+
 	t := template.New("resource")
 	t.Funcs(template.FuncMap{
 		"lowercase": strings.ToLower,
@@ -250,20 +259,30 @@ func generateResource(w sourceWriter, s Struct) error {
 	return nil
 }
 
-func convertToTerraformDefinition(fields []Field) []terraformField {
+func convertToTerraformDefinition(fields []Field) ([]terraformField, error) {
 	result := []terraformField{}
 
 	for _, f := range fields {
+		fieldType := typeToTerraformType(f.Type)
+		if fieldType == schema.TypeInvalid {
+			return []terraformField{}, fmt.Errorf("unsupported field type: %s", f.Type)
+		}
+		defaultValue := f.DefaultValueStr
+		if fieldType == schema.TypeString && defaultValue != "" {
+			defaultValue = `"` + defaultValue + `"`
+		}
+
 		result = append(result, terraformField{
-			Name:     strings.ToLower(f.Name),
-			Type:     typeToTerraformType(f.Type),
-			Required: f.Required,
-			Optional: f.Optional,
-			Computed: f.Computed,
+			Name:         strings.ToLower(f.Name),
+			Type:         fieldType,
+			DefaultValue: defaultValue,
+			Required:     f.Required,
+			Optional:     f.Optional,
+			Computed:     f.Computed,
 		})
 	}
 
-	return result
+	return result, nil
 }
 
 func typeToTerraformType(typ string) schema.ValueType {

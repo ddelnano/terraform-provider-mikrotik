@@ -24,12 +24,13 @@ type (
 	}
 
 	Field struct {
-		OriginalName string
-		Name         string
-		Type         string
-		Required     bool
-		Optional     bool
-		Computed     bool
+		OriginalName    string
+		Name            string
+		Type            string
+		Required        bool
+		Optional        bool
+		DefaultValueStr string
+		Computed        bool
 	}
 )
 
@@ -39,6 +40,7 @@ const (
 	optDeleteID   = "deleteID"
 	optRequired   = "required"
 	optOptional   = "optional"
+	optDefault    = "default="
 	optComputed   = "computed"
 	optOmit       = "omit"
 )
@@ -180,6 +182,8 @@ func parseStructUsingTags(structNode *ast.StructType) (*Struct, error) {
 				field.Required = true
 			case o == optOptional:
 				field.Optional = true
+			case strings.HasPrefix(o, optDefault):
+				field.DefaultValueStr = strings.TrimPrefix(o, optDefault)
 			case o == optComputed:
 				field.Computed = true
 			case o == optOmit:
