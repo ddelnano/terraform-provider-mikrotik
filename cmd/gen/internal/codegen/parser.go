@@ -14,9 +14,12 @@ import (
 
 type (
 	Struct struct {
-		Name        string
-		IDFieldName string
-		Fields      []Field
+		Name string
+		// Original struct's field name to be used as Mikrotik resource ID
+		MikrotikIDField string
+		// Client's field to be used as Terraform resource ID
+		TerraformIDField string
+		Fields           []Field
 	}
 
 	Field struct {
@@ -30,11 +33,12 @@ type (
 )
 
 const (
-	optID       = "id"
-	optRequired = "required"
-	optOptional = "optional"
-	optComputed = "computed"
-	optOmit     = "omit"
+	optID         = "id"
+	optMikrotikID = "mikrotikID"
+	optRequired   = "required"
+	optOptional   = "optional"
+	optComputed   = "computed"
+	optOmit       = "omit"
 )
 
 // ParseFile parses a .go file with struct declaration.
@@ -154,7 +158,17 @@ func parseStructUsingTags(structNode *ast.StructType) (*Struct, error) {
 		for _, o := range opts {
 			switch {
 			case o == optID:
-				result.IDFieldName = field.OriginalName
+				if result.TerraformIDField != "" {
+					return nil, fmt.Errorf("failed to set '%s' as Terraform ID field - it is already set to '%s'", field.OriginalName, result.TerraformIDField)
+				}
+				result.TerraformIDField = field.OriginalName
+			case o == optMikrotikID:
+				if result.MikrotikIDField != "" {
+					return nil, fmt.Errorf("failed to set '%s' as Mikrotik ID field - it is already set to '%s'", field.OriginalName, result.MikrotikIDField)
+				}
+				result.MikrotikIDField = field.OriginalName
+				// Mikrotik .id field should not appear in Terraform code
+				omit = true
 			case o == optRequired:
 				field.Required = true
 			case o == optOptional:

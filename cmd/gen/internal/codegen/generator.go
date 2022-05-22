@@ -73,7 +73,7 @@ const (
 			{{ end }}
 		}
 
-		d.SetId(record.{{ .IDFieldName }})
+		d.SetId(record.{{ .TerraformIDField }})
 
 		var diags diag.Diagnostics
 
@@ -104,7 +104,7 @@ const (
 
 		currentRecord, err := c.Find{{ .ResourceName }}(d.Id())
 		record := dataTo{{ .ResourceName }}(d)
-		record.Id = currentRecord.Id
+		record.{{ .MikrotikIDField }} = currentRecord.{{ .MikrotikIDField }}
 
 		if err != nil {
 			return diag.FromErr(err)
@@ -128,12 +128,12 @@ const (
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		err = c.Delete{{ .ResourceName }}(record.{{ .IDFieldName }})
+		err = c.Delete{{ .ResourceName }}(record.{{ .MikrotikIDField }})
 
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		d.SetId("")
+
 		return nil
 	}
 
@@ -172,12 +172,13 @@ type (
 	}
 
 	templateData struct {
-		Package         string
-		Imports         []string
-		ResourceName    string
-		TerraformFields []terraformField
-		Fields          []Field
-		IDFieldName     string
+		Package          string
+		Imports          []string
+		ResourceName     string
+		TerraformFields  []terraformField
+		Fields           []Field
+		TerraformIDField string
+		MikrotikIDField  string
 	}
 )
 
@@ -231,12 +232,13 @@ func generateResource(w sourceWriter, s Struct) error {
 
 	if err := t.Execute(w,
 		templateData{
-			ResourceName:    s.Name,
-			TerraformFields: fields,
-			Fields:          s.Fields,
-			Package:         "mikrotik",
-			IDFieldName:     s.IDFieldName,
-			Imports:         defaultImports,
+			ResourceName:     s.Name,
+			TerraformFields:  fields,
+			Fields:           s.Fields,
+			Package:          "mikrotik",
+			TerraformIDField: s.TerraformIDField,
+			MikrotikIDField:  s.MikrotikIDField,
+			Imports:          defaultImports,
 		}); err != nil {
 		return err
 	}

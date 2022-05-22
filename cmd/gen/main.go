@@ -17,11 +17,10 @@ import (
 
 type (
 	Configuration struct {
-		SrcFile     string
-		DestFile    string
-		StructName  string
-		IDFieldName string
-		FormatCode  bool
+		SrcFile    string
+		DestFile   string
+		StructName string
+		FormatCode bool
 	}
 )
 
@@ -57,6 +56,13 @@ func realMain(args []string) error {
 	if err != nil {
 		return err
 	}
+	if s.TerraformIDField == "" {
+		return errors.New("Terraform ID field is not set to any of struct's fields")
+	}
+	if s.MikrotikIDField == "" {
+		return errors.New("Mikrotik ID field is not set to any of struct's fields")
+	}
+
 	if config.StructName == "" {
 		config.StructName = s.Name
 	}
@@ -71,8 +77,6 @@ func realMain(args []string) error {
 	if config.DestFile == "" {
 		return errors.New("destination file must be set via flags or 'go:generate' mode must be used")
 	}
-
-	s.IDFieldName = config.IDFieldName
 
 	var out io.Writer
 	if config.DestFile == "-" {
@@ -99,7 +103,6 @@ func parseConfig(args []string) (*Configuration, error) {
 		destFile   = flag.String("dest", "", "File to write result to")
 		srcFile    = flag.String("src", "", "Source file to parse struct from")
 		structName = flag.String("struct", "", "Name of a struct to process")
-		idField    = flag.String("idField", "Id", "Name of a struct field to use as Terraform ID of resource")
 		formatCode = flag.Bool("formatCode", true, "Whether to format resulting code")
 	)
 
@@ -111,7 +114,6 @@ func parseConfig(args []string) (*Configuration, error) {
 	config.DestFile = *destFile
 	config.SrcFile = *srcFile
 	config.StructName = *structName
-	config.IDFieldName = *idField
 	config.FormatCode = *formatCode
 
 	if config.SrcFile == "" {
@@ -120,10 +122,6 @@ func parseConfig(args []string) (*Configuration, error) {
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	if config.IDFieldName == "" {
-		return nil, errors.New("idField name must be present")
 	}
 
 	return &config, nil

@@ -1,6 +1,7 @@
 package codegen
 
 import (
+	"errors"
 	"go/parser"
 	"go/token"
 	"reflect"
@@ -9,11 +10,12 @@ import (
 
 func TestParse(t *testing.T) {
 	cases := []struct {
-		name       string
-		source     []byte
-		structName string
-		startLine  int
-		expected   *Struct
+		name          string
+		source        []byte
+		structName    string
+		startLine     int
+		expected      *Struct
+		expectedError error
 	}{
 		{
 			name: "struct name provided",
@@ -53,11 +55,12 @@ type DnsRecord struct {
 			},
 		},
 		{
-			name: "id field is parsed",
+			name: "terraform and mikrotik id fields are parsed",
 			source: []byte(`
 package testpackage
 
 type DnsRecord struct {
+	ID	 			   string` + " `gen:\"-,mikrotikID\"`" + `
 	Name 			   string` + " `gen:\"name,id,required\"`" + `
 	GeneratedNumber	   string` + " `gen:\"internal_id,computed\"`" + `
 	Enabled 		   bool` + " `gen:\"enabled,optional\"`" + `
@@ -66,8 +69,9 @@ type DnsRecord struct {
 			`),
 
 			expected: &Struct{
-				Name:        "DnsRecord",
-				IDFieldName: "Name",
+				Name:             "DnsRecord",
+				TerraformIDField: "Name",
+				MikrotikIDField:  "ID",
 				Fields: []Field{
 					{
 						OriginalName: "Name",
@@ -90,6 +94,37 @@ type DnsRecord struct {
 				},
 			},
 		},
+		{
+			name: "terraform id field set multiple times",
+			source: []byte(`
+package testpackage
+
+type DnsRecord struct {
+	Name 			   string` + " `gen:\"name,id,required\"`" + `
+	GeneratedNumber	   string` + " `gen:\"internal_id,computed\"`" + `
+	Enabled 		   bool` + " `gen:\"enabled,id,optional\"`" + `
+	ExplicitlyOmitted  bool` + " `gen:\"-,omit\"`" + `
+}
+			`),
+
+			expectedError: errors.New(""),
+		},
+		{
+			name: "mikrotik id field set multiple times",
+			source: []byte(`
+package testpackage
+
+type DnsRecord struct {
+	ID 				   string` + " `gen:\"name,id,mikrotikID,required\"`" + `
+	Name 			   string` + " `gen:\"name,mikrotikID,required\"`" + `
+	GeneratedNumber	   string` + " `gen:\"internal_id,computed\"`" + `
+	Enabled 		   bool` + " `gen:\"enabled,optional\"`" + `
+	ExplicitlyOmitted  bool` + " `gen:\"-,omit\"`" + `
+}
+			`),
+
+			expectedError: errors.New(""),
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -99,8 +134,12 @@ type DnsRecord struct {
 				t.Error(err)
 			}
 			result, err := parse(fSet, node, tc.startLine, tc.structName)
+			// todo(maksym): this condition does not check the error type since we don't have specific errors yet
+			if (tc.expectedError == nil) != (err == nil) {
+				t.Errorf("expected error to be %v, got %v", tc.expectedError, err)
+			}
 			if err != nil {
-				t.Error(err)
+				return
 			}
 			if !reflect.DeepEqual(tc.expected, result) {
 				t.Errorf(`
