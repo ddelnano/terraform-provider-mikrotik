@@ -22,25 +22,26 @@ func legacyBgpUnsupported(err error) bool {
 }
 
 // BgpInstance Mikrotik resource
+//go:generate gen
 type BgpInstance struct {
-	ID                       string `mikrotik:".id"`
-	Name                     string `mikrotik:"name"`
-	As                       int    `mikrotik:"as"`
-	ClientToClientReflection bool   `mikrotik:"client-to-client-reflection"`
-	Comment                  string `mikrotik:"comment"`
-	ConfederationPeers       string `mikrotik:"confederation-peers"`
-	Disabled                 bool   `mikrotik:"disabled"`
-	IgnoreAsPathLen          bool   `mikrotik:"ignore-as-path-len"`
-	OutFilter                string `mikrotik:"out-filter"`
-	RedistributeConnected    bool   `mikrotik:"redistribute-connected"`
-	RedistributeOspf         bool   `mikrotik:"redistribute-ospf"`
-	RedistributeOtherBgp     bool   `mikrotik:"redistribute-other-bgp"`
-	RedistributeRip          bool   `mikrotik:"redistribute-rip"`
-	RedistributeStatic       bool   `mikrotik:"redistribute-static"`
-	RouterID                 string `mikrotik:"router-id"`
-	RoutingTable             string `mikrotik:"routing-table"`
-	ClusterID                string `mikrotik:"cluster-id"`
-	Confederation            int    `mikrotik:"confederation"`
+	ID                       string `mikrotik:".id" gen:"-,mikrotikID"`
+	Name                     string `mikrotik:"name" gen:"name,id,required"`
+	As                       int    `mikrotik:"as" gen:"as,required"`
+	ClientToClientReflection bool   `mikrotik:"client-to-client-reflection" gen:"client_to_client_reflection,optional,default=true"`
+	Comment                  string `mikrotik:"comment" gen:"comment,optional"`
+	ConfederationPeers       string `mikrotik:"confederation-peers" gen:"confederation_peers,optional"`
+	Disabled                 bool   `mikrotik:"disabled" gen:"disabled,optional"`
+	IgnoreAsPathLen          bool   `mikrotik:"ignore-as-path-len" gen:"ignore_as_path_len,optional"`
+	OutFilter                string `mikrotik:"out-filter" gen:"out_filter,optional"`
+	RedistributeConnected    bool   `mikrotik:"redistribute-connected" gen:"redistribute_connected,optional"`
+	RedistributeOspf         bool   `mikrotik:"redistribute-ospf" gen:"redistribute_ospf,optional"`
+	RedistributeOtherBgp     bool   `mikrotik:"redistribute-other-bgp" gen:"redistribute_other_bgp,optional"`
+	RedistributeRip          bool   `mikrotik:"redistribute-rip" gen:"redistribute_rip,optional"`
+	RedistributeStatic       bool   `mikrotik:"redistribute-static" gen:"redistribute_static,optional"`
+	RouterID                 string `mikrotik:"router-id" gen:"router_id,required"`
+	RoutingTable             string `mikrotik:"routing-table" gen:"routing_table,optional"`
+	ClusterID                string `mikrotik:"cluster-id" gen:"cluster_id,optional"`
+	Confederation            int    `mikrotik:"confederation" gen:"confederation,optional"`
 }
 
 // AddBgpInstance Mikrotik resource

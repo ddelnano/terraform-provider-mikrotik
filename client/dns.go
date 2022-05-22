@@ -7,8 +7,8 @@ import (
 
 //go:generate gen
 type DnsRecord struct {
-	Id      string `mikrotik:".id"`
-	Name    string `mikrotik:"name" gen:"name,required"`
+	Id      string `mikrotik:".id" gen:"-,mikrotikID,deleteID"`
+	Name    string `mikrotik:"name" gen:"name,id,required"`
 	Ttl     int    `mikrotik:"ttl,ttlToSeconds" gen:"ttl,optional,computed"`
 	Address string `mikrotik:"address" gen:"address,required"`
 }

@@ -5,13 +5,14 @@ import (
 	"log"
 )
 
+//go:generate gen
 type Scheduler struct {
-	Id        string `mikrotik:".id"`
-	Name      string `mikrotik:"name"`
-	OnEvent   string `mikrotik:"on-event"`
-	StartDate string `mikrotik:"start-date"`
-	StartTime string `mikrotik:"start-time"`
-	Interval  int    `mikrotik:"interval,ttlToSeconds"`
+	Id        string `mikrotik:".id" gen:"-,mikrotikID"`
+	Name      string `mikrotik:"name" gen:"name,id,required"`
+	OnEvent   string `mikrotik:"on-event" gen:"on_event,required"`
+	StartDate string `mikrotik:"start-date" gen:"start_date,computed"`
+	StartTime string `mikrotik:"start-time" gen:"start_time,computed"`
+	Interval  int    `mikrotik:"interval,ttlToSeconds" gen:"interval,optional"`
 }
 
 func (client Mikrotik) FindScheduler(name string) (*Scheduler, error) {
@@ -57,6 +58,10 @@ func (client Mikrotik) DeleteScheduler(name string) error {
 	log.Printf("[DEBUG] Remove scheduler from mikrotik api %v", r)
 
 	return err
+}
+
+func (client Mikrotik) AddScheduler(s *Scheduler) (*Scheduler, error) {
+	return client.CreateScheduler(s)
 }
 
 func (client Mikrotik) CreateScheduler(s *Scheduler) (*Scheduler, error) {

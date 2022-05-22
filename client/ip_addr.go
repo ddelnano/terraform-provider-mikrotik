@@ -5,13 +5,14 @@ import (
 	"log"
 )
 
+//go:generate gen
 type IpAddress struct {
-	Id        string `mikrotik:".id"`
-	Address   string `mikrotik:"address"`
-	Comment   string `mikrotik:"comment"`
-	Disabled  bool   `mikrotik:"disabled"`
-	Interface string `mikrotik:"interface"`
-	Network   string `mikrotik:"network"`
+	Id        string `mikrotik:".id" gen:"-,mikrotikID,id"`
+	Address   string `mikrotik:"address" gen:"address,required"`
+	Comment   string `mikrotik:"comment" gen:"comment,optional"`
+	Disabled  bool   `mikrotik:"disabled" gen:"disabled,optional"`
+	Interface string `mikrotik:"interface" gen:"interface,required"`
+	Network   string `mikrotik:"network" gen:"network,computed"`
 }
 
 func (client Mikrotik) AddIpAddress(addr *IpAddress) (*IpAddress, error) {

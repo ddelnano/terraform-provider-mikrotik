@@ -32,6 +32,7 @@ func TestAccMikrotikBgpInstance_create(t *testing.T) {
 					testAccBgpInstanceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "client_to_client_reflection", "true"),
 					resource.TestCheckResourceAttr(resourceName, "as", strconv.Itoa(as)),
 					resource.TestCheckResourceAttr(resourceName, "router_id", routerId),
 				),

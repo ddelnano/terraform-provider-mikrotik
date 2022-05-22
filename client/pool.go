@@ -5,11 +5,12 @@ import (
 	"log"
 )
 
+//go:generate gen
 type Pool struct {
-	Id      string `mikrotik:".id"`
-	Name    string `mikrotik:"name"`
-	Ranges  string `mikrotik:"ranges"`
-	Comment string `mikrotik:"comment"`
+	Id      string `mikrotik:".id" gen:"-,mikrotikID,id"`
+	Name    string `mikrotik:"name" gen:"name,required"`
+	Ranges  string `mikrotik:"ranges" gen:"ranges,required"`
+	Comment string `mikrotik:"comment" gen:"comment,optional"`
 }
 
 func (client Mikrotik) AddPool(p *Pool) (*Pool, error) {

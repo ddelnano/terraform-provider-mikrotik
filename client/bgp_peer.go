@@ -6,35 +6,36 @@ import (
 )
 
 // BgpPeer Mikrotik resource
+//go:generate gen
 type BgpPeer struct {
-	ID                   string `mikrotik:".id"`
-	Name                 string `mikrotik:"name"`
-	AddressFamilies      string `mikrotik:"address-families"`
-	AllowAsIn            int    `mikrotik:"allow-as-in"`
-	AsOverride           bool   `mikrotik:"as-override"`
-	CiscoVplsNlriLenFmt  string `mikrotik:"cisco-vpls-nlri-len-fmt"`
-	Comment              string `mikrotik:"comment"`
-	DefaultOriginate     string `mikrotik:"default-originate"`
-	Disabled             bool   `mikrotik:"disabled"`
-	HoldTime             string `mikrotik:"hold-time"`
-	InFilter             string `mikrotik:"in-filter"`
-	Instance             string `mikrotik:"instance"`
-	KeepAliveTime        string `mikrotik:"keepalive-time"`
-	MaxPrefixLimit       int    `mikrotik:"max-prefix-limit"`
-	MaxPrefixRestartTime string `mikrotik:"max-prefix-restart-time"`
-	Multihop             bool   `mikrotik:"multihop"`
-	NexthopChoice        string `mikrotik:"nexthop-choice"`
-	OutFilter            string `mikrotik:"out-filter"`
-	Passive              bool   `mikrotik:"passive"`
-	RemoteAddress        string `mikrotik:"remote-address"`
-	RemoteAs             int    `mikrotik:"remote-as"`
-	RemotePort           int    `mikrotik:"remote-port"`
-	RemovePrivateAs      bool   `mikrotik:"remove-private-as"`
-	RouteReflect         bool   `mikrotik:"route-reflect"`
-	TCPMd5Key            string `mikrotik:"tcp-md5-key"`
-	TTL                  string `mikrotik:"ttl"`
-	UpdateSource         string `mikrotik:"update-source"`
-	UseBfd               bool   `mikrotik:"use-bfd"`
+	ID                   string `mikrotik:".id" gen:"-,mikrotikID"`
+	Name                 string `mikrotik:"name" gen:"name,required,id"`
+	AddressFamilies      string `mikrotik:"address-families" gen:"address_families,optional,default=ip"`
+	AllowAsIn            int    `mikrotik:"allow-as-in" gen:"allow_as_in,optional"`
+	AsOverride           bool   `mikrotik:"as-override" gen:"as_override,optional"`
+	CiscoVplsNlriLenFmt  string `mikrotik:"cisco-vpls-nlri-len-fmt" gen:"cisco_vpls_nlri_len_fmt,optional"`
+	Comment              string `mikrotik:"comment" gen:"comment,optional"`
+	DefaultOriginate     string `mikrotik:"default-originate" gen:"default_originate,optional,default=never"`
+	Disabled             bool   `mikrotik:"disabled" gen:"disabled,optional"`
+	HoldTime             string `mikrotik:"hold-time" gen:"hold_time,optional,default=3m"`
+	InFilter             string `mikrotik:"in-filter" gen:"in_filter,optional"`
+	Instance             string `mikrotik:"instance" gen:"instance,required"`
+	KeepAliveTime        string `mikrotik:"keepalive-time" gen:"keepalive_time,optional"`
+	MaxPrefixLimit       int    `mikrotik:"max-prefix-limit" gen:"max_prefix_limit,optional"`
+	MaxPrefixRestartTime string `mikrotik:"max-prefix-restart-time" gen:"max_prefix_restart_time,optional"`
+	Multihop             bool   `mikrotik:"multihop" gen:"multihop,optional"`
+	NexthopChoice        string `mikrotik:"nexthop-choice" gen:"nexthop_choice,optional,default=default"`
+	OutFilter            string `mikrotik:"out-filter" gen:"out_filter,optional"`
+	Passive              bool   `mikrotik:"passive" gen:"passive,optional"`
+	RemoteAddress        string `mikrotik:"remote-address" gen:"remote_address,required"`
+	RemoteAs             int    `mikrotik:"remote-as" gen:"remote_as,required"`
+	RemotePort           int    `mikrotik:"remote-port" gen:"remote_port,optional"`
+	RemovePrivateAs      bool   `mikrotik:"remove-private-as" gen:"remove_private_as,optional"`
+	RouteReflect         bool   `mikrotik:"route-reflect" gen:"route_reflect,optional"`
+	TCPMd5Key            string `mikrotik:"tcp-md5-key" gen:"tcp_md5_key,optional"`
+	TTL                  string `mikrotik:"ttl" gen:"ttl,optional,default=default"`
+	UpdateSource         string `mikrotik:"update-source" gen:"update_source,optional"`
+	UseBfd               bool   `mikrotik:"use-bfd" gen:"use_bfd,optional"`
 }
 
 func (client Mikrotik) AddBgpPeer(b *BgpPeer) (*BgpPeer, error) {
