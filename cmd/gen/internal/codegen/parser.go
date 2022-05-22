@@ -19,6 +19,7 @@ type (
 		MikrotikIDField string
 		// Client's field to be used as Terraform resource ID
 		TerraformIDField string
+		DeleteField      string
 		Fields           []Field
 	}
 
@@ -35,6 +36,7 @@ type (
 const (
 	optID         = "id"
 	optMikrotikID = "mikrotikID"
+	optDeleteID   = "deleteID"
 	optRequired   = "required"
 	optOptional   = "optional"
 	optComputed   = "computed"
@@ -169,6 +171,11 @@ func parseStructUsingTags(structNode *ast.StructType) (*Struct, error) {
 				result.MikrotikIDField = field.OriginalName
 				// Mikrotik .id field should not appear in Terraform code
 				omit = true
+			case o == optDeleteID:
+				if result.DeleteField != "" {
+					return nil, fmt.Errorf("failed to set '%s' as delete ID field - it is already set to '%s'", field.OriginalName, result.DeleteField)
+				}
+				result.DeleteField = field.OriginalName
 			case o == optRequired:
 				field.Required = true
 			case o == optOptional:

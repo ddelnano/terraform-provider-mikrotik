@@ -95,6 +95,47 @@ type DnsRecord struct {
 			},
 		},
 		{
+			name: "deleteID field is parsed",
+			source: []byte(`
+package testpackage
+
+type DnsRecord struct {
+	ID	 			   string` + " `gen:\"-,mikrotikID\"`" + `
+	Name 			   string` + " `gen:\"name,id,deleteID,required\"`" + `
+	GeneratedNumber	   string` + " `gen:\"internal_id,computed\"`" + `
+	Enabled 		   bool` + " `gen:\"enabled,optional\"`" + `
+	ExplicitlyOmitted  bool` + " `gen:\"-,omit\"`" + `
+}
+			`),
+
+			expected: &Struct{
+				Name:             "DnsRecord",
+				TerraformIDField: "Name",
+				MikrotikIDField:  "ID",
+				DeleteField:      "Name",
+				Fields: []Field{
+					{
+						OriginalName: "Name",
+						Name:         "name",
+						Type:         "string",
+						Required:     true,
+					},
+					{
+						OriginalName: "GeneratedNumber",
+						Name:         "internal_id",
+						Type:         "string",
+						Computed:     true,
+					},
+					{
+						OriginalName: "Enabled",
+						Name:         "enabled",
+						Type:         "bool",
+						Optional:     true,
+					},
+				},
+			},
+		},
+		{
 			name: "terraform id field set multiple times",
 			source: []byte(`
 package testpackage
@@ -118,6 +159,22 @@ type DnsRecord struct {
 	ID 				   string` + " `gen:\"name,id,mikrotikID,required\"`" + `
 	Name 			   string` + " `gen:\"name,mikrotikID,required\"`" + `
 	GeneratedNumber	   string` + " `gen:\"internal_id,computed\"`" + `
+	Enabled 		   bool` + " `gen:\"enabled,optional\"`" + `
+	ExplicitlyOmitted  bool` + " `gen:\"-,omit\"`" + `
+}
+			`),
+
+			expectedError: errors.New(""),
+		},
+		{
+			name: "delete id field set multiple times",
+			source: []byte(`
+package testpackage
+
+type DnsRecord struct {
+	ID 				   string` + " `gen:\"name,id,required\"`" + `
+	Name 			   string` + " `gen:\"name,mikrotikID,deleteID,required\"`" + `
+	GeneratedNumber	   string` + " `gen:\"internal_id,deleteID,computed\"`" + `
 	Enabled 		   bool` + " `gen:\"enabled,optional\"`" + `
 	ExplicitlyOmitted  bool` + " `gen:\"-,omit\"`" + `
 }

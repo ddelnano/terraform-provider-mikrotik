@@ -57,35 +57,6 @@ const (
 		return {{ .ResourceName | firstLower }}ToData(mikrotikRecord, d)
 	}
 
-	func dataTo{{ .ResourceName }}(d *schema.ResourceData) *client.{{ .ResourceName }} {
-		record := new(client.{{ .ResourceName }})
-
-		{{ range .Fields -}}
-		record.{{ .OriginalName }} = d.Get("{{ .Name }}").({{ .Type }})
-		{{ end }}
-		return record
-	}
-
-	func {{ .ResourceName | firstLower }}ToData(record *client.{{ .ResourceName }}, d *schema.ResourceData) diag.Diagnostics {
-		values := map[string]interface{}{
-			{{ range .Fields -}}
-			"{{ .Name }}":    record.{{ .OriginalName }},
-			{{ end }}
-		}
-
-		d.SetId(record.{{ .TerraformIDField }})
-
-		var diags diag.Diagnostics
-
-		for key, value := range values {
-			if err := d.Set(key, value); err != nil {
-				diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
-			}
-		}
-
-		return diags
-	}
-
 	func resource{{ .ResourceName }}Read(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 		c := m.(*client.Mikrotik)
 
@@ -119,22 +90,52 @@ const (
 	}
 
 	func resource{{ .ResourceName }}Delete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-		name := d.Id()
-
 		c := m.(*client.Mikrotik)
+		id := d.Id()
 
-		record, err := c.Find{{ .ResourceName }}(name)
-
-		if err != nil {
+		{{ if .DeleteField -}}
+		if record, err := c.Find{{ .ResourceName }}(id); err != nil {
 			return diag.FromErr(err)
+		} else {
+			id = record.{{ .DeleteField }}
 		}
-		err = c.Delete{{ .ResourceName }}(record.{{ .MikrotikIDField }})
+		{{ end -}}
 
+		err := c.Delete{{ .ResourceName }}(id)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 
 		return nil
+	}
+
+	func dataTo{{ .ResourceName }}(d *schema.ResourceData) *client.{{ .ResourceName }} {
+		record := new(client.{{ .ResourceName }})
+
+		{{ range .Fields -}}
+		record.{{ .OriginalName }} = d.Get("{{ .Name }}").({{ .Type }})
+		{{ end }}
+		return record
+	}
+
+	func {{ .ResourceName | firstLower }}ToData(record *client.{{ .ResourceName }}, d *schema.ResourceData) diag.Diagnostics {
+		values := map[string]interface{}{
+			{{ range .Fields -}}
+			"{{ .Name }}":    record.{{ .OriginalName }},
+			{{ end }}
+		}
+
+		d.SetId(record.{{ .TerraformIDField }})
+
+		var diags diag.Diagnostics
+
+		for key, value := range values {
+			if err := d.Set(key, value); err != nil {
+				diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
+			}
+		}
+
+		return diags
 	}
 
 	`
@@ -172,13 +173,15 @@ type (
 	}
 
 	templateData struct {
-		Package          string
-		Imports          []string
-		ResourceName     string
-		TerraformFields  []terraformField
-		Fields           []Field
-		TerraformIDField string
-		MikrotikIDField  string
+		Package            string
+		Imports            []string
+		ResourceName       string
+		TerraformFields    []terraformField
+		Fields             []Field
+		TerraformIDField   string
+		MikrotikIDField    string
+		DeleteField        string
+		DeleteByMikrotikID bool
 	}
 )
 
@@ -238,6 +241,7 @@ func generateResource(w sourceWriter, s Struct) error {
 			Package:          "mikrotik",
 			TerraformIDField: s.TerraformIDField,
 			MikrotikIDField:  s.MikrotikIDField,
+			DeleteField:      s.DeleteField,
 			Imports:          defaultImports,
 		}); err != nil {
 		return err
