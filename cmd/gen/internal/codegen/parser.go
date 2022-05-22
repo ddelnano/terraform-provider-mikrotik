@@ -27,6 +27,7 @@ type (
 		OriginalName    string
 		Name            string
 		Type            string
+		ElemType        string
 		Required        bool
 		Optional        bool
 		DefaultValueStr string
@@ -41,6 +42,8 @@ const (
 	optRequired   = "required"
 	optOptional   = "optional"
 	optDefault    = "default="
+	optType       = "type="
+	optElemType   = "elemType="
 	optComputed   = "computed"
 	optOmit       = "omit"
 )
@@ -184,6 +187,10 @@ func parseStructUsingTags(structNode *ast.StructType) (*Struct, error) {
 				field.Optional = true
 			case strings.HasPrefix(o, optDefault):
 				field.DefaultValueStr = strings.TrimPrefix(o, optDefault)
+			case strings.HasPrefix(o, optType):
+				field.Type = strings.TrimPrefix(o, optType)
+			case strings.HasPrefix(o, optElemType):
+				field.ElemType = strings.TrimPrefix(o, optElemType)
 			case o == optComputed:
 				field.Computed = true
 			case o == optOmit:

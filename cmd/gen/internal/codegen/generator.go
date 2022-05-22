@@ -36,6 +36,11 @@ const (
 					{{ range .TerraformFields -}}
 					"{{ .Name }}": {
 						Type:     schema.{{ .Type }},
+						{{ if eq (printf "%s" .Type) "TypeList" -}}
+						Elem: &schema.Schema{
+							Type: schema.{{ .ElemType }},
+						},
+						{{- end }}
 						Required: {{ .Required }},
 						Optional: {{ .Optional }},
 						Computed: {{ .Computed }},
@@ -147,6 +152,7 @@ const (
 
 var (
 	stringTypeToTerraformType = map[string]schema.ValueType{
+		"slice":  schema.TypeList,
 		"string": schema.TypeString,
 		"bool":   schema.TypeBool,
 		"int":    schema.TypeInt,
@@ -171,6 +177,7 @@ type (
 	terraformField struct {
 		Name         string
 		Type         schema.ValueType
+		ElemType     schema.ValueType
 		DefaultValue string
 		Required     bool
 		Optional     bool
@@ -271,10 +278,18 @@ func convertToTerraformDefinition(fields []Field) ([]terraformField, error) {
 		if fieldType == schema.TypeString && defaultValue != "" {
 			defaultValue = `"` + defaultValue + `"`
 		}
-
+		elemType := schema.TypeInvalid
+		// currently, only list supports element typing
+		if fieldType == schema.TypeList {
+			elemType = typeToTerraformType(f.ElemType)
+			if elemType == schema.TypeInvalid {
+				return []terraformField{}, fmt.Errorf("unsupported field type: %s", f.ElemType)
+			}
+		}
 		result = append(result, terraformField{
 			Name:         strings.ToLower(f.Name),
 			Type:         fieldType,
+			ElemType:     elemType,
 			DefaultValue: defaultValue,
 			Required:     f.Required,
 			Optional:     f.Optional,
