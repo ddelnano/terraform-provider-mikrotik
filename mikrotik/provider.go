@@ -52,6 +52,7 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 			"mikrotik_dns_record":   resourceDnsRecord(),
 			"mikrotik_dhcp_lease":   resourceLease(),
 			"mikrotik_ip_address":   resourceIpAddress(),
+			"mikrotik_ipv6_address": resourceIpv6Address(),
 			"mikrotik_scheduler":    resourceScheduler(),
 			"mikrotik_script":       resourceScript(),
 			"mikrotik_pool":         resourcePool(),

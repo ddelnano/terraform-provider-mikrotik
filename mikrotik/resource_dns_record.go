@@ -40,6 +40,13 @@ func resourceDnsRecord() *schema.Resource {
 				Optional: false,
 				Computed: false,
 			},
+			"comment": {
+				Type: schema.TypeString,
+
+				Required: false,
+				Optional: true,
+				Computed: false,
+			},
 		},
 	}
 }
@@ -112,6 +119,7 @@ func dataToDnsRecord(d *schema.ResourceData) *client.DnsRecord {
 	record.Name = d.Get("name").(string)
 	record.Ttl = d.Get("ttl").(int)
 	record.Address = d.Get("address").(string)
+	record.Comment = d.Get("comment").(string)
 
 	return record
 }
@@ -121,6 +129,7 @@ func dnsRecordToData(record *client.DnsRecord, d *schema.ResourceData) diag.Diag
 		"name":    record.Name,
 		"ttl":     record.Ttl,
 		"address": record.Address,
+		"comment": record.Comment,
 	}
 
 	d.SetId(record.Name)

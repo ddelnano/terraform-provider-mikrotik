@@ -50,7 +50,7 @@ func (client Mikrotik) ListIpAddress() ([]IpAddress, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("[DEBUG] ound ip address: %v", r)
+	log.Printf("[DEBUG] found ip address: %v", r)
 
 	ipaddr := []IpAddress{}
 
