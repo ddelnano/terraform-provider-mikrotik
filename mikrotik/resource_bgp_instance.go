@@ -126,6 +126,9 @@ func resourceBgpInstanceRead(ctx context.Context, d *schema.ResourceData, m inte
 		d.SetId("")
 		return nil
 	}
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	return bgpInstanceToData(bgpInstance, d)
 }

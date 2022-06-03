@@ -117,9 +117,11 @@ func (client Mikrotik) UpdateBgpPeer(b *BgpPeer) (*BgpPeer, error) {
 
 func (client Mikrotik) DeleteBgpPeer(name string) error {
 	c, err := client.getMikrotikClient()
+	if err != nil {
+		return err
+	}
 
 	bgpPeer, err := client.FindBgpPeer(name)
-
 	if err != nil {
 		return err
 	}

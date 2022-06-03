@@ -64,6 +64,9 @@ func resourceServerRead(ctx context.Context, d *schema.ResourceData, m interface
 		d.SetId("")
 		return nil
 	}
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	return recordToData(record, d)
 }
