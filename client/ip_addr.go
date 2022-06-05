@@ -1,8 +1,9 @@
 package client
 
 import (
-	"fmt"
 	"log"
+
+	"github.com/go-routeros/routeros"
 )
 
 type IpAddress struct {
@@ -14,26 +15,29 @@ type IpAddress struct {
 	Network   string `mikrotik:"network"`
 }
 
+var ipAddressWrapper *resourceWrapper = &resourceWrapper{
+	idField:               "id",
+	mikrotikClientGetFunc: nil,
+	actionsMap: map[string]string{
+		"add":    "/ip/address/add",
+		"find":   "/ip/address/print",
+		"update": "/ip/address/set",
+		"delete": "/ip/address/remove",
+	},
+	targetStruct:          &IpAddress{},
+	addIDExtractorFunc:    func(r *routeros.Reply) string { return r.Done.Map["ret"] },
+	recordIDExtractorFunc: func(r interface{}) string { return r.(*IpAddress).Id },
+	foundCheckFunc:        func(r interface{}) bool { return r.(*IpAddress).Id != "" },
+}
+
 func (client Mikrotik) AddIpAddress(addr *IpAddress) (*IpAddress, error) {
-	c, err := client.getMikrotikClient()
+	ipAddressWrapper.WithMikrotikClientGetter(client.getMikrotikClient)
 
+	r, err := ipAddressWrapper.Add(addr)
 	if err != nil {
 		return nil, err
 	}
-
-	cmd := Marshal("/ip/address/add", addr)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-
-	log.Printf("[DEBUG] ip address creation response: `%v`", r)
-
-	if err != nil {
-		return nil, err
-	}
-
-	id := r.Done.Map["ret"]
-
-	return client.FindIpAddress(id)
+	return r.(*IpAddress), nil
 }
 
 func (client Mikrotik) ListIpAddress() ([]IpAddress, error) {
@@ -63,63 +67,27 @@ func (client Mikrotik) ListIpAddress() ([]IpAddress, error) {
 }
 
 func (client Mikrotik) FindIpAddress(id string) (*IpAddress, error) {
-	c, err := client.getMikrotikClient()
-
+	ipAddressWrapper.WithMikrotikClientGetter(client.getMikrotikClient)
+	ipaddr, err := ipAddressWrapper.Find(id)
 	if err != nil {
 		return nil, err
 	}
 
-	cmd := []string{"/ip/address/print", "?.id=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-
-	log.Printf("[DEBUG] ip address response: %v", r)
-
-	if err != nil {
-		return nil, err
-	}
-
-	ipaddr := IpAddress{}
-	err = Unmarshal(*r, &ipaddr)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if ipaddr.Id == "" {
-		return nil, NewNotFound(fmt.Sprintf("ip address `%s` not found", id))
-	}
-
-	return &ipaddr, nil
+	return ipaddr.(*IpAddress), nil
 }
 
 func (client Mikrotik) UpdateIpAddress(addr *IpAddress) (*IpAddress, error) {
-	c, err := client.getMikrotikClient()
-
+	ipAddressWrapper.WithMikrotikClientGetter(client.getMikrotikClient)
+	ipaddr, err := ipAddressWrapper.Update(addr)
 	if err != nil {
 		return nil, err
 	}
 
-	cmd := Marshal("/ip/address/set", addr)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return client.FindIpAddress(addr.Id)
+	return ipaddr.(*IpAddress), nil
 }
 
 func (client Mikrotik) DeleteIpAddress(id string) error {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return err
-	}
-
-	cmd := []string{"/ip/address/remove", "=.id=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
-	return err
+	return ipAddressWrapper.
+		WithMikrotikClientGetter(client.getMikrotikClient).
+		Delete(id)
 }
