@@ -27,7 +27,6 @@ var ipAddressWrapper *resourceWrapper = &resourceWrapper{
 	targetStruct:          &IpAddress{},
 	addIDExtractorFunc:    func(r *routeros.Reply) string { return r.Done.Map["ret"] },
 	recordIDExtractorFunc: func(r interface{}) string { return r.(*IpAddress).Id },
-	foundCheckFunc:        func(r interface{}) bool { return r.(*IpAddress).Id != "" },
 }
 
 func (client Mikrotik) AddIpAddress(addr *IpAddress) (*IpAddress, error) {

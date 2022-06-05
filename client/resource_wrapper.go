@@ -20,7 +20,6 @@ type (
 		addIDExtractorFunc    addIDExtractorFunc
 		recordIDExtractorFunc recordIDExtractorFunc
 		targetStruct          interface{}
-		foundCheckFunc        func(r interface{}) bool
 	}
 )
 
@@ -77,7 +76,7 @@ func (rw *resourceWrapper) Find(id string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !rw.foundCheckFunc(rw.targetStruct) {
+	if rw.recordIDExtractorFunc(rw.targetStruct) == "" {
 		return nil, NewNotFound(fmt.Sprintf("resource `%s` not found", id))
 	}
 	return rw.targetStruct, nil
