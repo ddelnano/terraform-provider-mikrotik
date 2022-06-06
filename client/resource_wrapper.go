@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"reflect"
 
 	"github.com/go-routeros/routeros"
 )
@@ -80,6 +81,31 @@ func (rw *resourceWrapper) Find(id string) (interface{}, error) {
 		return nil, NewNotFound(fmt.Sprintf("resource `%s` not found", id))
 	}
 	return rw.targetStruct, nil
+}
+
+func (rw *resourceWrapper) List() (interface{}, error) {
+	cmd := []string{ipAddressWrapper.actionsMap["list"]}
+	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
+
+	c, err := rw.mikrotikClientGetFunc()
+	if err != nil {
+		return nil, err
+	}
+	r, err := c.RunArgs(cmd)
+
+	log.Printf("[DEBUG] ip address response: %v", r)
+
+	if err != nil {
+		return nil, err
+	}
+	elem := reflect.Indirect(reflect.ValueOf(rw.targetStruct))
+	listType := reflect.SliceOf(elem.Type())
+	list := reflect.New(listType)
+	err = Unmarshal(*r, list.Interface())
+	if err != nil {
+		return nil, err
+	}
+	return reflect.Indirect(list).Interface(), nil
 }
 
 func (rw *resourceWrapper) Update(resource interface{}) (interface{}, error) {
