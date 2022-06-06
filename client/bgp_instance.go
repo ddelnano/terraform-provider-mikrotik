@@ -127,9 +127,11 @@ func (client Mikrotik) UpdateBgpInstance(b *BgpInstance) (*BgpInstance, error) {
 // DeleteBgpInstance Mikrotik resource
 func (client Mikrotik) DeleteBgpInstance(name string) error {
 	c, err := client.getMikrotikClient()
+	if err != nil {
+		return err
+	}
 
 	bgpInstance, err := client.FindBgpInstance(name)
-
 	if err != nil {
 		return err
 	}

@@ -215,6 +215,7 @@ func (client *Mikrotik) getMikrotikClient() (*routeros.Client, error) {
 
 	if err != nil {
 		log.Printf("[ERROR] Failed to login to routerOS with error: %v", err)
+		return nil, err
 	}
 
 	client.connection = mikrotikClient
