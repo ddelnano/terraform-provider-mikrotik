@@ -15,7 +15,6 @@ type (
 
 	resourceWrapper struct {
 		idField               string
-		mikrotikClientGetFunc mikrotikClientGetFunc
 		actionsMap            map[string]string
 		addIDExtractorFunc    addIDExtractorFunc
 		recordIDExtractorFunc recordIDExtractorFunc
@@ -23,8 +22,8 @@ type (
 	}
 )
 
-func (rw *resourceWrapper) Add(resource interface{}) (interface{}, error) {
-	c, err := rw.mikrotikClientGetFunc()
+func (rw *resourceWrapper) Add(resource interface{}, clientGetter mikrotikClientGetFunc) (interface{}, error) {
+	c, err := clientGetter()
 	if err != nil {
 		return nil, err
 	}
@@ -41,14 +40,14 @@ func (rw *resourceWrapper) Add(resource interface{}) (interface{}, error) {
 
 	id := rw.addIDExtractorFunc(r)
 
-	return rw.Find(id)
+	return rw.Find(id, clientGetter)
 }
 
-func (rw *resourceWrapper) Find(id string) (interface{}, error) {
+func (rw *resourceWrapper) Find(id string, clientGetter mikrotikClientGetFunc) (interface{}, error) {
 	cmd := []string{rw.actionsMap["find"], "?." + rw.idField + "=" + id}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 
-	c, err := rw.mikrotikClientGetFunc()
+	c, err := clientGetter()
 	if err != nil {
 		return nil, err
 	}
@@ -70,11 +69,11 @@ func (rw *resourceWrapper) Find(id string) (interface{}, error) {
 	return rw.targetStruct, nil
 }
 
-func (rw *resourceWrapper) List() (interface{}, error) {
+func (rw *resourceWrapper) List(clientGetter mikrotikClientGetFunc) (interface{}, error) {
 	cmd := []string{rw.actionsMap["list"]}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 
-	c, err := rw.mikrotikClientGetFunc()
+	c, err := clientGetter()
 	if err != nil {
 		return nil, err
 	}
@@ -95,8 +94,8 @@ func (rw *resourceWrapper) List() (interface{}, error) {
 	return reflect.Indirect(list).Interface(), nil
 }
 
-func (rw *resourceWrapper) Update(resource interface{}) (interface{}, error) {
-	c, err := rw.mikrotikClientGetFunc()
+func (rw *resourceWrapper) Update(resource interface{}, clientGetter mikrotikClientGetFunc) (interface{}, error) {
+	c, err := clientGetter()
 	if err != nil {
 		return nil, err
 	}
@@ -109,12 +108,12 @@ func (rw *resourceWrapper) Update(resource interface{}) (interface{}, error) {
 		return nil, err
 	}
 
-	return rw.Find(rw.recordIDExtractorFunc(resource))
+	return rw.Find(rw.recordIDExtractorFunc(resource), clientGetter)
 
 }
 
-func (rw *resourceWrapper) Delete(id string) error {
-	c, err := rw.mikrotikClientGetFunc()
+func (rw *resourceWrapper) Delete(id string, clientGetter mikrotikClientGetFunc) error {
+	c, err := clientGetter()
 	if err != nil {
 		return err
 	}
@@ -129,9 +128,4 @@ func (rw *resourceWrapper) Delete(id string) error {
 
 	return nil
 
-}
-
-func (rw *resourceWrapper) WithMikrotikClientGetter(f mikrotikClientGetFunc) *resourceWrapper {
-	rw.mikrotikClientGetFunc = f
-	return rw
 }

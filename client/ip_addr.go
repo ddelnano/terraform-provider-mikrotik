@@ -14,8 +14,7 @@ type IpAddress struct {
 }
 
 var ipAddressWrapper *resourceWrapper = &resourceWrapper{
-	idField:               "id",
-	mikrotikClientGetFunc: nil,
+	idField: "id",
 	actionsMap: map[string]string{
 		"add":    "/ip/address/add",
 		"find":   "/ip/address/print",
@@ -29,9 +28,7 @@ var ipAddressWrapper *resourceWrapper = &resourceWrapper{
 }
 
 func (client Mikrotik) AddIpAddress(addr *IpAddress) (*IpAddress, error) {
-	ipAddressWrapper.WithMikrotikClientGetter(client.getMikrotikClient)
-
-	r, err := ipAddressWrapper.Add(addr)
+	r, err := ipAddressWrapper.Add(addr, client.getMikrotikClient)
 	if err != nil {
 		return nil, err
 	}
@@ -39,8 +36,7 @@ func (client Mikrotik) AddIpAddress(addr *IpAddress) (*IpAddress, error) {
 }
 
 func (client Mikrotik) ListIpAddress() ([]IpAddress, error) {
-	ipAddressWrapper.WithMikrotikClientGetter(client.getMikrotikClient)
-	ipaddr, err := ipAddressWrapper.List()
+	ipaddr, err := ipAddressWrapper.List(client.getMikrotikClient)
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +45,7 @@ func (client Mikrotik) ListIpAddress() ([]IpAddress, error) {
 }
 
 func (client Mikrotik) FindIpAddress(id string) (*IpAddress, error) {
-	ipAddressWrapper.WithMikrotikClientGetter(client.getMikrotikClient)
-	ipaddr, err := ipAddressWrapper.Find(id)
+	ipaddr, err := ipAddressWrapper.Find(id, client.getMikrotikClient)
 	if err != nil {
 		return nil, err
 	}
@@ -59,8 +54,7 @@ func (client Mikrotik) FindIpAddress(id string) (*IpAddress, error) {
 }
 
 func (client Mikrotik) UpdateIpAddress(addr *IpAddress) (*IpAddress, error) {
-	ipAddressWrapper.WithMikrotikClientGetter(client.getMikrotikClient)
-	ipaddr, err := ipAddressWrapper.Update(addr)
+	ipaddr, err := ipAddressWrapper.Update(addr, client.getMikrotikClient)
 	if err != nil {
 		return nil, err
 	}
@@ -70,6 +64,5 @@ func (client Mikrotik) UpdateIpAddress(addr *IpAddress) (*IpAddress, error) {
 
 func (client Mikrotik) DeleteIpAddress(id string) error {
 	return ipAddressWrapper.
-		WithMikrotikClientGetter(client.getMikrotikClient).
-		Delete(id)
+		Delete(id, client.getMikrotikClient)
 }
