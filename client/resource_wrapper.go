@@ -1,7 +1,6 @@
 package client
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"reflect"
@@ -23,18 +22,6 @@ type (
 		targetStruct          interface{}
 	}
 )
-
-func newResourceWrapper(mikrotikClientGetFunc mikrotikClientGetFunc, actionsMap map[string]string, idFieldExtractorFunc addIDExtractorFunc) (*resourceWrapper, error) {
-	if mikrotikClientGetFunc == nil {
-		return nil, errors.New("mikrotik client getter can not be nil")
-	}
-
-	return &resourceWrapper{
-		mikrotikClientGetFunc: mikrotikClientGetFunc,
-		actionsMap:            actionsMap,
-		addIDExtractorFunc:    idFieldExtractorFunc,
-	}, nil
-}
 
 func (rw *resourceWrapper) Add(resource interface{}) (interface{}, error) {
 	c, err := rw.mikrotikClientGetFunc()
@@ -58,7 +45,7 @@ func (rw *resourceWrapper) Add(resource interface{}) (interface{}, error) {
 }
 
 func (rw *resourceWrapper) Find(id string) (interface{}, error) {
-	cmd := []string{ipAddressWrapper.actionsMap["find"], "?." + rw.idField + "=" + id}
+	cmd := []string{rw.actionsMap["find"], "?." + rw.idField + "=" + id}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 
 	c, err := rw.mikrotikClientGetFunc()
@@ -84,7 +71,7 @@ func (rw *resourceWrapper) Find(id string) (interface{}, error) {
 }
 
 func (rw *resourceWrapper) List() (interface{}, error) {
-	cmd := []string{ipAddressWrapper.actionsMap["list"]}
+	cmd := []string{rw.actionsMap["list"]}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 
 	c, err := rw.mikrotikClientGetFunc()
