@@ -1,8 +1,7 @@
 package client
 
 import (
-	"fmt"
-	"log"
+	"github.com/go-routeros/routeros"
 )
 
 type DnsRecord struct {
@@ -13,75 +12,49 @@ type DnsRecord struct {
 	Comment string `mikrotik:"comment"`
 }
 
+var dnsRecordWrapper *resourceWrapper = &resourceWrapper{
+	idField: "name",
+	actionsMap: map[string]string{
+		"add":    "/ip/dns/static/add",
+		"find":   "/ip/dns/static/print",
+		"list":   "/ip/dns/static/print",
+		"update": "/ip/dns/static/set",
+		"delete": "/ip/dns/static/remove",
+	},
+	targetStruct:          &DnsRecord{},
+	addIDExtractorFunc:    func(r *routeros.Reply) string { return r.Done.Map["ret"] },
+	recordIDExtractorFunc: func(r interface{}) string { return r.(*DnsRecord).Id },
+}
+
 func (client Mikrotik) AddDnsRecord(d *DnsRecord) (*DnsRecord, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-	cmd := Marshal("/ip/dns/static/add", d)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	log.Printf("[DEBUG] /ip/dns/static/add returned %v", r)
-
+	r, err := dnsRecordWrapper.Add(d, client.getMikrotikClient)
 	if err != nil {
 		return nil, err
 	}
 
-	return client.FindDnsRecord(d.Name)
+	return r.(*DnsRecord), nil
 }
 
 func (client Mikrotik) FindDnsRecord(name string) (*DnsRecord, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-	cmd := []string{"/ip/dns/static/print", "?name=" + name}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-
+	r, err := dnsRecordWrapper.Find(name, client.getMikrotikClient)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Printf("[DEBUG] Found dns record: %v", r)
+	return r.(*DnsRecord), nil
 
-	record := DnsRecord{}
-	err = Unmarshal(*r, &record)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if record.Name == "" {
-		return nil, NewNotFound(fmt.Sprintf("dns record `%s` not found", name))
-	}
-
-	return &record, nil
 }
 
 func (client Mikrotik) UpdateDnsRecord(d *DnsRecord) (*DnsRecord, error) {
-	c, err := client.getMikrotikClient()
-
+	r, err := dnsRecordWrapper.Update(d, client.getMikrotikClient)
 	if err != nil {
 		return nil, err
 	}
-	cmd := Marshal("/ip/dns/static/set", d)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
 
-	return client.FindDnsRecord(d.Name)
+	return r.(*DnsRecord), nil
+
 }
 
 func (client Mikrotik) DeleteDnsRecord(id string) error {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return err
-	}
-	cmd := []string{"/ip/dns/static/remove", "=numbers=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
-	return err
+	return dnsRecordWrapper.Delete(id, client.getMikrotikClient)
 }
