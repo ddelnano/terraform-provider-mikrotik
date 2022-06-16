@@ -31,12 +31,10 @@ func (rw *resourceWrapper) Add(resource interface{}, clientGetter mikrotikClient
 	cmd := Marshal(rw.actionsMap["add"], resource)
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
-
-	log.Printf("[DEBUG] ip address creation response: `%v`", r)
-
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("[DEBUG] creation response: `%v`", r)
 
 	id := rw.addIDExtractorFunc(r)
 
@@ -52,21 +50,21 @@ func (rw *resourceWrapper) Find(id string, clientGetter mikrotikClientGetFunc) (
 		return nil, err
 	}
 	r, err := c.RunArgs(cmd)
-
-	log.Printf("[DEBUG] ip address response: %v", r)
-
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("[DEBUG] find response: %v", r)
 
-	err = Unmarshal(*r, rw.targetStruct)
+	targetStruct := rw.newTargetStruct()
+	targetStructInterface := targetStruct.Interface()
+	err = Unmarshal(*r, targetStructInterface)
 	if err != nil {
 		return nil, err
 	}
-	if rw.recordIDExtractorFunc(rw.targetStruct) == "" {
+	if rw.recordIDExtractorFunc(targetStructInterface) == "" {
 		return nil, NewNotFound(fmt.Sprintf("resource `%s` not found", id))
 	}
-	return rw.targetStruct, nil
+	return targetStructInterface, nil
 }
 
 func (rw *resourceWrapper) List(clientGetter mikrotikClientGetFunc) (interface{}, error) {
@@ -79,15 +77,15 @@ func (rw *resourceWrapper) List(clientGetter mikrotikClientGetFunc) (interface{}
 	}
 	r, err := c.RunArgs(cmd)
 
-	log.Printf("[DEBUG] ip address response: %v", r)
+	log.Printf("[DEBUG] list response: %v", r)
 
 	if err != nil {
 		return nil, err
 	}
-	elem := reflect.Indirect(reflect.ValueOf(rw.targetStruct))
-	listType := reflect.SliceOf(elem.Type())
-	list := reflect.New(listType)
-	err = Unmarshal(*r, list.Interface())
+
+	list := rw.newListOfTargetStructs()
+	listInterface := list.Interface()
+	err = Unmarshal(*r, listInterface)
 	if err != nil {
 		return nil, err
 	}
@@ -127,5 +125,14 @@ func (rw *resourceWrapper) Delete(id string, clientGetter mikrotikClientGetFunc)
 	}
 
 	return nil
+}
 
+func (rw *resourceWrapper) newTargetStruct() reflect.Value {
+	return reflect.New(reflect.Indirect(reflect.ValueOf(rw.targetStruct)).Type())
+}
+
+func (rw *resourceWrapper) newListOfTargetStructs() reflect.Value {
+	elem := reflect.Indirect(reflect.ValueOf(rw.targetStruct))
+	listType := reflect.SliceOf(elem.Type())
+	return reflect.New(listType)
 }
