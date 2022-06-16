@@ -1,8 +1,7 @@
 package client
 
 import (
-	"fmt"
-	"log"
+	"github.com/go-routeros/routeros"
 )
 
 type DhcpLease struct {
@@ -15,111 +14,58 @@ type DhcpLease struct {
 	Hostname    string
 }
 
+var dhcpLeaseWrapper *resourceWrapper = &resourceWrapper{
+	idField: "id",
+	actionsMap: map[string]string{
+		"add":    "/ip/dhcp-server/lease/add",
+		"find":   "/ip/dhcp-server/lease/print",
+		"list":   "/ip/dhcp-server/lease/print",
+		"update": "/ip/dhcp-server/lease/set",
+		"delete": "/ip/dhcp-server/lease/remove",
+	},
+	targetStruct:          &DhcpLease{},
+	addIDExtractorFunc:    func(r *routeros.Reply) string { return r.Done.Map["ret"] },
+	recordIDExtractorFunc: func(r interface{}) string { return r.(*DhcpLease).Id },
+}
+
 func (client Mikrotik) AddDhcpLease(l *DhcpLease) (*DhcpLease, error) {
-	c, err := client.getMikrotikClient()
-
+	r, err := dhcpLeaseWrapper.Add(l, client.getMikrotikClient)
 	if err != nil {
 		return nil, err
 	}
 
-	cmd := Marshal("/ip/dhcp-server/lease/add", l)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-
-	log.Printf("[DEBUG] Dhcp lease creation response: `%v`", r)
-
-	if err != nil {
-		return nil, err
-	}
-
-	id := r.Done.Map["ret"]
-
-	return client.FindDhcpLease(id)
+	return r.(*DhcpLease), nil
 }
 
 func (client Mikrotik) ListDhcpLeases() ([]DhcpLease, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-	cmd := []string{"/ip/dhcp-server/lease/print"}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("[DEBUG] Found dhcp leases: %v", r)
-
-	leases := []DhcpLease{}
-
-	err = Unmarshal(*r, &leases)
-
+	r, err := dhcpLeaseWrapper.List(client.getMikrotikClient)
 	if err != nil {
 		return nil, err
 	}
 
-	return leases, nil
+	return r.([]DhcpLease), nil
+
 }
 
 func (client Mikrotik) FindDhcpLease(id string) (*DhcpLease, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-	cmd := []string{"/ip/dhcp-server/lease/print", "?.id=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-
-	log.Printf("[DEBUG] Dhcp lease response: %v", r)
-
+	r, err := dhcpLeaseWrapper.Find(id, client.getMikrotikClient)
 	if err != nil {
 		return nil, err
 	}
 
-	lease := DhcpLease{}
-	err = Unmarshal(*r, &lease)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if lease.Id == "" {
-		return nil, NewNotFound(fmt.Sprintf("dhcp lease `%s` not found", id))
-	}
-
-	return &lease, nil
+	return r.(*DhcpLease), nil
 }
 
 func (client Mikrotik) UpdateDhcpLease(l *DhcpLease) (*DhcpLease, error) {
-	c, err := client.getMikrotikClient()
-
+	r, err := dhcpLeaseWrapper.Update(l, client.getMikrotikClient)
 	if err != nil {
 		return nil, err
 	}
 
-	cmd := Marshal("/ip/dhcp-server/lease/set", l)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
+	return r.(*DhcpLease), nil
 
-	if err != nil {
-		return nil, err
-	}
-
-	return client.FindDhcpLease(l.Id)
 }
 
 func (client Mikrotik) DeleteDhcpLease(id string) error {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return err
-	}
-
-	cmd := []string{"/ip/dhcp-server/lease/remove", "=.id=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
-	return err
+	return dhcpLeaseWrapper.Delete(id, client.getMikrotikClient)
 }

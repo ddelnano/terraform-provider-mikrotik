@@ -1,7 +1,7 @@
 package client
 
 import (
-	"fmt"
+	"log"
 	"reflect"
 	"testing"
 )
@@ -62,14 +62,13 @@ func TestAddLeaseAndDeleteLease(t *testing.T) {
 	}
 }
 
-func TestFindDhcpLease_forNonExistantLease(t *testing.T) {
+func TestFindDhcpLease_forNonExistentLease(t *testing.T) {
 	c := NewClient(GetConfigFromEnv())
 
-	leaseId := "Invalid id"
-	_, err := c.FindDhcpLease(leaseId)
-
-	expectedErrStr := fmt.Sprintf("dhcp lease `%s` not found", leaseId)
-	if err == nil || err.Error() != expectedErrStr {
-		t.Errorf("client should have received error indicating the following dns record `%s` was not found. Instead error was nil", leaseId)
+	leaseId := "*123"
+	r, err := c.FindDhcpLease(leaseId)
+	log.Printf("%+#v", r)
+	if _, ok := err.(*NotFound); err == nil || !ok {
+		t.Errorf("expected error %T, got %v", &NotFound{}, err)
 	}
 }
