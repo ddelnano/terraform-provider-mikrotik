@@ -9,12 +9,13 @@ import (
 )
 
 type (
-	addIDExtractorFunc    func(r *routeros.Reply) string
+	addIDExtractorFunc    func(r *routeros.Reply, resource interface{}) string
 	recordIDExtractorFunc func(r interface{}) string
 	mikrotikClientGetFunc func() (*routeros.Client, error)
 
 	resourceWrapper struct {
 		idField               string
+		idFieldDelete         string
 		actionsMap            map[string]string
 		addIDExtractorFunc    addIDExtractorFunc
 		recordIDExtractorFunc recordIDExtractorFunc
@@ -36,13 +37,13 @@ func (rw *resourceWrapper) Add(resource interface{}, clientGetter mikrotikClient
 	}
 	log.Printf("[DEBUG] creation response: `%v`", r)
 
-	id := rw.addIDExtractorFunc(r)
+	id := rw.addIDExtractorFunc(r, resource)
 
 	return rw.Find(id, clientGetter)
 }
 
 func (rw *resourceWrapper) Find(id string, clientGetter mikrotikClientGetFunc) (interface{}, error) {
-	cmd := []string{rw.actionsMap["find"], "?." + rw.idField + "=" + id}
+	cmd := []string{rw.actionsMap["find"], "?" + rw.idField + "=" + id}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 
 	c, err := clientGetter()
@@ -116,7 +117,7 @@ func (rw *resourceWrapper) Delete(id string, clientGetter mikrotikClientGetFunc)
 		return err
 	}
 
-	cmd := []string{rw.actionsMap["delete"], "=." + rw.idField + "=" + id}
+	cmd := []string{rw.actionsMap["delete"], "=" + rw.idFieldDelete + "=" + id}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	_, err = c.RunArgs(cmd)
 

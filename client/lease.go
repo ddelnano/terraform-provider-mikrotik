@@ -15,7 +15,8 @@ type DhcpLease struct {
 }
 
 var dhcpLeaseWrapper *resourceWrapper = &resourceWrapper{
-	idField: "id",
+	idField:       ".id",
+	idFieldDelete: ".id",
 	actionsMap: map[string]string{
 		"add":    "/ip/dhcp-server/lease/add",
 		"find":   "/ip/dhcp-server/lease/print",
@@ -24,7 +25,7 @@ var dhcpLeaseWrapper *resourceWrapper = &resourceWrapper{
 		"delete": "/ip/dhcp-server/lease/remove",
 	},
 	targetStruct:          &DhcpLease{},
-	addIDExtractorFunc:    func(r *routeros.Reply) string { return r.Done.Map["ret"] },
+	addIDExtractorFunc:    func(r *routeros.Reply, _ interface{}) string { return r.Done.Map["ret"] },
 	recordIDExtractorFunc: func(r interface{}) string { return r.(*DhcpLease).Id },
 }
 

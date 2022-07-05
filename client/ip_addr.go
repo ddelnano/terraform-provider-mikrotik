@@ -14,7 +14,8 @@ type IpAddress struct {
 }
 
 var ipAddressWrapper *resourceWrapper = &resourceWrapper{
-	idField: "id",
+	idField:       ".id",
+	idFieldDelete: ".id",
 	actionsMap: map[string]string{
 		"add":    "/ip/address/add",
 		"find":   "/ip/address/print",
@@ -23,7 +24,7 @@ var ipAddressWrapper *resourceWrapper = &resourceWrapper{
 		"delete": "/ip/address/remove",
 	},
 	targetStruct:          &IpAddress{},
-	addIDExtractorFunc:    func(r *routeros.Reply) string { return r.Done.Map["ret"] },
+	addIDExtractorFunc:    func(r *routeros.Reply, _ interface{}) string { return r.Done.Map["ret"] },
 	recordIDExtractorFunc: func(r interface{}) string { return r.(*IpAddress).Id },
 }
 

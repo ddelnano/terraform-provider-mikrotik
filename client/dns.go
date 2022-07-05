@@ -13,7 +13,8 @@ type DnsRecord struct {
 }
 
 var dnsRecordWrapper *resourceWrapper = &resourceWrapper{
-	idField: "name",
+	idField:       "name",
+	idFieldDelete: "numbers",
 	actionsMap: map[string]string{
 		"add":    "/ip/dns/static/add",
 		"find":   "/ip/dns/static/print",
@@ -22,8 +23,8 @@ var dnsRecordWrapper *resourceWrapper = &resourceWrapper{
 		"delete": "/ip/dns/static/remove",
 	},
 	targetStruct:          &DnsRecord{},
-	addIDExtractorFunc:    func(r *routeros.Reply) string { return r.Done.Map["ret"] },
-	recordIDExtractorFunc: func(r interface{}) string { return r.(*DnsRecord).Id },
+	addIDExtractorFunc:    func(_ *routeros.Reply, resource interface{}) string { return resource.(*DnsRecord).Name },
+	recordIDExtractorFunc: func(r interface{}) string { return r.(*DnsRecord).Name },
 }
 
 func (client Mikrotik) AddDnsRecord(d *DnsRecord) (*DnsRecord, error) {
