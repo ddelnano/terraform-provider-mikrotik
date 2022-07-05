@@ -43,7 +43,15 @@ func (rw *resourceWrapper) Add(resource interface{}, clientGetter mikrotikClient
 }
 
 func (rw *resourceWrapper) Find(id string, clientGetter mikrotikClientGetFunc) (interface{}, error) {
-	cmd := []string{rw.actionsMap["find"], "?" + rw.idField + "=" + id}
+	return rw.findByField(rw.idField, id, clientGetter)
+}
+
+func (rw *resourceWrapper) FindByField(field, value string, clientGetter mikrotikClientGetFunc) (interface{}, error) {
+	return rw.findByField(field, value, clientGetter)
+}
+
+func (rw *resourceWrapper) findByField(field, value string, clientGetter mikrotikClientGetFunc) (interface{}, error) {
+	cmd := []string{rw.actionsMap["find"], "?" + field + "=" + value}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 
 	c, err := clientGetter()
@@ -63,7 +71,7 @@ func (rw *resourceWrapper) Find(id string, clientGetter mikrotikClientGetFunc) (
 		return nil, err
 	}
 	if rw.recordIDExtractorFunc(targetStructInterface) == "" {
-		return nil, NewNotFound(fmt.Sprintf("resource `%s` not found", id))
+		return nil, NewNotFound(fmt.Sprintf("resource with field `%s=%s` not found", field, value))
 	}
 	return targetStructInterface, nil
 }
