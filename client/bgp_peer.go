@@ -1,8 +1,7 @@
 package client
 
 import (
-	"fmt"
-	"log"
+	"github.com/go-routeros/routeros"
 )
 
 // BgpPeer Mikrotik resource
@@ -37,18 +36,22 @@ type BgpPeer struct {
 	UseBfd               bool   `mikrotik:"use-bfd"`
 }
 
+var bgpPeerWrapper *resourceWrapper = &resourceWrapper{
+	idField:       "name",
+	idFieldDelete: "numbers",
+	actionsMap: map[string]string{
+		"add":    "/routing/bgp/peer/add",
+		"find":   "/routing/bgp/peer/print",
+		"update": "/routing/bgp/peer/set",
+		"delete": "/routing/bgp/peer/remove",
+	},
+	targetStruct:          &BgpPeer{},
+	addIDExtractorFunc:    func(_ *routeros.Reply, resource interface{}) string { return resource.(*BgpPeer).Name },
+	recordIDExtractorFunc: func(r interface{}) string { return r.(*BgpPeer).Name },
+}
+
 func (client Mikrotik) AddBgpPeer(b *BgpPeer) (*BgpPeer, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-
-	cmd := Marshal("/routing/bgp/peer/add", b)
-
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	log.Printf("[DEBUG] /routing/bgp/peer/add returned %v", r)
+	r, err := bgpPeerWrapper.Add(b, client.getMikrotikClient)
 	if err != nil {
 		if legacyBgpUnsupported(err) {
 			return nil, LegacyBgpUnsupported{}
@@ -56,19 +59,11 @@ func (client Mikrotik) AddBgpPeer(b *BgpPeer) (*BgpPeer, error) {
 		return nil, err
 	}
 
-	return client.FindBgpPeer(b.Name)
+	return r.(*BgpPeer), nil
 }
 
 func (client Mikrotik) FindBgpPeer(name string) (*BgpPeer, error) {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return nil, err
-	}
-
-	cmd := []string{"/routing/bgp/peer/print", "?name=" + name}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-
+	r, err := bgpPeerWrapper.Find(name, client.getMikrotikClient)
 	if err != nil {
 		if legacyBgpUnsupported(err) {
 			return nil, LegacyBgpUnsupported{}
@@ -76,35 +71,11 @@ func (client Mikrotik) FindBgpPeer(name string) (*BgpPeer, error) {
 		return nil, err
 	}
 
-	log.Printf("[DEBUG] Find bgp peer: `%v`", cmd)
-
-	bgpPeer := BgpPeer{}
-
-	err = Unmarshal(*r, &bgpPeer)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if bgpPeer.Name == "" {
-		return nil, NewNotFound(fmt.Sprintf("bgp peer `%s` not found", name))
-	}
-
-	return &bgpPeer, nil
+	return r.(*BgpPeer), nil
 }
 
 func (client Mikrotik) UpdateBgpPeer(b *BgpPeer) (*BgpPeer, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-
-	cmd := Marshal("/routing/bgp/peer/set", b)
-
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
-
+	r, err := bgpPeerWrapper.Update(b, client.getMikrotikClient)
 	if err != nil {
 		if legacyBgpUnsupported(err) {
 			return nil, LegacyBgpUnsupported{}
@@ -112,22 +83,9 @@ func (client Mikrotik) UpdateBgpPeer(b *BgpPeer) (*BgpPeer, error) {
 		return nil, err
 	}
 
-	return client.FindBgpPeer(b.Name)
+	return r.(*BgpPeer), nil
 }
 
 func (client Mikrotik) DeleteBgpPeer(name string) error {
-	c, err := client.getMikrotikClient()
-
-	bgpPeer, err := client.FindBgpPeer(name)
-
-	if err != nil {
-		return err
-	}
-
-	cmd := []string{"/routing/bgp/peer/remove", "=numbers=" + bgpPeer.Name}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	log.Printf("[DEBUG] Remove bgp peer via mikrotik api: %v", r)
-
-	return err
+	return bgpPeerWrapper.Delete(name, client.getMikrotikClient)
 }
