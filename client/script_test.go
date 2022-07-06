@@ -1,7 +1,7 @@
 package client
 
 import (
-	"fmt"
+	"errors"
 	"reflect"
 	"strings"
 	"testing"
@@ -34,7 +34,7 @@ func TestCreateScriptAndDeleteScript(t *testing.T) {
 		PolicyString:           strings.Join(scriptPolicies, ","),
 		DontRequirePermissions: scriptDontReqPerms,
 	}
-	script, err := NewClient(GetConfigFromEnv()).CreateScript(
+	script, err := c.CreateScript(
 		scriptName,
 		scriptOwner,
 		scriptSource,
@@ -48,7 +48,6 @@ func TestCreateScriptAndDeleteScript(t *testing.T) {
 
 	expectedScript.Id = script.Id
 
-	defer c.DeleteScript(scriptName)
 	if !reflect.DeepEqual(*script, expectedScript) {
 		t.Errorf("The script does not match what we expected. actual: %v expected: %v", script, expectedScript)
 	}
@@ -66,8 +65,7 @@ func TestFindScript_onNonExistantScript(t *testing.T) {
 	name := "script-not-found"
 	_, err := c.FindScript(name)
 
-	expectedErrStr := fmt.Sprintf("script `%s` not found", name)
-	if err == nil || err.Error() != expectedErrStr {
-		t.Errorf("client should have received error indicating the following script `%s` was not found. Instead error was nil", name)
+	if err == nil || errors.Is(err, &NotFound{}) {
+		t.Errorf("client should have received error %T but got %T", &NotFound{}, err)
 	}
 }
