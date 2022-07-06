@@ -1,8 +1,7 @@
 package client
 
 import (
-	"fmt"
-	"log"
+	"github.com/go-routeros/routeros"
 )
 
 type Ipv6Address struct {
@@ -17,102 +16,56 @@ type Ipv6Address struct {
 	NoDad     bool   `mikrotik:"no-dad"`
 }
 
+var ipv6Wrapper *resourceWrapper = &resourceWrapper{
+	idField:       ".id",
+	idFieldDelete: ".id",
+	actionsMap: map[string]string{
+		"add":    "/ipv6/address/add",
+		"find":   "/ipv6/address/print",
+		"list":   "/ipv6/address/print",
+		"update": "/ipv6/address/set",
+		"delete": "/ipv6/address/remove",
+	},
+	targetStruct:          &Ipv6Address{},
+	addIDExtractorFunc:    func(r *routeros.Reply, _ interface{}) string { return r.Done.Map["ret"] },
+	recordIDExtractorFunc: func(r interface{}) string { return r.(*Ipv6Address).Id },
+}
+
 func (client Mikrotik) AddIpv6Address(addr *Ipv6Address) (*Ipv6Address, error) {
-	c, err := client.getMikrotikClient()
+	r, err := ipv6Wrapper.Add(addr, client.getMikrotikClient)
 	if err != nil {
 		return nil, err
 	}
-	cmd := Marshal("/ipv6/address/add", addr)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	log.Printf("[DEBUG] ipv6 address creation response: `%v`", r)
+	return r.(*Ipv6Address), nil
+}
 
+func (client Mikrotik) FindIpv6Address(id string) (*Ipv6Address, error) {
+	r, err := ipv6Wrapper.Find(id, client.getMikrotikClient)
 	if err != nil {
 		return nil, err
 	}
-
-	id := r.Done.Map["ret"]
-
-	return client.FindIpv6Address(id)
+	return r.(*Ipv6Address), nil
 }
 
 func (client Mikrotik) ListIpv6Address() ([]Ipv6Address, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-	cmd := []string{"/ipv6/address/print"}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("[DEBUG] found ipv6 address: %v", r)
-
-	ipv6addr := []Ipv6Address{}
-
-	err = Unmarshal(*r, &ipv6addr)
-
+	r, err := ipv6Wrapper.List(client.getMikrotikClient)
 	if err != nil {
 		return nil, err
 	}
 
-	return ipv6addr, nil
-}
-func (client Mikrotik) FindIpv6Address(id string) (*Ipv6Address, error) {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return nil, err
-	}
-
-	cmd := []string{"/ipv6/address/print", "?.id=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	log.Printf("[DEBUG] ipv6 address response: %v", r)
-	if err != nil {
-		return nil, err
-	}
-
-	ipv6addr := Ipv6Address{}
-	err = Unmarshal(*r, &ipv6addr)
-	if err != nil {
-		return nil, err
-	}
-
-	if ipv6addr.Id == "" {
-		return nil, NewNotFound(fmt.Sprintf("ipv6 address `%s` not found", id))
-	}
-
-	return &ipv6addr, nil
+	return r.([]Ipv6Address), nil
 }
 
 func (client Mikrotik) UpdateIpv6Address(addr *Ipv6Address) (*Ipv6Address, error) {
-	c, err := client.getMikrotikClient()
+	r, err := ipv6Wrapper.Update(addr, client.getMikrotikClient)
 	if err != nil {
 		return nil, err
 	}
 
-	cmd := Marshal("/ipv6/address/set", addr)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
-	if err != nil {
-		return nil, err
-	}
-
-	return client.FindIpv6Address(addr.Id)
+	return r.(*Ipv6Address), nil
 }
 
 func (client Mikrotik) DeleteIpv6Address(id string) error {
-	c, err := client.getMikrotikClient()
+	return ipv6Wrapper.Delete(id, client.getMikrotikClient)
 
-	if err != nil {
-		return err
-	}
-
-	cmd := []string{"/ipv6/address/remove", "=.id=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
-	return err
 }
