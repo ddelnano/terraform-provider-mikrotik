@@ -62,13 +62,19 @@ func (client Mikrotik) FindScript(name string) (*Script, error) {
 }
 
 func (client Mikrotik) UpdateScript(name, owner, source string, policy []string, dontReqPerms bool) (*Script, error) {
-	return client.updateScript(&Script{
+	r, err := client.FindScript(name)
+	if err != nil {
+		return nil, err
+	}
+	s := &Script{
+		Id:                     r.Id,
 		Name:                   name,
 		Owner:                  owner,
-		Source:                 source,
 		PolicyString:           strings.Join(policy, ","),
 		DontRequirePermissions: dontReqPerms,
-	})
+		Source:                 source,
+	}
+	return client.updateScript(s)
 }
 
 func (client Mikrotik) updateScript(s *Script) (*Script, error) {
