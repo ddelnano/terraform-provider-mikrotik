@@ -164,6 +164,9 @@ func resourceBgpPeerRead(ctx context.Context, d *schema.ResourceData, m interfac
 		d.SetId("")
 		return nil
 	}
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	return bgpPeerToData(bgpPeer, d)
 }

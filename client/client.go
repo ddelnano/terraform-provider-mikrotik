@@ -40,11 +40,12 @@ func Unmarshal(reply routeros.Reply, v interface{}) error {
 	switch elem.Kind() {
 	case reflect.Slice:
 		l := len(reply.Re)
-		if l <= 1 {
-			panic(fmt.Sprintf("Cannot Unmarshal %d sentence(s) into a slice", l))
+		t := elem.Type()
+		if l < 1 {
+			elem.Set(reflect.MakeSlice(t, 0, 0))
+			break
 		}
 
-		t := elem.Type()
 		d := reflect.MakeSlice(t, l, l)
 
 		for i := 0; i < l; i++ {
@@ -215,6 +216,7 @@ func (client *Mikrotik) getMikrotikClient() (*routeros.Client, error) {
 
 	if err != nil {
 		log.Printf("[ERROR] Failed to login to routerOS with error: %v", err)
+		return nil, err
 	}
 
 	client.connection = mikrotikClient

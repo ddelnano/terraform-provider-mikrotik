@@ -61,6 +61,10 @@ func resourceSchedulerRead(ctx context.Context, d *schema.ResourceData, m interf
 	c := m.(*client.Mikrotik)
 
 	scheduler, err := c.FindScheduler(d.Id())
+	if _, ok := err.(*client.NotFound); ok {
+		d.SetId("")
+		return nil
+	}
 	if err != nil {
 		return diag.FromErr(err)
 	}
