@@ -8,7 +8,7 @@ else
 endif
 
 ifdef TF_LOG
-    TF_LOG := TF_LOG=$(TF_LOG)
+    override TF_LOG := TF_LOG=$(TF_LOG)
 endif
 
 build:
