@@ -71,6 +71,7 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 			"mikrotik_bgp_peer":            resourceBgpPeer(),
 			"mikrotik_dhcp_lease":          resourceLease(),
 			"mikrotik_dhcp_server_network": resourceDhcpServerNetwork(),
+			"mikrotik_dhcp_server":         resourceDhcpServer(),
 			"mikrotik_dns_record":          resourceRecord(),
 			"mikrotik_ip_address":          resourceIpAddress(),
 			"mikrotik_ipv6_address":        resourceIpv6Address(),
