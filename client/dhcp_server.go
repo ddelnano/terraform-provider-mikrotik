@@ -74,7 +74,7 @@ func (client Mikrotik) FindDhcpServer(name string) (*DhcpServer, error) {
 	}
 
 	if record.Name == "" {
-		return nil, NewNotFound(fmt.Sprintf("record `%s` not found", name))
+		return nil, NewNotFound(fmt.Sprintf("dhcp server `%s` not found", name))
 	}
 
 	return &record, nil
