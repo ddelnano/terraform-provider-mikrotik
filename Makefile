@@ -2,9 +2,9 @@
 
 TIMEOUT ?= 40m
 ifdef TEST
-    TEST := ./... -run $(TEST)
+    override TEST := ./... -run $(TEST)
 else
-    TEST := ./...
+    override TEST := ./...
 endif
 
 ifdef TF_LOG
