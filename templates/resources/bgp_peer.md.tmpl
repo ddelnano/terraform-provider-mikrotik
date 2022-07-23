@@ -1,0 +1,19 @@
+# {{.Name}} ({{.Type}})
+{{ .Description | trimspace }}
+
+!> This resource will not be supported in RouterOS v7+.
+Mikrotik has deprecated the underlying commands so future BGP support will need new resources created
+(See [this issue](https://github.com/ddelnano/terraform-provider-mikrotik/issues/52) for status of this work).
+
+{{ if .HasExample -}}
+## Example Usage
+{{ tffile .ExampleFile }}
+{{- end }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+{{ if .HasImport -}}
+## Import
+Import is supported using the following syntax:
+{{ codefile "shell" .ImportFile }}
+{{- end }}
