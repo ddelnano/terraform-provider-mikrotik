@@ -15,7 +15,11 @@ func init() {
 		desc := s.Description
 		// add default value in description, if it was declared in the resource's schema.
 		if s.Default != nil {
-			desc += fmt.Sprintf(" Default: `%v`", s.Default)
+			if s.Default == "" {
+				desc += " Default: `\"\"`."
+			} else {
+				desc += fmt.Sprintf(" Default: `%v`.", s.Default)
+			}
 		}
 
 		return strings.TrimSpace(desc)
