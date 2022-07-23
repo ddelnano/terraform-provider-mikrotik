@@ -35,7 +35,7 @@ func resourceBgpInstance() *schema.Resource {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
-				Description: "The comment of the IP Pool to be created",
+				Description: "The comment of the IP Pool to be created.",
 			},
 			"comment": {
 				Type:        schema.TypeString,
@@ -45,7 +45,7 @@ func resourceBgpInstance() *schema.Resource {
 			"confederation_peers": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "List of AS numbers internal to the [local] confederation. For example: `10,20,30-50`",
+				Description: "List of AS numbers internal to the [local] confederation. For example: `10,20,30-50`.",
 			},
 			"disabled": {
 				Type:        schema.TypeBool,
