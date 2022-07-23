@@ -10,6 +10,8 @@ import (
 
 func resourceIpv6Address() *schema.Resource {
 	return &schema.Resource{
+		Description: "Assigns an IPv6 address to an interface.",
+
 		CreateContext: resourceIpv6AddressCreate,
 		ReadContext:   resourceIpv6AddressRead,
 		UpdateContext: resourceIpv6AddressUpdate,
@@ -20,37 +22,45 @@ func resourceIpv6Address() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"address": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The IPv6 address and prefix length of the interface using slash notation.",
 			},
 			"advertise": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Whether to enable stateless address configuration. The prefix of that address is automatically advertised to hosts using ICMPv6 protocol. The option is set by default for addresses with prefix length 64.",
 			},
 			"comment": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The comment for the IPv6 address assignment.",
 			},
 			"disabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Whether to disable IPv6 address.",
 			},
 			"eui_64": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Whether to calculate EUI-64 address and use it as last 64 bits of the IPv6 address.",
 			},
 			"from_pool": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Name of the pool from which prefix will be taken to construct IPv6 address taking last part of the address from address property.",
 			},
 			"interface": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The interface on which the IPv6 address is assigned.",
 			},
 			"no_dad": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "If set indicates that address is anycast address and Duplicate Address Detection should not be performed.",
 			},
 		},
 	}
