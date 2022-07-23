@@ -10,11 +10,16 @@ import (
 
 func resourceDhcpServerNetwork() *schema.Resource {
 	return &schema.Resource{
+		Description: "Manages a DHCP network resource within Mikrotik device.",
+
 		CreateContext: resourceDhcpServerNetworkCreate,
 		ReadContext:   resourceDhcpServerNetworkRead,
 		UpdateContext: resourceDhcpServerNetworkUpdate,
 		DeleteContext: resourceDhcpServerNetworkDelete,
-		Description:   "Manages a DHCP network resource within Mikrotik device.",
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
+
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
