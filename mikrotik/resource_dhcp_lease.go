@@ -11,6 +11,8 @@ import (
 
 func resourceLease() *schema.Resource {
 	return &schema.Resource{
+		Description: "Creates a DHCP lease on the mikrotik device.",
+
 		CreateContext: resourceLeaseCreate,
 		ReadContext:   resourceLeaseRead,
 		UpdateContext: resourceLeaseUpdate,
@@ -21,30 +23,36 @@ func resourceLease() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"address": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The IP address of the DHCP lease to be created.",
 			},
 			"macaddress": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The MAC addreess of the DHCP lease to be created.",
 			},
 			"comment": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The comment of the DHCP lease to be created.",
 			},
 			"hostname": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The hostname of the device",
 			},
 			"blocked": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "false",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "false",
+				Description: "Whether to block access for this DHCP client (true|false).",
 			},
 			"dynamic": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Whether the dhcp lease is static or dynamic. Dynamic leases are not guaranteed to continue to be assigned to that specific device. Defaults to false.",
 			},
 		},
 	}
