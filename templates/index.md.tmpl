@@ -1,0 +1,22 @@
+---
+page_title: "Provider: Mikrotik"
+description: |-
+  The mikrotik provider is used to interact with the resources supported by RouterOS.
+---
+
+# {{ .ProviderShortName | upper }} Provider
+
+The mikrotik provider is used to interact with the resources supported by RouterOS.
+The provider needs to be configured with the proper credentials before it can be used.
+
+## Requirements
+
+* RouterOS v6.45.2+ (It may work with other versions but it is untested against other versions!)
+
+
+{{ if .HasExample -}}
+## Example Usage
+{{ tffile .ExampleFile }}
+{{- end }}
+
+{{ .SchemaMarkdown | trimspace }}

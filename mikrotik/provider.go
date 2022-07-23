@@ -15,19 +15,19 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_HOST", nil),
-				Description: "Hostname of the mikrotik router",
+				Description: "Hostname of the MikroTik router",
 			},
 			"username": {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_USER", nil),
-				Description: "User account for mikrotik api",
+				Description: "User account for MikroTik api",
 			},
 			"password": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_PASSWORD", ""),
-				Description: "Password for mikrotik api",
+				Description: "Password for MikroTik api",
 			},
 			"tls": {
 				Type:        schema.TypeBool,
