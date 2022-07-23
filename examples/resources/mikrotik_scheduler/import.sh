@@ -1,0 +1,1 @@
+terraform import mikrotik_scheduler.scheduler scheduler-name

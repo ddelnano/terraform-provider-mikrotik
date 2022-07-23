@@ -10,6 +10,8 @@ import (
 
 func resourceScheduler() *schema.Resource {
 	return &schema.Resource{
+		Description: "Creates a Mikrotik scheduler.",
+
 		CreateContext: resourceSchedulerCreate,
 		ReadContext:   resourceSchedulerRead,
 		UpdateContext: resourceSchedulerUpdate,
@@ -20,25 +22,30 @@ func resourceScheduler() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Name of the task.",
 			},
 			"on_event": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Name of the script to execute. It must exist `/system script`.",
 			},
 			"start_date": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Date of the first script execution.",
 			},
 			"start_time": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Time of the first script execution.",
 			},
 			"interval": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  0,
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     0,
+				Description: "Interval between two script executions, if time interval is set to zero, the script is only executed at its start time, otherwise it is executed repeatedly at the time interval is specified.",
 			},
 		},
 	}
