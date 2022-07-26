@@ -2,11 +2,29 @@ package mikrotik
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	mt "github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
+
+func init() {
+	schema.SchemaDescriptionBuilder = func(s *schema.Schema) string {
+		desc := s.Description
+		// add default value in description, if it was declared in the resource's schema.
+		if s.Default != nil {
+			if s.Default == "" {
+				desc += " Default: `\"\"`."
+			} else {
+				desc += fmt.Sprintf(" Default: `%v`.", s.Default)
+			}
+		}
+
+		return strings.TrimSpace(desc)
+	}
+}
 
 func Provider(client *mt.Mikrotik) *schema.Provider {
 	provider := &schema.Provider{
@@ -15,19 +33,19 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_HOST", nil),
-				Description: "Hostname of the mikrotik router",
+				Description: "Hostname of the MikroTik router",
 			},
 			"username": {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_USER", nil),
-				Description: "User account for mikrotik api",
+				Description: "User account for MikroTik api",
 			},
 			"password": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_PASSWORD", ""),
-				Description: "Password for mikrotik api",
+				Description: "Password for MikroTik api",
 			},
 			"tls": {
 				Type:        schema.TypeBool,
