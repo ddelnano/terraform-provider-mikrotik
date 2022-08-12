@@ -10,7 +10,7 @@ import (
 
 func resourceBgpPeer() *schema.Resource {
 	return &schema.Resource{
-		Description: "Creates a Mikrotik BGP Peer.",
+		Description: "Creates a MikroTik BGP Peer.",
 
 		CreateContext: resourceBgpPeerCreate,
 		ReadContext:   resourceBgpPeerRead,
