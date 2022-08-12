@@ -10,47 +10,61 @@ import (
 
 func resourceDhcpServer() *schema.Resource {
 	return &schema.Resource{
+		Description: "Manages a DHCP server resource within MikroTik device.",
+
 		CreateContext: createDhcpServer,
 		ReadContext:   readDhcpServer,
 		UpdateContext: updateDhcpServer,
 		DeleteContext: deleteDhcpServer,
+
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
+
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"add_arp": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Whether to add dynamic ARP entry. If set to no either ARP mode should be enabled on that interface or static ARP entries should be administratively defined.",
 			},
 			"address_pool": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "static-only",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "static-only",
+				Description: "IP pool, from which to take IP addresses for the clients. If set to static-only, then only the clients that have a static lease (added in lease submenu) will be allowed.",
 			},
 			"authoritative": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "yes",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "yes",
+				Description: "Option changes the way how server responds to DHCP requests.",
 			},
 			"disabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				Description: "Disable this DHCP server instance.",
 			},
 			"interface": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "*0",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "*0",
+				Description: "Interface on which server will be running.",
 			},
 			"lease_script": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Script that will be executed after lease is assigned or de-assigned. Internal \"global\" variables that can be used in the script.",
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "Reference name.",
 			},
 		},
 	}
