@@ -11,6 +11,8 @@ import (
 
 func resourceRecord() *schema.Resource {
 	return &schema.Resource{
+		Description: "Creates a DNS record on the MikroTik device.",
+
 		CreateContext: resourceServerCreate,
 		ReadContext:   resourceServerRead,
 		UpdateContext: resourceServerUpdate,
@@ -21,22 +23,25 @@ func resourceRecord() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The name of the DNS hostname to be created.",
 			},
 			"address": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The A record to be returend from the DNS hostname.",
 			},
 			"comment": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The comment text associated with the DNS record.",
 			},
 			"ttl": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Computed:    true,
+				Description: "The ttl of the DNS record.",
 			},
 		},
 	}
