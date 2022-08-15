@@ -79,6 +79,7 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 			"mikrotik_pool":                resourcePool(),
 			"mikrotik_scheduler":           resourceScheduler(),
 			"mikrotik_script":              resourceScript(),
+			"mikrotik_vlan_interface":      resourceVlanInterface(),
 		},
 	}
 
