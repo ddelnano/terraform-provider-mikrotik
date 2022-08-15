@@ -10,6 +10,8 @@ import (
 
 func resourceScript() *schema.Resource {
 	return &schema.Resource{
+		Description: "Creates a MikroTik script.",
+
 		CreateContext: resourceScriptCreate,
 		ReadContext:   resourceScriptRead,
 		UpdateContext: resourceScriptUpdate,
@@ -20,16 +22,19 @@ func resourceScript() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The name of script.",
 			},
 			"owner": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The owner of the script.",
 			},
 			"source": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The source code of the script. See the [MikroTik docs](https://wiki.mikrotik.com/wiki/Manual:Scripting) for the scripting language.",
 			},
 			"policy": {
 				Type:     schema.TypeList,
@@ -37,11 +42,13 @@ func resourceScript() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				Description: "What permissions the script has. This must be one of the following: ftp, reboot, read, write, policy, test, password, sniff, sensitive, romon.",
 			},
 			"dont_require_permissions": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "If the script requires permissions or not.",
 			},
 		},
 	}
