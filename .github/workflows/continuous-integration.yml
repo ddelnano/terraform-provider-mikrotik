@@ -14,14 +14,14 @@ jobs:
     strategy:
       matrix:
         experimental: [false]
-        go: ["1.16"]
+        go: ["1.17"]
         os: [ubuntu-latest]
         # Test against latest stable release, v6 beta and v7 beta
         routeros: ["6.48.3", "6.49beta54"]
         legacy_bgp_support: [true]
         include:
           - experimental: true
-            go: 1.16
+            go: 1.17
             os: ubuntu-latest
             routeros: "latest"
             legacy_bgp_support: false
