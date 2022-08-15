@@ -10,6 +10,8 @@ import (
 
 func resourceIpAddress() *schema.Resource {
 	return &schema.Resource{
+		Description: "Assigns an IP address to an interface.",
+
 		CreateContext: resourceIpAddressCreate,
 		ReadContext:   resourceIpAddressRead,
 		UpdateContext: resourceIpAddressUpdate,
@@ -20,25 +22,30 @@ func resourceIpAddress() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"address": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The IP address and netmask of the interface using slash notation.",
 			},
 			"comment": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The comment for the IP address assignment.",
 			},
 			"disabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Whether to disable IP address.",
 			},
 			"interface": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The interface on which the IP address is assigned.",
 			},
 			"network": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "IP address for the network.",
 			},
 		},
 	}
