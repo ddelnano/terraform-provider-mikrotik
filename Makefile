@@ -14,6 +14,9 @@ endif
 build:
 	go build -o terraform-provider-mikrotik
 
+generate:
+	go generate ./...
+
 clean:
 	rm dist/*
 

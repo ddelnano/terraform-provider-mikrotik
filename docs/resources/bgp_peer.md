@@ -1,5 +1,5 @@
 # mikrotik_bgp_peer (Resource)
-Creates a Mikrotik BGP Peer.
+Creates a MikroTik BGP Peer.
 
 !> This resource will not be supported in RouterOS v7+.
 Mikrotik has deprecated the underlying commands so future BGP support will need new resources created
