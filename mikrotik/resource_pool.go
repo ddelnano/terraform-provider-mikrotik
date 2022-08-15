@@ -10,6 +10,8 @@ import (
 
 func resourcePool() *schema.Resource {
 	return &schema.Resource{
+		Description: "Creates a Mikrotik IP Pool.",
+
 		CreateContext: resourcePoolCreate,
 		ReadContext:   resourcePoolRead,
 		UpdateContext: resourcePoolUpdate,
@@ -20,16 +22,19 @@ func resourcePool() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The name of IP pool.",
 			},
 			"ranges": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The IP range(s) of the pool. Multiple ranges can be specified, separated by commas: `172.16.0.6-172.16.0.12,172.16.0.50-172.16.0.60`.",
 			},
 			"comment": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The comment of the IP Pool to be created.",
 			},
 		},
 	}
