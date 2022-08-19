@@ -31,6 +31,22 @@ func resourcePool() *schema.Resource {
 				Required:    true,
 				Description: "The IP range(s) of the pool. Multiple ranges can be specified, separated by commas: `172.16.0.6-172.16.0.12,172.16.0.50-172.16.0.60`.",
 			},
+			"next_pool": {
+				Type:     schema.TypeString,
+				Optional: true,
+				StateFunc: func(i interface{}) string {
+					v := i.(string)
+					// handle special case for 'none' string:
+					// it behaves the same as an empty string - unsets the value
+					// and MikroTik API will return an empty string, but we don't wont diff on '' != 'none'
+					if v == "none" {
+						return ""
+					}
+
+					return v
+				},
+				Description: "The IP pool to pick next address from if current is exhausted.",
+			},
 			"comment": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -99,9 +115,10 @@ func resourcePoolDelete(ctx context.Context, d *schema.ResourceData, m interface
 
 func poolToData(pool *client.Pool, d *schema.ResourceData) diag.Diagnostics {
 	values := map[string]interface{}{
-		"name":    pool.Name,
-		"ranges":  pool.Ranges,
-		"comment": pool.Comment,
+		"name":      pool.Name,
+		"ranges":    pool.Ranges,
+		"next_pool": pool.NextPool,
+		"comment":   pool.Comment,
 	}
 
 	d.SetId(pool.Id)
@@ -121,6 +138,7 @@ func preparePool(d *schema.ResourceData) *client.Pool {
 	pool := new(client.Pool)
 
 	pool.Name = d.Get("name").(string)
+	pool.NextPool = d.Get("next_pool").(string)
 	pool.Ranges = d.Get("ranges").(string)
 	pool.Comment = d.Get("comment").(string)
 

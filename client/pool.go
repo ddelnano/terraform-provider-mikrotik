@@ -6,10 +6,11 @@ import (
 )
 
 type Pool struct {
-	Id      string `mikrotik:".id"`
-	Name    string `mikrotik:"name"`
-	Ranges  string `mikrotik:"ranges"`
-	Comment string `mikrotik:"comment"`
+	Id       string `mikrotik:".id"`
+	Name     string `mikrotik:"name"`
+	Ranges   string `mikrotik:"ranges"`
+	NextPool string `mikrotik:"next-pool"`
+	Comment  string `mikrotik:"comment"`
 }
 
 func (client Mikrotik) AddPool(p *Pool) (*Pool, error) {
