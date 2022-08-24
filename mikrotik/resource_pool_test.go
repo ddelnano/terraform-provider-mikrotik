@@ -194,8 +194,8 @@ func testAccPoolWithNextPool(name, ranges, nextPoolToUse, nextPoolName string) s
 resource "mikrotik_pool" "bar" {
     name = %q
     ranges = %q
-	next_pool = %q
-	depends_on = [mikrotik_pool.next_pool]
+    next_pool = %q
+    depends_on = [mikrotik_pool.next_pool]
 }
 
 resource "mikrotik_pool" "next_pool" {
