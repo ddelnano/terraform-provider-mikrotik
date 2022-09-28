@@ -34,6 +34,40 @@ func TestAccMikrotikPool_create(t *testing.T) {
 	})
 }
 
+func TestAccMikrotikPool_createNextPool(t *testing.T) {
+	name := acctest.RandomWithPrefix("pool-create")
+	ranges := fmt.Sprintf("%s,%s", internal.GetNewIpAddrRange(10), internal.GetNewIpAddr())
+
+	resourceName := "mikrotik_pool.bar"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckMikrotikPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccPoolWithNextPool(name, ranges, "next_ip_pool", "next_ip_pool"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccPoolExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "ranges", ranges),
+					resource.TestCheckResourceAttr(resourceName, "next_pool", "next_ip_pool"),
+				),
+			},
+			{
+				Config: testAccPoolWithNextPool(name, ranges, "none", "next_ip_pool"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccPoolExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "ranges", ranges),
+					resource.TestCheckResourceAttr(resourceName, "next_pool", ""),
+				),
+			},
+		},
+	})
+}
+
 func TestAccMikrotikPool_createAndPlanWithNonExistantPool(t *testing.T) {
 	name := acctest.RandomWithPrefix("pool-plan")
 	ranges := fmt.Sprintf("%s,%s", internal.GetNewIpAddrRange(10), internal.GetNewIpAddr())
@@ -153,6 +187,22 @@ resource "mikrotik_pool" "bar" {
     ranges = "%s"
 }
 `, name, ranges)
+}
+
+func testAccPoolWithNextPool(name, ranges, nextPoolToUse, nextPoolName string) string {
+	return fmt.Sprintf(`
+resource "mikrotik_pool" "bar" {
+    name = %q
+    ranges = %q
+    next_pool = %q
+    depends_on = [mikrotik_pool.next_pool]
+}
+
+resource "mikrotik_pool" "next_pool" {
+    name = %q
+    ranges = "10.10.10.10-10.10.10.20"
+}
+`, name, ranges, nextPoolToUse, nextPoolName)
 }
 
 func testAccPoolWithComment(name, ranges, comment string) string {

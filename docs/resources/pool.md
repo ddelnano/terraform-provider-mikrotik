@@ -21,6 +21,7 @@ resource "mikrotik_pool" "pool" {
 ### Optional
 
 - `comment` (String) The comment of the IP Pool to be created.
+- `next_pool` (String) The IP pool to pick next address from if current is exhausted.
 
 ### Read-Only
 
