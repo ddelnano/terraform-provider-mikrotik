@@ -54,6 +54,10 @@ func resourceInterfaceListMemberCreate(ctx context.Context, d *schema.ResourceDa
 func resourceInterfaceListMemberRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*client.Mikrotik)
 	record, err := c.FindInterfaceListMember(d.Id())
+	if _, ok := err.(*client.NotFound); ok {
+		d.SetId("")
+		return nil
+	}
 	if err != nil {
 		return diag.FromErr(err)
 	}
