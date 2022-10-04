@@ -4,8 +4,6 @@ import (
 	"errors"
 	"reflect"
 	"testing"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestFindDnsRecord_onNonExistantDnsRecord(t *testing.T) {
@@ -31,7 +29,10 @@ func TestAddFindDeleteDnsRecord(t *testing.T) {
 	}
 
 	created, err := c.Add(record)
-	require.NoError(t, err)
+	if err != nil {
+		t.Errorf("expected no error, got %v", err)
+		return
+	}
 
 	findRecord := &DnsRecord{}
 	findRecord.Name = recordName
