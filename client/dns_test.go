@@ -1,9 +1,10 @@
 package client
 
 import (
+	"errors"
+	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -35,14 +36,31 @@ func TestAddFindDeleteDnsRecord(t *testing.T) {
 	findRecord := &DnsRecord{}
 	findRecord.Name = recordName
 	found, err := c.Find(findRecord)
-	require.NoError(t, err)
-	assert.Implements(t, (*Resource)(nil), found)
+	if err != nil {
+		t.Errorf("expected no error, got %v", err)
+		return
+	}
 
-	assert.Equal(t, created, found)
+	if _, ok := found.(Resource); !ok {
+		t.Error("expected found resource to implement Resource interface, but it doesn't")
+		return
+	}
+	if !reflect.DeepEqual(created, found) {
+		t.Error("expected created and found resources to be equal, but they don't")
+	}
 	err = c.Delete(found.(Resource))
-	assert.NoError(t, err)
+	if err != nil {
+		t.Errorf("expected no error, got %v", err)
+	}
 
 	_, err = c.Find(findRecord)
-	assert.Error(t, err)
-	assert.IsType(t, &NotFound{}, err)
+	if err == nil {
+		t.Errorf("expected error, got nothing")
+		return
+	}
+
+	target := &NotFound{}
+	if !errors.As(err, &target) {
+		t.Errorf("expected error to be of type %T, got %T", &NotFound{}, err)
+	}
 }
