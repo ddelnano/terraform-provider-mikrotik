@@ -77,10 +77,11 @@ func resourceBridgeUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 	var diags diag.Diagnostics
 	c := m.(*client.Mikrotik)
 	bridge := dataToBridge(d)
-	_, err := c.UpdateBridge(bridge)
+	updatedBridge, err := c.UpdateBridge(bridge)
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	d.SetId(updatedBridge.Name)
 
 	return diags
 }

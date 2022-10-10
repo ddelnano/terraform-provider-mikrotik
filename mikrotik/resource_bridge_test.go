@@ -28,10 +28,10 @@ func TestAccBridge_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccBridgeConfig(rName, false, true, "updated bridge"),
+				Config: testAccBridgeConfig(rName+"_updated", false, true, "updated bridge"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccBridgeExists("mikrotik_bridge.testacc", &bridge),
-					resource.TestCheckResourceAttr("mikrotik_bridge.testacc", "name", rName),
+					resource.TestCheckResourceAttr("mikrotik_bridge.testacc", "name", rName+"_updated"),
 					resource.TestCheckResourceAttr("mikrotik_bridge.testacc", "fast_forward", "false"),
 					resource.TestCheckResourceAttr("mikrotik_bridge.testacc", "vlan_filtering", "true"),
 					resource.TestCheckResourceAttr("mikrotik_bridge.testacc", "comment", "updated bridge"),
