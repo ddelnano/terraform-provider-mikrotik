@@ -69,6 +69,7 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 		ResourcesMap: map[string]*schema.Resource{
 			"mikrotik_bgp_instance":          resourceBgpInstance(),
 			"mikrotik_bgp_peer":              resourceBgpPeer(),
+			"mikrotik_bridge":                resourceBridge(),
 			"mikrotik_dhcp_lease":            resourceLease(),
 			"mikrotik_dhcp_server_network":   resourceDhcpServerNetwork(),
 			"mikrotik_dhcp_server":           resourceDhcpServer(),
