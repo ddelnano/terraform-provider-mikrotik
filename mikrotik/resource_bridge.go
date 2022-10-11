@@ -64,6 +64,10 @@ func resourceBridgeRead(ctx context.Context, d *schema.ResourceData, m interface
 	var diags diag.Diagnostics
 	c := m.(*client.Mikrotik)
 	bridge, err := c.FindBridge(d.Id())
+	if _, ok := err.(*client.NotFound); ok {
+		d.SetId("")
+		return nil
+	}
 	if err != nil {
 		return diag.FromErr(err)
 	}
