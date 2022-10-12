@@ -56,9 +56,7 @@ func resourceBridgePortCreate(ctx context.Context, d *schema.ResourceData, m int
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
 	recordBridgePortToData(bridgePort, d)
-	d.SetId(bridgePort.Id)
 
 	return resourceBridgePortRead(ctx, d, m)
 }

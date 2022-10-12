@@ -10,9 +10,7 @@ import (
 )
 
 func TestBridgePort_basic(t *testing.T) {
-
 	rStatePath := "mikrotik_bridge_port.testacc"
-
 	bridgeName := "testacc_bridge"
 	bridgeInterface := "*0"
 	remoteBridgePort := client.BridgePort{}
@@ -68,6 +66,23 @@ func testAccBridgePortExists(resourceID string, record *client.BridgePort) resou
 }
 
 func testAccCheckBridgePortDestroy(s *terraform.State) error {
+	c := client.NewClient(client.GetConfigFromEnv())
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mikrotik_bridge_port" {
+			continue
+		}
+
+		remoteRecord, err := c.FindBridgePort(rs.Primary.ID)
+		_, ok := err.(*client.NotFound)
+		if err != nil && !ok {
+			return fmt.Errorf("expected not found error, got %+#v", err)
+		}
+
+		if remoteRecord != nil {
+			return fmt.Errorf("bridge port %q still exists in remote system", remoteRecord.Id)
+		}
+	}
+
 	return nil
 }
 
