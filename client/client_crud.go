@@ -128,11 +128,8 @@ func (client Mikrotik) Delete(d Resource) error {
 	cmd := []string{d.ActionToCommand(Delete), "=" + deleteField + "=" + deleteFieldValue}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	_, err = c.RunArgs(cmd)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 func (client Mikrotik) findByField(d Resource, field, value string) (interface{}, error) {
@@ -156,7 +153,7 @@ func (client Mikrotik) findByField(d Resource, field, value string) (interface{}
 		return nil, err
 	}
 	if targetStructInterface.(Resource).ID() == "" {
-		return nil, NewNotFound(fmt.Sprintf("resource with field `%s=%s` not found", field, value))
+		return nil, NewNotFound(fmt.Sprintf("resource `%T` with field `%s=%s` not found", targetStruct, field, value))
 	}
 
 	return targetStructInterface, nil
