@@ -62,7 +62,6 @@ func resourceBridgePortCreate(ctx context.Context, d *schema.ResourceData, m int
 }
 
 func resourceBridgePortRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
 	c := m.(*client.Mikrotik)
 	bridgePort, err := c.FindBridgePort(d.Id())
 	if _, ok := err.(*client.NotFound); ok {
@@ -73,9 +72,7 @@ func resourceBridgePortRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	recordBridgePortToData(bridgePort, d)
-
-	return diags
+	return recordBridgePortToData(bridgePort, d)
 }
 
 func resourceBridgePortUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
