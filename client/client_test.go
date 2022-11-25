@@ -2,12 +2,12 @@ package client
 
 import (
 	"reflect"
-	"strconv"
-	"strings"
 	"testing"
 
+	"github.com/ddelnano/terraform-provider-mikrotik/client/internal/types"
 	"github.com/go-routeros/routeros"
 	"github.com/go-routeros/routeros/proto"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTtlToSeconds(t *testing.T) {
@@ -33,64 +33,86 @@ func TestTtlToSeconds(t *testing.T) {
 }
 
 func TestUnmarshal(t *testing.T) {
-	name := "testing script"
-	owner := "admin"
-	runCount := "3"
-	allowed := "true"
-	testStruct := struct {
+	type testStruct struct {
 		Name          string
 		NotNamedOwner string `mikrotik:"owner"`
 		RunCount      int    `mikrotik:"run-count"`
 		Allowed       bool
-	}{}
-	reply := routeros.Reply{
-		Re: []*proto.Sentence{
-			{
-				Word: "!re",
-				List: []proto.Pair{
+		Schedule      types.MikrotikList
+	}
+
+	testCases := []struct {
+		name           string
+		expectedResult testStruct
+		reply          routeros.Reply
+	}{
+		{
+			name: "basic types only",
+			reply: routeros.Reply{
+				Re: []*proto.Sentence{
 					{
-						Key:   "name",
-						Value: name,
-					},
-					{
-						Key:   "owner",
-						Value: owner,
-					},
-					{
-						Key:   "run-count",
-						Value: runCount,
-					},
-					{
-						Key:   "allowed",
-						Value: allowed,
+						Word: "!re",
+						List: []proto.Pair{
+							{
+								Key:   "name",
+								Value: "testing script",
+							},
+							{
+								Key:   "owner",
+								Value: "admin",
+							},
+							{
+								Key:   "run-count",
+								Value: "3",
+							},
+							{
+								Key:   "allowed",
+								Value: "true",
+							},
+						},
 					},
 				},
 			},
+			expectedResult: testStruct{
+				Name:          "testing script",
+				NotNamedOwner: "admin",
+				RunCount:      3,
+				Allowed:       true,
+			},
+		},
+		{
+			name: "MikrotikList type",
+			reply: routeros.Reply{
+				Re: []*proto.Sentence{
+					{
+						Word: "!re",
+						List: []proto.Pair{
+							{
+								Key:   "owner",
+								Value: "admin",
+							},
+							{
+								Key:   "schedule",
+								Value: "mon,wed,fri",
+							},
+						},
+					},
+				},
+			},
+			expectedResult: testStruct{
+				NotNamedOwner: "admin",
+				Schedule:      []string{"mon", "wed", "fri"},
+			},
 		},
 	}
-	err := Unmarshal(reply, &testStruct)
 
-	if err != nil {
-		t.Errorf("Failed to unmarshal with error: %v", err)
-	}
-
-	if strings.Compare(name, testStruct.Name) != 0 {
-		t.Errorf("Failed to unmarshal name '%s' and testStruct.name '%s' should match", name, testStruct.Name)
-	}
-
-	if strings.Compare(owner, testStruct.NotNamedOwner) != 0 {
-		t.Errorf("Failed to unmarshal name '%s' and testStruct.Name '%s' should match", name, testStruct.Name)
-	}
-
-	intRunCount, err := strconv.Atoi(runCount)
-	if intRunCount != testStruct.RunCount || err != nil {
-		t.Errorf("Failed to unmarshal run-count '%s' and testStruct.RunCount '%d' should match", runCount, testStruct.RunCount)
-	}
-
-	b, _ := strconv.ParseBool(allowed)
-	if testStruct.Allowed != b {
-		t.Errorf("Failed to unmarshal Allowed '%v' and testStruct.Allowed'%v' should match", b, testStruct.Allowed)
-
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			targetStruct := testStruct{}
+			err := Unmarshal(tc.reply, &targetStruct)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expectedResult, targetStruct)
+		})
 	}
 }
 
@@ -253,26 +275,64 @@ func TestUnmarshal_ttlToSeconds(t *testing.T) {
 
 func TestMarshal(t *testing.T) {
 	action := "/test/owner/add"
-	name := "test owner"
-	owner := "admin"
-	runCount := 3
-	allowed := true
-	retain := false
-	testStruct := struct {
-		Name           string `mikrotik:"name"`
-		NotNamedOwner  string `mikrotik:"owner,extraTagNotUsed"`
-		RunCount       int    `mikrotik:"run-count"`
-		Allowed        bool   `mikrotik:"allowed-or-not"`
-		Retain         bool   `mikrotik:"retain"`
-		SecondaryOwner string `mikrotik:"secondary-owner"`
-	}{name, owner, runCount, allowed, retain, ""}
-
-	expectedCmd := []string{action, "=name=test owner", "=owner=admin", "=run-count=3", "=allowed-or-not=yes", "=retain=no"}
-	// Marshal by passing pointer to struct
-	cmd := Marshal(action, &testStruct)
-
-	if !reflect.DeepEqual(cmd, expectedCmd) {
-		t.Errorf("Failed to marshal: %v does not equal expected %v", cmd, expectedCmd)
+	testCases := []struct {
+		name        string
+		testStruct  interface{}
+		expectedCmd []string
+	}{
+		{
+			name: "basic types",
+			testStruct: struct {
+				Name          string `mikrotik:"name"`
+				NotNamedOwner string `mikrotik:"owner,extraTagNotUsed"`
+				RunCount      int    `mikrotik:"run-count"`
+				Allowed       bool   `mikrotik:"allowed-or-not"`
+			}{
+				Name:          "test owner",
+				NotNamedOwner: "admin",
+				RunCount:      3,
+				Allowed:       true,
+			},
+			expectedCmd: []string{
+				"/test/owner/add",
+				"=name=test owner",
+				"=owner=admin",
+				"=run-count=3",
+				"=allowed-or-not=yes",
+			},
+		},
+		{
+			name: "MikrotikList type",
+			testStruct: struct {
+				Name          string             `mikrotik:"name"`
+				NotNamedOwner string             `mikrotik:"owner,extraTagNotUsed"`
+				RunCount      int                `mikrotik:"run-count"`
+				Allowed       bool               `mikrotik:"allowed-or-not"`
+				Schedule      types.MikrotikList `mikrotik:"schedule"`
+			}{
+				Name:          "test owner",
+				NotNamedOwner: "admin",
+				RunCount:      3,
+				Allowed:       true,
+				Schedule:      []string{"mon", "tue", "fri"},
+			},
+			expectedCmd: []string{
+				"/test/owner/add",
+				"=name=test owner",
+				"=owner=admin",
+				"=run-count=3",
+				"=allowed-or-not=yes",
+				"=schedule=mon,tue,fri",
+			},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			cmd := Marshal(action, tc.testStruct)
+			if !reflect.DeepEqual(cmd, tc.expectedCmd) {
+				t.Errorf("Failed to marshal: %v does not equal expected %v", cmd, tc.expectedCmd)
+			}
+		})
 	}
 }
 
