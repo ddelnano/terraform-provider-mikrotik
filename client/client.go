@@ -18,7 +18,7 @@ import (
 	"github.com/go-routeros/routeros/proto"
 )
 
-// Mikrotik struct wraps connection information
+// Mikrotik struct defines connection parameters for RouterOS client
 type Mikrotik struct {
 	Host     string
 	Username string
@@ -29,6 +29,20 @@ type Mikrotik struct {
 
 	connection *routeros.Client
 }
+
+type (
+	// Marshaler interface will be used to serialize struct to RouterOS sentence
+	Marshaler interface {
+		// MarshalMikrotik serializes Go type value as RouterOS field value
+		MarshalMikrotik() string
+	}
+
+	// Unmarshaler interface will be used to de-serialize reply from RouterOS into Go struct
+	Unmarshaler interface {
+		// UnmarshalMikrotik de-serializes RouterOS field into Go type value
+		UnmarshalMikrotik(string) error
+	}
+)
 
 // NewClient initializes new Mikrotik client object
 func NewClient(host, username, password string, tls bool, caCertificate string, insecure bool) *Mikrotik {
@@ -42,31 +56,6 @@ func NewClient(host, username, password string, tls bool, caCertificate string, 
 	}
 }
 
-// GetConfigFromEnv fetches connection configuration from environment variables
-func GetConfigFromEnv() (host, username, password string, tls bool, caCertificate string, insecure bool) {
-	host = os.Getenv("MIKROTIK_HOST")
-	username = os.Getenv("MIKROTIK_USER")
-	password = os.Getenv("MIKROTIK_PASSWORD")
-	tlsString := os.Getenv("MIKROTIK_TLS")
-	if tlsString == "true" {
-		tls = true
-	} else {
-		tls = false
-	}
-	caCertificate = os.Getenv("MIKROTIK_CA_CERTIFICATE")
-	insecureString := os.Getenv("MIKROTIK_INSECURE")
-	if insecureString == "true" {
-		insecure = true
-	} else {
-		insecure = false
-	}
-	if host == "" || username == "" || password == "" {
-		// panic("Unable to find the MIKROTIK_HOST, MIKROTIK_USER or MIKROTIK_PASSWORD environment variable")
-	}
-	return host, username, password, tls, caCertificate, insecure
-}
-
-// Marshal encodes command and struct to squence of "sentences" to be sent via MikroTik API
 func Marshal(c string, s interface{}) []string {
 	var elem reflect.Value
 	rv := reflect.ValueOf(s)
@@ -87,6 +76,13 @@ func Marshal(c string, s interface{}) []string {
 		tag := strings.Split(fieldType.Tag.Get("mikrotik"), ",")[0]
 
 		if tag != "" && (!value.IsZero() || value.Kind() == reflect.Bool) {
+			if mar, ok := value.Interface().(Marshaler); ok {
+				// if type supports custom marshaling, use that result immediately
+				stringValue := mar.MarshalMikrotik()
+				cmd = append(cmd, fmt.Sprintf("=%s=%s", tag, stringValue))
+				continue
+			}
+
 			switch value.Kind() {
 			case reflect.Int:
 				intValue := elem.Field(i).Interface().(int)
@@ -149,6 +145,29 @@ func Unmarshal(reply routeros.Reply, v interface{}) error {
 	return nil
 }
 
+func GetConfigFromEnv() (host, username, password string, tls bool, caCertificate string, insecure bool) {
+	host = os.Getenv("MIKROTIK_HOST")
+	username = os.Getenv("MIKROTIK_USER")
+	password = os.Getenv("MIKROTIK_PASSWORD")
+	tlsString := os.Getenv("MIKROTIK_TLS")
+	if tlsString == "true" {
+		tls = true
+	} else {
+		tls = false
+	}
+	caCertificate = os.Getenv("MIKROTIK_CA_CERTIFICATE")
+	insecureString := os.Getenv("MIKROTIK_INSECURE")
+	if insecureString == "true" {
+		insecure = true
+	} else {
+		insecure = false
+	}
+	if host == "" || username == "" || password == "" {
+		// panic("Unable to find the MIKROTIK_HOST, MIKROTIK_USER or MIKROTIK_PASSWORD environment variable")
+	}
+	return host, username, password, tls, caCertificate, insecure
+}
+
 func (client *Mikrotik) getMikrotikClient() (*routeros.Client, error) {
 	if client.connection != nil {
 		return client.connection, nil
@@ -206,6 +225,16 @@ func parseStruct(v *reflect.Value, sentence proto.Sentence) {
 
 		for _, pair := range sentence.List {
 			if strings.Compare(pair.Key, path) == 0 || strings.Compare(pair.Key, fieldName) == 0 {
+				if field.CanAddr() {
+					if unmar, ok := field.Addr().Interface().(Unmarshaler); ok {
+						// if type supports custom unmarshaling, try it and skip the rest
+						if err := unmar.UnmarshalMikrotik(pair.Value); err != nil {
+							log.Printf("[ERROR] cannot unmarshal RouterOS reply: %v", err)
+						}
+						continue
+					}
+				}
+
 				switch fieldType.Type.Kind() {
 				case reflect.String:
 					field.SetString(pair.Value)
@@ -220,7 +249,6 @@ func parseStruct(v *reflect.Value, sentence proto.Sentence) {
 						field.SetInt(int64(intValue))
 					}
 				}
-
 			}
 		}
 	}
