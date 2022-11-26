@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math"
 	"os"
@@ -186,7 +185,7 @@ func (client *Mikrotik) getMikrotikClient() (*routeros.Client, error) {
 
 		if client.CA != "" {
 			certPool := x509.NewCertPool()
-			file, err := ioutil.ReadFile(client.CA)
+			file, err := os.ReadFile(client.CA)
 			if err != nil {
 				log.Printf("[ERROR] Failed to read CA file %s: %v", client.CA, err)
 				return nil, err
