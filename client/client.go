@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math"
 	"os"
@@ -44,6 +43,7 @@ type (
 	}
 )
 
+// NewClient initializes new Mikrotik client object
 func NewClient(host, username, password string, tls bool, caCertificate string, insecure bool) *Mikrotik {
 	return &Mikrotik{
 		Host:     host,
@@ -100,6 +100,7 @@ func Marshal(c string, s interface{}) []string {
 	return cmd
 }
 
+// Unmarshal decodes MikroTik's API reply into Go object
 func Unmarshal(reply routeros.Reply, v interface{}) error {
 	rv := reflect.ValueOf(v)
 	elem := rv.Elem()
@@ -184,7 +185,7 @@ func (client *Mikrotik) getMikrotikClient() (*routeros.Client, error) {
 
 		if client.CA != "" {
 			certPool := x509.NewCertPool()
-			file, err := ioutil.ReadFile(client.CA)
+			file, err := os.ReadFile(client.CA)
 			if err != nil {
 				log.Printf("[ERROR] Failed to read CA file %s: %v", client.CA, err)
 				return nil, err
