@@ -15,7 +15,7 @@ If you get value out this project and want to show your support you can find me 
 ## Building provider locally
 
 Requirements:
-* [Go](https://go.dev/doc/install) >= 1.16
+* [Go](https://go.dev/doc/install) >= 1.18
 * [Terraform]() >= 0.14
 
 To build the provider with `make`:
