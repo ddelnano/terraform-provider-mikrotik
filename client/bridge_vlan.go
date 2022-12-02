@@ -11,7 +11,7 @@ type BridgeVlan struct {
 	Bridge   string   `mikrotik:"bridge"`
 	Tagged   []string `mikrotik:"tagged"`
 	Untagged []string `mikrotik:"untagged"`
-	VlanIds  []string `mikrotik:"vlan-ids"`
+	VlanIds  []int    `mikrotik:"vlan-ids"`
 }
 
 func (client Mikrotik) AddBridgeVlan(r *BridgeVlan) (*BridgeVlan, error) {
