@@ -76,15 +76,15 @@ func testAccCheckBridgeVlanDestroy(s *terraform.State) error {
 
 func testAccBridgeVlanConfig(bridgeName string, vlanIDs []int) string {
 	return fmt.Sprintf(`
-		resource "mikrotik_bridge" "default" {
-			name = %q
-		}
+			resource "mikrotik_bridge" "default" {
+				name = %q
+			}
 
-		resource "mikrotik_bridge_vlan" "testacc" {
-			bridge   = mikrotik_bridge.default.name
-			vlan_ids = [%s]
-		}
-	`, bridgeName, joinIntsToString(vlanIDs, ", "))
+			resource "mikrotik_bridge_vlan" "testacc" {
+				bridge   = mikrotik_bridge.default.name
+				vlan_ids = [%s]
+			}
+		`, bridgeName, joinIntsToString(vlanIDs, ", "))
 }
 
 func joinIntsToString(ints []int, sep string) string {

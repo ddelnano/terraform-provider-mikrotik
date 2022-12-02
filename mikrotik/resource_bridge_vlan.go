@@ -10,7 +10,7 @@ import (
 
 func resourceBridgeVlan() *schema.Resource {
 	return &schema.Resource{
-		Description: "New resource",
+		Description: "Adds VLAN aware Layer2 forwarding and VLAN tag modifications within the bridge.",
 
 		CreateContext: resourceBridgeVlanCreate,
 		ReadContext:   resourceBridgeVlanRead,
@@ -29,7 +29,7 @@ func resourceBridgeVlan() *schema.Resource {
 			"bridge": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "",
+				Description: "The bridge interface which the respective VLAN entry is intended for.",
 			},
 			"tagged": {
 				Type:     schema.TypeList,
@@ -37,7 +37,7 @@ func resourceBridgeVlan() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-				Description: "",
+				Description: "Interface list with a VLAN tag adding action in egress.",
 			},
 			"untagged": {
 				Type:     schema.TypeList,
@@ -45,7 +45,7 @@ func resourceBridgeVlan() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-				Description: "",
+				Description: "Interface list with a VLAN tag removing action in egress. ",
 			},
 			"vlan_ids": {
 				Type:     schema.TypeList,
@@ -53,7 +53,7 @@ func resourceBridgeVlan() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeInt,
 				},
-				Description: "",
+				Description: "The list of VLAN IDs for certain port configuration. Ranges are not supported yet.",
 			},
 		},
 	}
