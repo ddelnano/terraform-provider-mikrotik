@@ -1,8 +1,10 @@
 package client
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBridgeVlanBasic(t *testing.T) {
@@ -44,7 +46,7 @@ func TestBridgeVlanBasic(t *testing.T) {
 
 	bridgeVlan := &BridgeVlan{
 		Bridge:  bridge1.Name,
-		VlanIds: []string{"10", "20"},
+		VlanIds: []int{10, 20},
 	}
 
 	createdBridgeVlan, err := c.AddBridgeVlan(bridgeVlan)
@@ -53,23 +55,20 @@ func TestBridgeVlanBasic(t *testing.T) {
 	}
 
 	expectedBridgeVlan := &BridgeVlan{
-		Id:     createdBridgeVlan.Id,
-		Bridge: bridge1Name,
+		Id:      createdBridgeVlan.Id,
+		Bridge:  bridge1Name,
+		VlanIds: []int{10, 20},
 	}
-	if !reflect.DeepEqual(createdBridgeVlan, expectedBridgeVlan) {
-		t.Fatal("created bridge vlan differs")
-	}
+	assert.Equal(t, expectedBridgeVlan, createdBridgeVlan)
 
 	createdBridgeVlan.Bridge = bridge2Name
 	updatedBridgeVlan, err := c.UpdateBridgeVlan(createdBridgeVlan)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
 	expectedBridgeVlan = &BridgeVlan{
-		Id:     createdBridgeVlan.Id,
-		Bridge: bridge2Name,
+		Id:      createdBridgeVlan.Id,
+		Bridge:  bridge2Name,
+		VlanIds: []int{10, 20},
 	}
-	if !reflect.DeepEqual(updatedBridgeVlan, expectedBridgeVlan) {
-		t.Fatal("updated bridge vlan differs")
-	}
+	assert.Equal(t, expectedBridgeVlan, updatedBridgeVlan)
 }

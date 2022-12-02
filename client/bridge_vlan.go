@@ -1,86 +1,73 @@
 package client
 
 import (
-	"fmt"
-	"log"
+	"github.com/ddelnano/terraform-provider-mikrotik/client/internal/types"
+	"github.com/go-routeros/routeros"
 )
 
 // BridgeVlan defines vlan filtering in bridge resource
 type BridgeVlan struct {
-	Id       string   `mikrotik:".id"`
-	Bridge   string   `mikrotik:"bridge"`
-	Tagged   []string `mikrotik:"tagged"`
-	Untagged []string `mikrotik:"untagged"`
-	VlanIds  []int    `mikrotik:"vlan-ids"`
+	Id       string                `mikrotik:".id"`
+	Bridge   string                `mikrotik:"bridge"`
+	Tagged   types.MikrotikList    `mikrotik:"tagged"`
+	Untagged types.MikrotikList    `mikrotik:"untagged"`
+	VlanIds  types.MikrotikIntList `mikrotik:"vlan-ids"`
 }
 
-func (client Mikrotik) AddBridgeVlan(r *BridgeVlan) (*BridgeVlan, error) {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return nil, err
-	}
-	cmd := Marshal("/interface/bridge/vlan/add", r)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	response, err := c.RunArgs(cmd)
-	log.Printf("[DEBUG] /interface/bridge/vlan/add returned %v", response)
-	if err != nil {
-		return nil, err
-	}
-	id := response.Done.Map["ret"]
+var _ Resource = (*BridgeVlan)(nil)
 
-	return client.FindBridgeVlan(id)
+func (b *BridgeVlan) ActionToCommand(a Action) string {
+	return map[Action]string{
+		Add:    "/interface/bridge/vlan/add",
+		Find:   "/interface/bridge/vlan/print",
+		Update: "/interface/bridge/vlan/set",
+		Delete: "/interface/bridge/vlan/remove",
+	}[a]
 }
 
-func (client Mikrotik) FindBridgeVlan(id string) (*BridgeVlan, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-	cmd := []string{"/interface/bridge/vlan/print", "?.id=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("[DEBUG] Found bridge vlan: %v", r)
-
-	record := BridgeVlan{}
-	err = Unmarshal(*r, &record)
-	if err != nil {
-		return nil, err
-	}
-	if record.Id == "" {
-		return nil, NewNotFound(fmt.Sprintf("bridge vlan `%s` not found", id))
-	}
-
-	return &record, nil
+func (b *BridgeVlan) IDField() string {
+	return ".id"
 }
 
-func (client Mikrotik) UpdateBridgeVlan(r *BridgeVlan) (*BridgeVlan, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-	cmd := Marshal("/interface/bridge/vlan/set", r)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
-	if err != nil {
-		return nil, err
-	}
-
-	return client.FindBridgeVlan(r.Id)
+func (b *BridgeVlan) ID() string {
+	return b.Id
 }
 
-func (client Mikrotik) DeleteBridgeVlan(id string) error {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return err
-	}
-	cmd := []string{"/interface/bridge/vlan/remove", "=numbers=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
+func (b *BridgeVlan) SetID(id string) {
+	b.Id = id
+}
 
-	return err
+func (b *BridgeVlan) AfterAddHook(r *routeros.Reply) {
+	b.Id = r.Done.Map["ret"]
+}
+
+func (c Mikrotik) AddBridgeVlan(r *BridgeVlan) (*BridgeVlan, error) {
+	res, err := c.Add(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*BridgeVlan), nil
+}
+
+func (c Mikrotik) UpdateBridgeVlan(r *BridgeVlan) (*BridgeVlan, error) {
+	res, err := c.Update(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*BridgeVlan), nil
+}
+
+func (c Mikrotik) FindBridgeVlan(id string) (*BridgeVlan, error) {
+	res, err := c.Find(&BridgeVlan{Id: id})
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*BridgeVlan), nil
+}
+
+func (c Mikrotik) DeleteBridgeVlan(id string) error {
+	return c.Delete(&BridgeVlan{Id: id})
 }
