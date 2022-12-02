@@ -15,6 +15,9 @@ func (m MikrotikList) MarshalMikrotik() string {
 }
 
 func (m *MikrotikList) UnmarshalMikrotik(value string) error {
+	if len(value) == 0 {
+		return nil
+	}
 	*m = strings.Split(value, ",")
 
 	return nil

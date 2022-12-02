@@ -15,7 +15,7 @@ func TestMikrotikList_marshal(t *testing.T) {
 	}{
 		{
 			name:     "empty list",
-			list:     MikrotikList{""},
+			list:     MikrotikList{},
 			expected: "",
 		},
 		{
@@ -52,7 +52,7 @@ func TestMikrotikList_unmarshal(t *testing.T) {
 		{
 			name:     "empty list",
 			in:       "",
-			expected: MikrotikList{""},
+			expected: MikrotikList{},
 		},
 		{
 			name:     "one element",
