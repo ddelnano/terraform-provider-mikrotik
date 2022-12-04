@@ -99,11 +99,10 @@ func resourceLeaseUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 	dhcpLease.Id = d.Id()
 
 	lease, err := c.UpdateDhcpLease(dhcpLease)
-	lease.Dynamic = dhcpLease.Dynamic
-
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	lease.Dynamic = dhcpLease.Dynamic
 
 	return leaseToData(lease, d)
 }
