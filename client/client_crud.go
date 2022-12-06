@@ -22,7 +22,7 @@ type (
 
 	// Resource interface defines a contract for abstract RouterOS resource
 	Resource interface {
-		// ActionToCommand trnaslates CRUD action to RouterOS command path
+		// ActionToCommand translates CRUD action to RouterOS command path
 		ActionToCommand(Action) string
 
 		// IDField reveals name of ID field to use in requests to MikroTik router
