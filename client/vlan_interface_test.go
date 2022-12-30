@@ -1,51 +1,56 @@
 package client
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestAddVlanInterfaceUpdateAndDelete(t *testing.T) {
 	c := NewClient(GetConfigFromEnv())
 
-	name := "vlan-20"
-	vlanID := 20
+	expectedIface := &VlanInterface{
+		Name:      "vlan-20",
+		VlanId:    20,
+		Mtu:       1000,
+		Interface: "*0",
+		Disabled:  false,
+	}
 
 	iface, err := c.AddVlanInterface(&VlanInterface{
-		Name:      name,
-		Disabled:  false,
-		Interface: "*0",
-		VlanId:    vlanID,
+		Name:      expectedIface.Name,
+		Disabled:  expectedIface.Disabled,
+		Interface: expectedIface.Interface,
+		VlanId:    expectedIface.VlanId,
+		Mtu:       expectedIface.Mtu,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	foundInterface, err := c.FindVlanInterface(name)
+	expectedIface.Id = iface.Id
+
+	foundInterface, err := c.FindVlanInterface(expectedIface.Name)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if foundInterface.Name != name {
-		t.Errorf("expected name to be %q, got %q", name, foundInterface.Name)
-	}
-	if foundInterface.VlanId != vlanID {
-		t.Errorf("expected VlanID to be %d, got %d", vlanID, foundInterface.VlanId)
-	}
+	assert.Equal(t, expectedIface, foundInterface)
 
-	iface.Name = foundInterface.Name + "updated"
-	updatedIface, err := c.UpdateVlanInterface(iface)
+	expectedIface.Name = expectedIface.Name + "updated"
+	expectedIface.Mtu = expectedIface.Mtu - 100
+	updatedIface, err := c.UpdateVlanInterface(expectedIface)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if updatedIface.Name != iface.Name {
-		t.Errorf("expected name to be %q, got %q", iface.Name, updatedIface.Name)
-	}
-
+	assert.Equal(t, expectedIface, updatedIface)
 	// cleanup
 	if err := c.DeleteVlanInterface(iface.Name); err != nil {
 		t.Error(err)
 	}
 
-	_, err = c.FindVlanInterface(name)
+	_, err = c.FindVlanInterface(expectedIface.Name)
 	if err == nil {
 		t.Error("expected error, got nil")
 	}

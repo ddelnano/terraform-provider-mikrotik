@@ -41,6 +41,9 @@ jobs:
       - name: Build
         run: go build -v .
 
+      - name: Run linters
+        run: make lint
+
       - name: Run provider tests
         run: make testacc
         env:

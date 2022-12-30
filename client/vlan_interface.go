@@ -9,7 +9,7 @@ import (
 type VlanInterface struct {
 	Id            string `mikrotik:".id"`
 	Interface     string `mikrotik:"interface"`
-	Mtu           int    `mikrotik:"mtu`
+	Mtu           int    `mikrotik:"mtu"`
 	Name          string `mikrotik:"name"`
 	Disabled      bool   `mikrotik:"disabled"`
 	UseServiceTag bool   `mikrotik:"use-service-tag"`
