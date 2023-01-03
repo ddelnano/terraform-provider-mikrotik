@@ -1,4 +1,4 @@
-.PHONY: import testacc testclient test
+.PHONY: build generate clean plan apply lint-client lint-provider lint testacc testclient test
 
 TIMEOUT ?= 40m
 ifdef TEST
@@ -27,7 +27,15 @@ plan: build
 apply:
 	terraform apply
 
-test: testclient testacc
+lint-client:
+	go vet ./client/...
+
+lint-provider:
+	go vet ./mikrotik/...
+
+lint: lint-client lint-provider
+
+test: lint testclient testacc
 
 testclient:
 	cd client; go test $(TEST) -race -v -count 1
