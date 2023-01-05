@@ -3,6 +3,8 @@ package internal
 import (
 	"fmt"
 	"net"
+	"strconv"
+	"strings"
 )
 
 const ipv6U uint64 = 0x2001000000000000 // upper half of ipv6 address
@@ -42,6 +44,40 @@ func GetNewMacAddr() string {
 func GetNewDnsName() string {
 	dnsCounter++
 	return fmt.Sprintf("dns-%02d.terraform", dnsCounter)
+}
+
+// JoinIntsToString builds textualrepresentation of a list of integers
+func JoinIntsToString(ints []int, sep string) string {
+	if len(ints) < 1 {
+		return ""
+	}
+
+	if len(ints) == 1 {
+		return strconv.Itoa(ints[0])
+	}
+
+	s := strings.Builder{}
+	s.WriteString(strconv.Itoa(ints[0]))
+	ints = ints[1:]
+	for _, v := range ints {
+		s.WriteString(sep)
+		s.WriteString(strconv.Itoa(v))
+	}
+
+	return s.String()
+}
+
+// JoinStringsToString builds textual representation of a list of strings
+func JoinStringsToString(items []string, sep string) string {
+	if len(items) < 1 {
+		return ""
+	}
+
+	if len(items) == 1 {
+		return "\"" + items[0] + "\""
+	}
+
+	return "\"" + strings.Join(items, "\",\"") + "\""
 }
 
 func formatIPv4(ipAddr uint) string {

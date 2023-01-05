@@ -2,11 +2,10 @@ package mikrotik
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -84,25 +83,5 @@ func testAccBridgeVlanConfig(bridgeName string, vlanIDs []int) string {
 				bridge   = mikrotik_bridge.default.name
 				vlan_ids = [%s]
 			}
-		`, bridgeName, joinIntsToString(vlanIDs, ", "))
-}
-
-func joinIntsToString(ints []int, sep string) string {
-	if len(ints) < 1 {
-		return ""
-	}
-
-	if len(ints) == 1 {
-		return strconv.Itoa(ints[0])
-	}
-
-	s := strings.Builder{}
-	s.WriteString(strconv.Itoa(ints[0]))
-	ints = ints[1:]
-	for _, v := range ints {
-		s.WriteString(sep)
-		s.WriteString(strconv.Itoa(v))
-	}
-
-	return s.String()
+		`, bridgeName, internal.JoinIntsToString(vlanIDs, ", "))
 }

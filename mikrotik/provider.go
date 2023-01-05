@@ -80,6 +80,7 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 			"mikrotik_interface_list":        resourceInterfaceList(),
 			"mikrotik_ip_address":            resourceIpAddress(),
 			"mikrotik_ipv6_address":          resourceIpv6Address(),
+			"mikrotik_firewall_filter_rule":  resourceFirewallFilterRule(),
 			"mikrotik_pool":                  resourcePool(),
 			"mikrotik_scheduler":             resourceScheduler(),
 			"mikrotik_script":                resourceScript(),
