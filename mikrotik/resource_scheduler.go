@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -134,13 +135,11 @@ func schedulerToData(s *client.Scheduler, d *schema.ResourceData) diag.Diagnosti
 }
 
 func prepareScheduler(d *schema.ResourceData) *client.Scheduler {
-	scheduler := new(client.Scheduler)
-
-	scheduler.Name = d.Get("name").(string)
-	scheduler.OnEvent = d.Get("on_event").(string)
-	scheduler.StartDate = d.Get("start_date").(string)
-	scheduler.StartTime = d.Get("start_time").(string)
-	scheduler.Interval = d.Get("interval").(int)
-
-	return scheduler
+	return &client.Scheduler{
+		Name:      d.Get("name").(string),
+		OnEvent:   d.Get("on_event").(string),
+		StartDate: d.Get("start_date").(string),
+		StartTime: d.Get("start_time").(string),
+		Interval:  types.MikrotikDuration(d.Get("interval").(int)),
+	}
 }
