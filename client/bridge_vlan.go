@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/ddelnano/terraform-provider-mikrotik/client/internal/types"
+	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
 	"github.com/go-routeros/routeros"
 )
 
