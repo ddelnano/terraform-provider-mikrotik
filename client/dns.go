@@ -1,15 +1,16 @@
 package client
 
 import (
+	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
 	"github.com/go-routeros/routeros"
 )
 
 type DnsRecord struct {
-	Id      string `mikrotik:".id"`
-	Name    string `mikrotik:"name"`
-	Ttl     int    `mikrotik:"ttl,ttlToSeconds"`
-	Address string `mikrotik:"address"`
-	Comment string `mikrotik:"comment"`
+	Id      string                 `mikrotik:".id"`
+	Name    string                 `mikrotik:"name"`
+	Ttl     types.MikrotikDuration `mikrotik:"ttl"`
+	Address string                 `mikrotik:"address"`
+	Comment string                 `mikrotik:"comment"`
 }
 
 func (d *DnsRecord) ActionToCommand(action Action) string {
