@@ -3,15 +3,17 @@ package client
 import (
 	"fmt"
 	"log"
+
+	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
 )
 
 type Scheduler struct {
-	Id        string `mikrotik:".id"`
-	Name      string `mikrotik:"name"`
-	OnEvent   string `mikrotik:"on-event"`
-	StartDate string `mikrotik:"start-date"`
-	StartTime string `mikrotik:"start-time"`
-	Interval  int    `mikrotik:"interval,ttlToSeconds"`
+	Id        string                 `mikrotik:".id"`
+	Name      string                 `mikrotik:"name"`
+	OnEvent   string                 `mikrotik:"on-event"`
+	StartDate string                 `mikrotik:"start-date"`
+	StartTime string                 `mikrotik:"start-time"`
+	Interval  types.MikrotikDuration `mikrotik:"interval"`
 }
 
 func (client Mikrotik) FindScheduler(name string) (*Scheduler, error) {

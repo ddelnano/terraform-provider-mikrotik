@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ddelnano/terraform-provider-mikrotik/client/internal/types"
+	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
 	"github.com/go-routeros/routeros"
 	"github.com/go-routeros/routeros/proto"
 	"github.com/stretchr/testify/assert"

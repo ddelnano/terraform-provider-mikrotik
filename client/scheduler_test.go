@@ -3,6 +3,8 @@ package client
 import (
 	"reflect"
 	"testing"
+
+	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
 )
 
 func TestCreateUpdateDeleteAndFindScheduler(t *testing.T) {
@@ -14,7 +16,7 @@ func TestCreateUpdateDeleteAndFindScheduler(t *testing.T) {
 	expectedScheduler := &Scheduler{
 		Name:     schedulerName,
 		OnEvent:  onEvent,
-		Interval: interval,
+		Interval: types.MikrotikDuration(interval),
 	}
 	scheduler, err := c.CreateScheduler(expectedScheduler)
 

@@ -3,7 +3,7 @@ package client
 import (
 	"testing"
 
-	"github.com/ddelnano/terraform-provider-mikrotik/client/internal/types"
+	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
