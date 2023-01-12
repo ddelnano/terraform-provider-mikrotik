@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -139,7 +140,7 @@ func prepareDnsRecord(d *schema.ResourceData) *client.DnsRecord {
 	dnsRecord := new(client.DnsRecord)
 
 	dnsRecord.Name = d.Get("name").(string)
-	dnsRecord.Ttl = d.Get("ttl").(int)
+	dnsRecord.Ttl = types.MikrotikDuration(d.Get("ttl").(int))
 	dnsRecord.Address = d.Get("address").(string)
 	dnsRecord.Comment = d.Get("comment").(string)
 
