@@ -7,6 +7,7 @@ import (
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -60,7 +61,42 @@ func (p *ProviderFramework) Schema(ctx context.Context, req provider.SchemaReque
 
 func (p *ProviderFramework) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	var data mikrotikProviderModel
+
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// if configuration sets provider configuration fields, the values must be known during provider configuration
+	// otherwise, it is not possible to setup the client
+	if data.Host.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("host"),
+			"Unknown value for MikroTik host",
+			"The provider cannot create MikroTik API client as the 'host' is unknown at this moment. "+
+				"Either target apply the source of the value first, set it statically or use MIKROTIK_HOST environment variable.",
+		)
+	}
+	if data.Username.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("username"),
+			"Unknown value for MikroTik username",
+			"The provider cannot create MikroTik API client as the 'username' is unknown at this moment. "+
+				"Either target apply the source of the value first, set it statically or use MIKROTIK_USER environment variable.",
+		)
+	}
+	if data.Password.IsUnknown() {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("password"),
+			"Unknown value for MikroTik password",
+			"The provider cannot create MikroTik API client as the 'password' is unknown at this moment. "+
+				"Either target apply the source of the value first, set it statically or use MIKROTIK_PASSWORD environment variable.",
+		)
+	}
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	var mikrotikHost, mikrotikUser, mikrotikPassword, mikrotikCACertificates string
 	var mikrotikTLS, mikrotikInsecure bool
