@@ -3,9 +3,9 @@ package mikrotik
 import (
 	"context"
 	"os"
-	"strconv"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -18,7 +18,7 @@ type ProviderFramework struct {
 
 var _ provider.Provider = (*ProviderFramework)(nil)
 
-func New() provider.Provider {
+func NewProviderFramework() provider.Provider {
 	return &ProviderFramework{}
 }
 
@@ -60,53 +60,51 @@ func (p *ProviderFramework) Schema(ctx context.Context, req provider.SchemaReque
 
 func (p *ProviderFramework) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
 	var data mikrotikProviderModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, data)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
 	var mikrotikHost, mikrotikUser, mikrotikPassword, mikrotikCACertificates string
 	var mikrotikTLS, mikrotikInsecure bool
 
-	mikrotikHost = os.Getenv("MIKROTIK_HOST")
-	if data.Host.ValueString() != "" {
-		mikrotikHost = data.Host.ValueString()
+	mikrotikHost = data.Host.ValueString()
+	if v := os.Getenv("MIKROTIK_HOST"); v != "" {
+		mikrotikHost = v
 	}
 
-	mikrotikUser = os.Getenv("MIKROTIK_USER")
-	if data.Username.ValueString() != "" {
-		mikrotikUser = data.Username.ValueString()
+	mikrotikUser = data.Username.ValueString()
+	if v := os.Getenv("MIKROTIK_USER"); v != "" {
+		mikrotikUser = v
 	}
 
-	mikrotikPassword = os.Getenv("MIKROTIK_PASSWORD")
-	if data.Password.ValueString() != "" {
-		mikrotikPassword = data.Password.ValueString()
+	mikrotikPassword = data.Password.ValueString()
+	if v := os.Getenv("MIKROTIK_PASSWORD"); v != "" {
+		mikrotikPassword = v
 	}
 
-	if os.Getenv("MIKROTIK_TLS") != "" {
-		tlsString := os.Getenv("MIKROTIK_TLS")
-		tls, err := strconv.ParseBool(tlsString)
+	if !data.Tls.IsUnknown() {
+		mikrotikTLS = data.Tls.ValueBool()
+	}
+	if v := os.Getenv("MIKROTIK_TLS"); v != "" {
+		tls, err := utils.ParseBool(v)
 		if err != nil {
 			resp.Diagnostics.AddError("Could not parse MIKROTIK_TLS environment variable", err.Error())
 		}
 		mikrotikTLS = tls
 	}
-	if !data.Tls.IsUnknown() {
-		mikrotikTLS = data.Tls.ValueBool()
+
+	mikrotikCACertificates = data.CACertificate.ValueString()
+	if v := os.Getenv("MIKROTIK_CA_CERTIFICATE"); v != "" {
+		mikrotikCACertificates = v
 	}
 
-	mikrotikCACertificates = os.Getenv("MIKROTIK_CA_CERTIFICATE")
-	if data.CACertificate.ValueString() != "" {
-		mikrotikCACertificates = data.CACertificate.ValueString()
+	if !data.Insecure.IsUnknown() {
+		mikrotikInsecure = data.Insecure.ValueBool()
 	}
-
-	if os.Getenv("MIKROTIK_INSECURE") != "" {
-		insecureString := os.Getenv("MIKROTIK_INSECURE")
-		insecure, err := strconv.ParseBool(insecureString)
+	if v := os.Getenv("MIKROTIK_INSECURE"); v != "" {
+		insecure, err := utils.ParseBool(v)
 		if err != nil {
 			resp.Diagnostics.AddError("Could not parse MIKROTIK_INSECURE environment variable", err.Error())
 		}
 		mikrotikInsecure = insecure
-	}
-	if !data.Insecure.IsUnknown() {
-		mikrotikInsecure = data.Insecure.ValueBool()
 	}
 
 	if mikrotikHost == "" {
