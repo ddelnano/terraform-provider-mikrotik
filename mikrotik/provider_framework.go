@@ -17,7 +17,9 @@ import (
 type ProviderFramework struct {
 }
 
-var _ provider.Provider = (*ProviderFramework)(nil)
+var (
+	_ provider.Provider = (*ProviderFramework)(nil)
+)
 
 func NewProviderFramework() provider.Provider {
 	return &ProviderFramework{}
@@ -153,10 +155,15 @@ func (p *ProviderFramework) Configure(ctx context.Context, req provider.Configur
 			"Provide it via 'host' provider configuration attribute or MIKROTIK_USER environment variable")
 	}
 
-	if !resp.Diagnostics.HasError() {
-		resp.ResourceData = client.NewClient(mikrotikHost, mikrotikUser, mikrotikPassword,
-			mikrotikTLS, mikrotikCACertificates, mikrotikInsecure)
+	if resp.Diagnostics.HasError() {
+		return
 	}
+
+	c := client.NewClient(mikrotikHost, mikrotikUser, mikrotikPassword,
+		mikrotikTLS, mikrotikCACertificates, mikrotikInsecure)
+
+	resp.DataSourceData = c
+	resp.ResourceData = c
 }
 
 func (p *ProviderFramework) DataSources(ctx context.Context) []func() datasource.DataSource {
@@ -164,7 +171,9 @@ func (p *ProviderFramework) DataSources(ctx context.Context) []func() datasource
 }
 
 func (p *ProviderFramework) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{}
+	return []func() resource.Resource{
+		NewSchedulerResource,
+	}
 }
 
 type mikrotikProviderModel struct {
