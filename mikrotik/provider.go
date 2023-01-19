@@ -33,12 +33,12 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 		Schema: map[string]*schema.Schema{
 			"host": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "Hostname of the MikroTik router",
 			},
 			"username": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "User account for MikroTik api",
 			},
 			"password": {

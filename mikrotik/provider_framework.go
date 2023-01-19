@@ -33,11 +33,11 @@ func (p *ProviderFramework) Schema(ctx context.Context, req provider.SchemaReque
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"host": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
 				Description: "Hostname of the MikroTik router",
 			},
 			"username": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
 				Description: "User account for MikroTik api",
 			},
 			"password": schema.StringAttribute{
