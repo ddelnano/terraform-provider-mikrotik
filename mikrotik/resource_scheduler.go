@@ -17,34 +17,6 @@ type scheduler struct {
 	client *client.Mikrotik
 }
 
-func schedulerToModel(s *client.Scheduler, m *schedulerModel) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if s == nil {
-		diags.AddError("Scheduler cannot be nil", "Cannot build model from nil object")
-		return diags
-	}
-
-	m.ID = tftypes.StringValue(s.Id)
-	m.Interval = tftypes.Int64Value(int64(s.Interval))
-	m.Name = tftypes.StringValue(s.Name)
-	m.OnEvent = tftypes.StringValue(s.OnEvent)
-	m.StartDate = tftypes.StringValue(s.StartDate)
-	m.StartTime = tftypes.StringValue(s.StartTime)
-
-	return diags
-}
-
-func modelToScheduler(m *schedulerModel) *client.Scheduler {
-	return &client.Scheduler{
-		Id:        m.ID.ValueString(),
-		Name:      m.Name.ValueString(),
-		OnEvent:   m.OnEvent.ValueString(),
-		StartDate: m.StartDate.ValueString(),
-		StartTime: m.StartTime.ValueString(),
-		Interval:  types.MikrotikDuration(m.Interval.ValueInt64()),
-	}
-}
-
 // Ensure the implementation satisfies the expected interfaces.
 var (
 	_ resource.Resource                = &scheduler{}
@@ -59,10 +31,6 @@ func NewSchedulerResource() resource.Resource {
 
 func (s *scheduler) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
-		resp.Diagnostics.AddError(
-			"Missing ProviderData",
-			"Provider data (API client) is not properly configured for this resource.",
-		)
 		return
 	}
 
@@ -79,6 +47,10 @@ func (s *scheduler) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 	resp.Schema = schema.Schema{
 		Description: "Creates a Mikrotik scheduler.",
 		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed:    true,
+				Description: "Identifier of this resource assigned by RouterOS",
+			},
 			"name": schema.StringAttribute{
 				Required:    true,
 				Description: "Name of the task.",
@@ -200,4 +172,32 @@ type schedulerModel struct {
 	StartDate tftypes.String `tfsdk:"start_date"`
 	StartTime tftypes.String `tfsdk:"start_time"`
 	Interval  tftypes.Int64  `tfsdk:"interval"`
+}
+
+func schedulerToModel(s *client.Scheduler, m *schedulerModel) diag.Diagnostics {
+	var diags diag.Diagnostics
+	if s == nil {
+		diags.AddError("Scheduler cannot be nil", "Cannot build model from nil object")
+		return diags
+	}
+
+	m.ID = tftypes.StringValue(s.Id)
+	m.Interval = tftypes.Int64Value(int64(s.Interval))
+	m.Name = tftypes.StringValue(s.Name)
+	m.OnEvent = tftypes.StringValue(s.OnEvent)
+	m.StartDate = tftypes.StringValue(s.StartDate)
+	m.StartTime = tftypes.StringValue(s.StartTime)
+
+	return diags
+}
+
+func modelToScheduler(m *schedulerModel) *client.Scheduler {
+	return &client.Scheduler{
+		Id:        m.ID.ValueString(),
+		Name:      m.Name.ValueString(),
+		OnEvent:   m.OnEvent.ValueString(),
+		StartDate: m.StartDate.ValueString(),
+		StartTime: m.StartTime.ValueString(),
+		Interval:  types.MikrotikDuration(m.Interval.ValueInt64()),
+	}
 }
