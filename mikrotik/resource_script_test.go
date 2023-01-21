@@ -21,9 +21,9 @@ func TestAccMikrotikScript_create(t *testing.T) {
 
 	resourceName := "mikrotik_script.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccScriptRecord(name, defaultOwner, defaultSource, defaultPolicies),
@@ -41,9 +41,9 @@ func TestAccMikrotikScript_updateSource(t *testing.T) {
 
 	resourceName := "mikrotik_script.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccScriptRecord(name, defaultOwner, defaultSource, defaultPolicies),
@@ -67,9 +67,9 @@ func TestAccMikrotikScript_updateOwner(t *testing.T) {
 
 	resourceName := "mikrotik_script.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccScriptRecord(name, defaultOwner, defaultSource, defaultPolicies),
@@ -92,9 +92,9 @@ func TestAccMikrotikScript_updateDontReqPerms(t *testing.T) {
 
 	resourceName := "mikrotik_script.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccScriptRecord(name, defaultOwner, defaultSource, defaultPolicies),
@@ -118,9 +118,9 @@ func TestAccMikrotikScript_updatePolicies(t *testing.T) {
 
 	resourceName := "mikrotik_script.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccScriptRecord(name, defaultOwner, defaultSource, defaultPolicies),
@@ -146,9 +146,9 @@ func TestAccMikrotikScript_import(t *testing.T) {
 
 	resourceName := "mikrotik_script.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikScriptDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikScriptDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccScriptRecord(name, defaultOwner, defaultSource, defaultPolicies),

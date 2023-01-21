@@ -13,9 +13,9 @@ func TestAccBridge_basic(t *testing.T) {
 	rName := "testacc_bridge"
 	bridge := client.Bridge{}
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccBridgeDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccBridgeDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBridgeConfig(rName, true, false, "testacc bridge"),

@@ -18,9 +18,9 @@ func TestAccMikrotikDhcpLease_create(t *testing.T) {
 
 	resourceName := "mikrotik_dhcp_lease.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikDhcpLeaseDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikDhcpLeaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDhcpLease(ipAddr, macAddr, comment),
@@ -47,9 +47,9 @@ func TestAccMikrotikDhcpLease_updateLease(t *testing.T) {
 
 	resourceName := "mikrotik_dhcp_lease.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikDhcpLeaseDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikDhcpLeaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDhcpLease(ipAddr, macAddr, comment),
@@ -108,9 +108,9 @@ func TestAccMikrotikDhcpLease_import(t *testing.T) {
 
 	resourceName := "mikrotik_dhcp_lease.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikDhcpLeaseDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikDhcpLeaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDhcpLease(ipAddr, macAddr, comment),
@@ -134,9 +134,9 @@ func TestAccMikrotikDhcpLease_createDynamicDiff(t *testing.T) {
 
 	resourceName := "mikrotik_dhcp_lease.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikDhcpLeaseDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikDhcpLeaseDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDhcpLeaseDynamic(ipAddr, macAddr, comment),

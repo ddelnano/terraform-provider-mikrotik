@@ -22,9 +22,9 @@ func TestAccMikrotikResourceIpv6Address_create(t *testing.T) {
 
 	resourceName := "mikrotik_ipv6_address.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikIpv6AddressDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikIpv6AddressDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccIpv6Address(ipv6Addr, ifName, comment),
@@ -55,9 +55,9 @@ func TestAccMikrotikResourceIpv6Address_updateAddr(t *testing.T) {
 
 	resourceName := "mikrotik_ipv6_address.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikIpv6AddressDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikIpv6AddressDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccIpv6Address(ipAddr, ifName, comment),

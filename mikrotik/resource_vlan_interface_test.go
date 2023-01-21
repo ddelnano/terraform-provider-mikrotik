@@ -19,9 +19,9 @@ func TestVlanInterface_basic(t *testing.T) {
 	useServiceTag := false
 	vlanID := 20
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckVlanInterfaceDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckVlanInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccVlanInterface(iface, mtu, name, useServiceTag, vlanID),

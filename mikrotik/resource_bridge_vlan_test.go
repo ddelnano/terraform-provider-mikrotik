@@ -16,9 +16,9 @@ func TestBridgeVlan_basic(t *testing.T) {
 
 	createdBridgeVlan := client.BridgeVlan{}
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckBridgeVlanDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckBridgeVlanDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBridgeVlanConfig("test_bridge", []int{10, 15, 18}),

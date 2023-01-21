@@ -15,14 +15,17 @@ import (
 )
 
 type ProviderFramework struct {
+	predefinedAPIClient *client.Mikrotik
 }
 
 var (
 	_ provider.Provider = (*ProviderFramework)(nil)
 )
 
-func NewProviderFramework() provider.Provider {
-	return &ProviderFramework{}
+func NewProviderFramework(c *client.Mikrotik) provider.Provider {
+	return &ProviderFramework{
+		predefinedAPIClient: c,
+	}
 }
 
 func (p *ProviderFramework) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -62,6 +65,13 @@ func (p *ProviderFramework) Schema(ctx context.Context, req provider.SchemaReque
 }
 
 func (p *ProviderFramework) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	if p.predefinedAPIClient != nil {
+		resp.DataSourceData = p.predefinedAPIClient
+		resp.ResourceData = p.predefinedAPIClient
+
+		return
+	}
+
 	var data mikrotikProviderModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)

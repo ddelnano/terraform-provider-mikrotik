@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -48,7 +50,10 @@ func (s *scheduler) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 		Description: "Creates a Mikrotik scheduler.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
-				Computed:    true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description: "Identifier of this resource assigned by RouterOS",
 			},
 			"name": schema.StringAttribute{
@@ -60,16 +65,26 @@ func (s *scheduler) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Description: "Name of the script to execute. It must exist `/system script`.",
 			},
 			"start_date": schema.StringAttribute{
-				Computed:    true,
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description: "Date of the first script execution.",
 			},
 			"start_time": schema.StringAttribute{
-				Computed:    true,
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description: "Time of the first script execution.",
 			},
 			"interval": schema.Int64Attribute{
-				Optional:    true,
-				Description: "Interval between two script executions, if time interval is set to zero, the script is only executed at its start time, otherwise it is executed repeatedly at the time interval is specified.",
+				Optional:      true,
+				Computed:      true,
+				PlanModifiers: []planmodifier.Int64{},
+				Description:   "Interval between two script executions, if time interval is set to zero, the script is only executed at its start time, otherwise it is executed repeatedly at the time interval is specified.",
 			},
 		},
 	}
@@ -85,13 +100,16 @@ func (s *scheduler) Create(ctx context.Context, req resource.CreateRequest, resp
 	}
 	created, err := s.client.AddScheduler(modelToScheduler(&plan))
 	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("creation failed"), err.Error())
+		resp.Diagnostics.AddError("creation failed", err.Error())
 		return
 	}
 
-	plan.ID = tftypes.StringValue(created.Id)
+	resp.Diagnostics.Append(schedulerToModel(created, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, plan)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -105,11 +123,11 @@ func (s *scheduler) Read(ctx context.Context, req resource.ReadRequest, resp *re
 		return
 	}
 
-	resource, err := s.client.FindScheduler(state.ID.ValueString())
+	resource, err := s.client.FindScheduler(state.Name.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading remote resource",
-			fmt.Sprintf("Could not read scheduler with id %q", state.ID.ValueString()),
+			fmt.Sprintf("Could not read scheduler with name %q", state.Name.ValueString()),
 		)
 		return
 	}
@@ -131,7 +149,7 @@ func (s *scheduler) Update(ctx context.Context, req resource.UpdateRequest, resp
 
 	updated, err := s.client.UpdateScheduler(modelToScheduler(&plan))
 	if err != nil {
-		resp.Diagnostics.AddError(fmt.Sprintf("update failed"), err.Error())
+		resp.Diagnostics.AddError("update failed", err.Error())
 		return
 	}
 
@@ -162,7 +180,7 @@ func (s *scheduler) Delete(ctx context.Context, req resource.DeleteRequest, resp
 
 func (s *scheduler) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
 
 type schedulerModel struct {
@@ -182,8 +200,8 @@ func schedulerToModel(s *client.Scheduler, m *schedulerModel) diag.Diagnostics {
 	}
 
 	m.ID = tftypes.StringValue(s.Id)
-	m.Interval = tftypes.Int64Value(int64(s.Interval))
 	m.Name = tftypes.StringValue(s.Name)
+	m.Interval = tftypes.Int64Value(int64(s.Interval))
 	m.OnEvent = tftypes.StringValue(s.OnEvent)
 	m.StartDate = tftypes.StringValue(s.StartDate)
 	m.StartTime = tftypes.StringValue(s.StartTime)

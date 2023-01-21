@@ -15,9 +15,9 @@ func TestBridgePort_basic(t *testing.T) {
 	bridgeInterface := "*0"
 	remoteBridgePort := client.BridgePort{}
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckBridgePortDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckBridgePortDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBridgePortConfig(bridgeName, bridgeInterface, 1, "acceptance test bridge port"),

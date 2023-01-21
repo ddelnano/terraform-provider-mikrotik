@@ -20,9 +20,9 @@ func TestFirewallFilterRule_basic(t *testing.T) {
 	chain := "testChain"
 	connectionState := []string{"new"}
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckFirewallFilterRuleDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckFirewallFilterRuleDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccFirewallFilterRuleConfigBasic(action, chain, connectionState, "80", "tcp"),

@@ -24,7 +24,10 @@ func main() {
 
 	ctx := context.Background()
 
-	downgradedProviderFramework, err := tf6to5server.DowngradeServer(ctx, providerserver.NewProtocol6(mikrotik.NewProviderFramework()))
+	downgradedProviderFramework, err := tf6to5server.DowngradeServer(
+		ctx,
+		providerserver.NewProtocol6(mikrotik.NewProviderFramework(nil)),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}

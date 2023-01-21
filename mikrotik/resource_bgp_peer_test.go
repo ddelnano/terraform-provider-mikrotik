@@ -31,9 +31,9 @@ func TestAccMikrotikBgpPeer_create(t *testing.T) {
 
 	resourceName := "mikrotik_bgp_peer.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikBgpPeerDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikBgpPeerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBgpPeer(name, remoteAs, remoteAddress),
@@ -81,9 +81,9 @@ func TestAccMikrotikBgpPeer_createAndPlanWithNonExistantBgpPeer(t *testing.T) {
 		}
 	}
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikBgpPeerDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikBgpPeerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBgpPeer(name, remoteAs, remoteAddress),
@@ -108,9 +108,9 @@ func TestAccMikrotikBgpPeer_updateBgpPeer(t *testing.T) {
 
 	resourceName := "mikrotik_bgp_peer.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikBgpPeerDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikBgpPeerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBgpPeer(name, remoteAs, remoteAddress),
@@ -171,9 +171,9 @@ func TestAccMikrotikBgpPeer_import(t *testing.T) {
 	resourceName := "mikrotik_bgp_peer.bar"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikBgpPeerDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikBgpPeerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBgpPeer(name, remoteAs, remoteAddress),
