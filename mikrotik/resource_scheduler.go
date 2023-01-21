@@ -81,10 +81,9 @@ func (s *scheduler) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Description: "Time of the first script execution.",
 			},
 			"interval": schema.Int64Attribute{
-				Optional:      true,
-				Computed:      true,
-				PlanModifiers: []planmodifier.Int64{},
-				Description:   "Interval between two script executions, if time interval is set to zero, the script is only executed at its start time, otherwise it is executed repeatedly at the time interval is specified.",
+				Optional:    true,
+				Computed:    true,
+				Description: "Interval between two script executions, if time interval is set to zero, the script is only executed at its start time, otherwise it is executed repeatedly at the time interval is specified.",
 			},
 		},
 	}
