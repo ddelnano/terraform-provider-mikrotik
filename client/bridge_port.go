@@ -7,11 +7,12 @@ import (
 
 // BridgePort defines port-in-bridge association
 type BridgePort struct {
-	Id        string `mikrotik:".id"`
-	Bridge    string `mikrotik:"bridge"`
-	Interface string `mikrotik:"interface"`
-	PVId      int    `mikrotik:"pvid"`
-	Comment   string `mikrotik:"comment"`
+	Id         string `mikrotik:".id"`
+	Bridge     string `mikrotik:"bridge"`
+	Interface  string `mikrotik:"interface"`
+	PVId       int    `mikrotik:"pvid"`
+	Comment    string `mikrotik:"comment"`
+	FrameTypes string `mikrotik:"frame-types"`
 }
 
 func (client Mikrotik) AddBridgePort(r *BridgePort) (*BridgePort, error) {
