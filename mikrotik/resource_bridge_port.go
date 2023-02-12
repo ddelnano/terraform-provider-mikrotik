@@ -46,6 +46,12 @@ func resourceBridgePort() *schema.Resource {
 				Optional:    true,
 				Description: "Short description for this association.",
 			},
+			"frame_types": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "admit-all",
+				Description: "Can be used to filter out packets whether they have a VLAN tag or not.",
+			},
 		},
 	}
 }
@@ -100,11 +106,12 @@ func resourceBridgePortDelete(ctx context.Context, d *schema.ResourceData, m int
 
 func dataToBridgePort(d *schema.ResourceData) *client.BridgePort {
 	return &client.BridgePort{
-		Id:        d.Id(),
-		Bridge:    d.Get("bridge").(string),
-		Interface: d.Get("interface").(string),
-		PVId:      d.Get("pvid").(int),
-		Comment:   d.Get("comment").(string),
+		Id:         d.Id(),
+		Bridge:     d.Get("bridge").(string),
+		Interface:  d.Get("interface").(string),
+		PVId:       d.Get("pvid").(int),
+		Comment:    d.Get("comment").(string),
+		FrameTypes: d.Get("frame_types").(string),
 	}
 }
 
@@ -121,6 +128,9 @@ func recordBridgePortToData(r *client.BridgePort, d *schema.ResourceData) diag.D
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	if err := d.Set("comment", r.Comment); err != nil {
+		diags = append(diags, diag.FromErr(err)...)
+	}
+	if err := d.Set("frame_types", r.FrameTypes); err != nil {
 		diags = append(diags, diag.FromErr(err)...)
 	}
 	d.SetId(r.Id)
