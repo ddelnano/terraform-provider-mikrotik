@@ -49,7 +49,7 @@ func TestAccMikrotikBgpInstance_createFailsOnRouterOSv7(t *testing.T) {
 	routerId := internal.GetNewIpAddr()
 	as := acctest.RandIntRange(1, 65535)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikBgpInstanceDestroy,

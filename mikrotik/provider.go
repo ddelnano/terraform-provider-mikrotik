@@ -126,7 +126,7 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 			insecure = insecureValue
 		}
 
-		return mt.NewClient(address, username, password, tls, caCertificate, insecure), nil
+		return mt.NewClient(address, username, password, tls, caCertificate, insecure), diags
 	}
 
 	return provider
