@@ -13,9 +13,9 @@ func TestInterfaceList_basic(t *testing.T) {
 	resourceName := "mikrotik_interface_list.testacc"
 	listName := "custom_list"
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckInterfaceListDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckInterfaceListDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccInterfaceList(listName, "Initial record"),

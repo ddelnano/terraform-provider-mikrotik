@@ -20,9 +20,9 @@ func TestDhcpServerNetwork_basic(t *testing.T) {
 	comment := "Terraform managed"
 	dnsServerUpdated := "192.168.5.3"
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckDhcpServerNetworkDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckDhcpServerNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDhcpServerNetwork(address, netmask, gateway, dnsServer, comment),

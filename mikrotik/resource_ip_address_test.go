@@ -18,9 +18,9 @@ func TestAccMikrotikResourceIpAddress_create(t *testing.T) {
 
 	resourceName := "mikrotik_ip_address.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikIpAddressDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikIpAddressDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccIpAddress(ipAddr, ifName, comment),
@@ -47,9 +47,9 @@ func TestAccMikrotikResourceIpAddress_updateAddr(t *testing.T) {
 
 	resourceName := "mikrotik_ip_address.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikIpAddressDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikIpAddressDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccIpAddress(ipAddr, ifName, comment),

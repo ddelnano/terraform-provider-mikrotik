@@ -16,9 +16,9 @@ func TestAccMikrotikDnsRecord_create(t *testing.T) {
 
 	resourceName := "mikrotik_dns_record.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikDnsRecordDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDnsRecord(dnsName, ipAddr),
@@ -49,9 +49,9 @@ func TestAccMikrotikDnsRecord_createAndPlanWithNonExistantRecord(t *testing.T) {
 
 	}
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikDnsRecordDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDnsRecord(dnsName, ipAddr),
@@ -75,9 +75,9 @@ func TestAccMikrotikDnsRecord_updateAddress(t *testing.T) {
 
 	resourceName := "mikrotik_dns_record.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikDnsRecordDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDnsRecord(dnsName, ipAddr),
@@ -104,9 +104,9 @@ func TestAccMikrotikDnsRecord_updateComment(t *testing.T) {
 
 	resourceName := "mikrotik_dns_record.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikDnsRecordDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDnsRecordWithComment(dnsName, ipAddr, comment),
@@ -131,9 +131,9 @@ func TestAccMikrotikDnsRecord_import(t *testing.T) {
 
 	resourceName := "mikrotik_dns_record.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikDnsRecordDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikDnsRecordDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDnsRecord(dnsName, ipAddr),

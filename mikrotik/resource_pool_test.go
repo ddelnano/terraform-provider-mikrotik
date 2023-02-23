@@ -17,9 +17,9 @@ func TestAccMikrotikPool_create(t *testing.T) {
 
 	resourceName := "mikrotik_pool.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikPoolDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPool(name, ranges),
@@ -40,9 +40,9 @@ func TestAccMikrotikPool_createNextPool(t *testing.T) {
 
 	resourceName := "mikrotik_pool.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikPoolDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPoolWithNextPool(name, ranges, "next_ip_pool", "next_ip_pool"),
@@ -86,9 +86,9 @@ func TestAccMikrotikPool_createAndPlanWithNonExistantPool(t *testing.T) {
 		}
 	}
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikPoolDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPool(name, ranges),
@@ -114,9 +114,9 @@ func TestAccMikrotikPool_updatePool(t *testing.T) {
 
 	resourceName := "mikrotik_pool.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikPoolDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPool(name, ranges),
@@ -161,9 +161,9 @@ func TestAccMikrotikPool_import(t *testing.T) {
 
 	resourceName := "mikrotik_pool.bar"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikPoolDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccPool(name, ranges),

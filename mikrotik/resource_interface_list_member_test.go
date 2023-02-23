@@ -15,9 +15,9 @@ func TestInterfaceListMember_basic(t *testing.T) {
 	listName1 := "interface_list1"
 	listName2 := "interface_list2"
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckInterfaceListMemberDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckInterfaceListMemberDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccInterfaceListMember(listName1, listName2, "list1", "*0"),

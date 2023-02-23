@@ -3,9 +3,11 @@ package mikrotik
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	mt "github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -31,38 +33,33 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 		Schema: map[string]*schema.Schema{
 			"host": {
 				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_HOST", nil),
+				Optional:    true,
 				Description: "Hostname of the MikroTik router",
 			},
 			"username": {
 				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_USER", nil),
+				Optional:    true,
 				Description: "User account for MikroTik api",
 			},
 			"password": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_PASSWORD", ""),
+				Sensitive:   true,
 				Description: "Password for MikroTik api",
 			},
 			"tls": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_TLS", false),
 				Description: "Whether to use TLS when connecting to MikroTik or not",
 			},
 			"ca_certificate": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_CA_CERTIFICATE", ""),
 				Description: "Path to MikroTik's certificate authority",
 			},
 			"insecure": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("MIKROTIK_INSECURE", false),
 				Description: "Insecure connection does not verify MikroTik's TLS certificate",
 			},
 		},
@@ -82,7 +79,6 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 			"mikrotik_ipv6_address":          resourceIpv6Address(),
 			"mikrotik_firewall_filter_rule":  resourceFirewallFilterRule(),
 			"mikrotik_pool":                  resourcePool(),
-			"mikrotik_scheduler":             resourceScheduler(),
 			"mikrotik_script":                resourceScript(),
 			"mikrotik_vlan_interface":        resourceVlanInterface(),
 		},
@@ -92,6 +88,7 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 		if client != nil {
 			return client, nil
 		}
+		var diags diag.Diagnostics
 
 		address := d.Get("host").(string)
 		username := d.Get("username").(string)
@@ -100,7 +97,36 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 		caCertificate := d.Get("ca_certificate").(string)
 		insecure := d.Get("insecure").(bool)
 
-		return mt.NewClient(address, username, password, tls, caCertificate, insecure), nil
+		if v := os.Getenv("MIKROTIK_HOST"); v != "" {
+			address = v
+		}
+		if v := os.Getenv("MIKROTIK_USER"); v != "" {
+			username = v
+		}
+		if v := os.Getenv("MIKROTIK_PASSWORD"); v != "" {
+			password = v
+		}
+		if v := os.Getenv("MIKROTIK_TLS"); v != "" {
+			tlsValue, err := utils.ParseBool(v)
+			if err != nil {
+				diags = append(diags,
+					diag.FromErr(fmt.Errorf("could not parse MIKROTIK_TLS environment variable: %w", err))...)
+			}
+			tls = tlsValue
+		}
+		if v := os.Getenv("MIKROTIK_CA_CERTIFICATE"); v != "" {
+			caCertificate = v
+		}
+		if v := os.Getenv("MIKROTIK_INSECURE"); v != "" {
+			insecureValue, err := utils.ParseBool(v)
+			if err != nil {
+				diags = append(diags,
+					diag.FromErr(fmt.Errorf("could not parse MIKROTIK_INSECURE environment variable: %w", err))...)
+			}
+			insecure = insecureValue
+		}
+
+		return mt.NewClient(address, username, password, tls, caCertificate, insecure), diags
 	}
 
 	return provider

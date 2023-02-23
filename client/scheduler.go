@@ -61,6 +61,11 @@ func (client Mikrotik) DeleteScheduler(name string) error {
 	return err
 }
 
+// AddScheduler is an alias to CreateScheduler
+func (client Mikrotik) AddScheduler(s *Scheduler) (*Scheduler, error) {
+	return client.CreateScheduler(s)
+}
+
 func (client Mikrotik) CreateScheduler(s *Scheduler) (*Scheduler, error) {
 	c, err := client.getMikrotikClient()
 

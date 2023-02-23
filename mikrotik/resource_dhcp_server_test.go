@@ -14,9 +14,9 @@ func TestAccDhcpServer_basic(t *testing.T) {
 	rLeaseScript := ":put 123"
 	dhcpServer := client.DhcpServer{}
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckDhcpServerDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckDhcpServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDhcpServerConfig(rName, true, rLeaseScript),

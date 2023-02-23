@@ -22,9 +22,9 @@ func TestAccMikrotikBgpInstance_create(t *testing.T) {
 	resourceName := "mikrotik_bgp_instance.bar"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikBgpInstanceDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikBgpInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBgpInstance(name, as, routerId),
@@ -50,9 +50,9 @@ func TestAccMikrotikBgpInstance_createFailsOnRouterOSv7(t *testing.T) {
 	as := acctest.RandIntRange(1, 65535)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikBgpInstanceDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikBgpInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccBgpInstance(name, as, routerId),
@@ -71,9 +71,9 @@ func TestAccMikrotikBgpInstance_createAndPlanWithNonExistantBgpInstance(t *testi
 	resourceName := "mikrotik_bgp_instance.bar"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikBgpInstanceDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikBgpInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBgpInstance(name, as, routerId),
@@ -102,9 +102,9 @@ func TestAccMikrotikBgpInstance_updateBgpInstance(t *testing.T) {
 	resourceName := "mikrotik_bgp_instance.bar"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikBgpInstanceDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikBgpInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBgpInstance(name, as, routerId),
@@ -150,9 +150,9 @@ func TestAccMikrotikBgpInstance_import(t *testing.T) {
 	resourceName := "mikrotik_bgp_instance.bar"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckMikrotikBgpInstanceDestroy,
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikBgpInstanceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBgpInstance(name, as, routerId),
