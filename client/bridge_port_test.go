@@ -41,11 +41,12 @@ func TestBridgePort_basic(t *testing.T) {
 	}()
 
 	expected := &BridgePort{
-		Id:        bridgePort.Id,
-		Bridge:    "test_bridge",
-		Interface: "*0",
-		PVId:      1,
-		Comment:   bridgePort.Comment,
+		Id:         bridgePort.Id,
+		Bridge:     "test_bridge",
+		Interface:  "*0",
+		PVId:       1,
+		Comment:    bridgePort.Comment,
+		FrameTypes: "admit-all",
 	}
 	if !reflect.DeepEqual(expected, bridgePort) {
 		t.Errorf(`expected and actual bridge port objects are not equal:
