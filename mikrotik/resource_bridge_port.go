@@ -2,11 +2,15 @@ package mikrotik
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"golang.org/x/exp/slices"
 )
 
 func resourceBridgePort() *schema.Resource {
@@ -47,9 +51,24 @@ func resourceBridgePort() *schema.Resource {
 				Description: "Short description for this association.",
 			},
 			"frame_types": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "admit-all",
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "admit-all",
+				ValidateDiagFunc: func(v interface{}, p cty.Path) diag.Diagnostics {
+					expected := []string{"admit-all", "admit-only-untagged-and-priority-tagged", "admit-only-vlan-tagged"}
+					value := v.(string)
+
+					var diags diag.Diagnostics
+					if !slices.Contains(expected, value) {
+						diag := diag.Diagnostic{
+							Severity: diag.Error,
+							Summary:  "Wrong value",
+							Detail:   fmt.Sprintf("%q is not part of the possible values: %q", value, strings.Join(expected, ",")),
+						}
+						diags = append(diags, diag)
+					}
+					return diags
+				},
 				Description: "Can be used to filter out packets whether they have a VLAN tag or not.",
 			},
 		},
