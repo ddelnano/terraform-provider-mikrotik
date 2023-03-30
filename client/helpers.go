@@ -17,3 +17,16 @@ func IsLegacyBgpSupported() bool {
 	}
 	return false
 }
+
+func SkipInterfaceWireguardIfUnsupported(t *testing.T) {
+	if !IsInterfaceWireguardSupported() {
+		t.Skip()
+	}
+}
+
+func IsInterfaceWireguardSupported() bool {
+	if os.Getenv("INTERFACE_WIREGUARD_SUPPORT") == "true" {
+		return true
+	}
+	return false
+}
