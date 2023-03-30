@@ -5,14 +5,15 @@ import (
 )
 
 type InterfaceWireguard struct {
+	Id         string `mikrotik:".id"`
 	Name       string `mikrotik:"name"`
 	Comment    string `mikrotik:"comment"`
 	Disabled   bool   `mikrotik:"disabled"`
 	ListenPort int    `mikrotik:"listen-port"`
 	Mtu        int    `mikrotik:"mtu"`
 	PrivateKey string `mikrotik:"private-key"`
-	PublicKey  string `mikrotik:"public-key"` //read only property
-	Running    bool   `mikrotik:"running"`    //read only property
+	PublicKey  string `mikrotik:"public-key"`       //read only property
+	Running    bool   `mikrotik:"running,readonly"` //read only property
 }
 
 func (i *InterfaceWireguard) ActionToCommand(action Action) string {
@@ -26,19 +27,19 @@ func (i *InterfaceWireguard) ActionToCommand(action Action) string {
 }
 
 func (i *InterfaceWireguard) IDField() string {
-	return "name"
+	return ".id"
 }
 
 func (i *InterfaceWireguard) ID() string {
-	return i.Name
+	return i.Id
 }
 
 func (i *InterfaceWireguard) SetID(id string) {
-	i.Name = id
+	i.Id = id
 }
 
 func (i *InterfaceWireguard) AfterAddHook(r *routeros.Reply) {
-	i.Name = r.Done.Map["ret"]
+	i.Id = r.Done.Map["ret"]
 }
 
 func (i *InterfaceWireguard) FindField() string {
@@ -50,7 +51,7 @@ func (i *InterfaceWireguard) FindFieldValue() string {
 }
 
 func (i *InterfaceWireguard) DeleteField() string {
-	return "name"
+	return "numbers"
 }
 
 func (i *InterfaceWireguard) DeleteFieldValue() string {

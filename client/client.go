@@ -69,28 +69,44 @@ func Marshal(c string, s interface{}) []string {
 	for i := 0; i < elem.NumField(); i++ {
 		value := elem.Field(i)
 		fieldType := elem.Type().Field(i)
-		// supports multiple struct tags--assumes first is mikrotik field name
-		tag := strings.Split(fieldType.Tag.Get("mikrotik"), ",")[0]
+		// fetch mikrotik struct tag, which supports multiple values separated by commas
+		tags := fieldType.Tag.Get("mikrotik")
+		// extract tag value that is the Mikrotik property name
+		// it is assumed that the first is mikrotik field name
+		mikrotikTags := strings.Split(tags, ",")
+		mikrotikPropName := mikrotikTags[0]
+		// now we have field name in separate variable,
+		// so leave only modifiers in this slice
+		mikrotikTags = mikrotikTags[1:]
 
-		if tag != "" && (!value.IsZero() || value.Kind() == reflect.Bool) {
+		if mikrotikPropName != "" && (!value.IsZero() || value.Kind() == reflect.Bool) {
+			// add conditional to check if a Mikrotik property is READ ONLY, such as the following wireguard props
+			// https://help.mikrotik.com/docs/display/ROS/WireGuard#WireGuard-Read-onlyproperties
+			if contains(mikrotikTags, "readonly") {
+
+
+				// if a struct field contains the tag value of 'readonly', do not marshal it
+				continue
+			}
+
 			if mar, ok := value.Interface().(Marshaler); ok {
 				// if type supports custom marshaling, use that result immediately
 				stringValue := mar.MarshalMikrotik()
-				cmd = append(cmd, fmt.Sprintf("=%s=%s", tag, stringValue))
+				cmd = append(cmd, fmt.Sprintf("=%s=%s", mikrotikPropName, stringValue))
 				continue
 			}
 
 			switch value.Kind() {
 			case reflect.Int:
 				intValue := elem.Field(i).Interface().(int)
-				cmd = append(cmd, fmt.Sprintf("=%s=%d", tag, intValue))
+				cmd = append(cmd, fmt.Sprintf("=%s=%d", mikrotikPropName, intValue))
 			case reflect.String:
 				stringValue := elem.Field(i).Interface().(string)
-				cmd = append(cmd, fmt.Sprintf("=%s=%s", tag, stringValue))
+				cmd = append(cmd, fmt.Sprintf("=%s=%s", mikrotikPropName, stringValue))
 			case reflect.Bool:
 				boolValue := elem.Field(i).Interface().(bool)
 				stringBoolValue := boolToMikrotikBool(boolValue)
-				cmd = append(cmd, fmt.Sprintf("=%s=%s", tag, stringBoolValue))
+				cmd = append(cmd, fmt.Sprintf("=%s=%s", mikrotikPropName, stringBoolValue))
 			}
 		}
 	}

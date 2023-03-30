@@ -74,3 +74,44 @@ After those environment variables are set you can run the tests with the followi
 ```bash
 make testacc
 ```
+
+> :warning:
+>
+> For RouterOS versions `6.x` you have to set environment variable `LEGACY_BGP_SUPPORT="true"` before running tests.
+
+### Testing without MikroTik hardware
+
+If you do not have MikroTik hardware or virtual machine with pre-installed RouterOS, you still have a way to run tests locally.
+
+To make this happen, install [Docker](https://www.docker.com) on your developer machine, and run from the root of the repository:
+```sh
+$ make routeros
+```
+It will start RouterOS container locally and make its API server available at `127.0.0.1:8728`
+
+Just export connection settings
+```sh
+export MIKROTIK_HOST=127.0.0.1:8728
+export MIKROTIK_USER=admin
+export MIKROTIK_PASSWORD=""
+```
+
+and you are ready to run tests with
+```sh
+$ make test
+```
+
+You can use specific RouterOS version by passing `ROUTEROS_VERSION` argument
+```sh
+$ make routeros ROUTEROS_VERSION="6.49beta54"
+```
+
+or even
+```sh
+$ make routeros ROUTEROS_VERSION=latest
+```
+
+To cleanup everything, just run:
+```sh
+$ make routeros clean
+```
