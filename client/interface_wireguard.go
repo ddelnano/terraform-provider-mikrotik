@@ -12,7 +12,7 @@ type InterfaceWireguard struct {
 	Mtu        int    `mikrotik:"mtu"`
 	PrivateKey string `mikrotik:"private-key"`
 	PublicKey  string `mikrotik:"public-key"` //read only property
-	Running    bool   `mikrotik:"running"`    //read only property
+	// Running    bool   `mikrotik:"running"`    //read only property
 }
 
 func (i *InterfaceWireguard) ActionToCommand(action Action) string {
