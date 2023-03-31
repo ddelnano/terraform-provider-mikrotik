@@ -234,7 +234,7 @@ func TestMarshal(t *testing.T) {
 				Name          string `mikrotik:"name"`
 				NotNamedOwner string `mikrotik:"owner,extraTagNotUsed"`
 				RunCount      int    `mikrotik:"run-count"`
-				ReadOnlyProp  bool   `mikrotik:"read-only-prop,readonly"`
+				ReadOnlyProp  bool   `mikrotik:"read-only-prop"`
 				Allowed       bool   `mikrotik:"allowed-or-not"`
 			}{
 				Name:          "test owner",
