@@ -7,6 +7,7 @@ import (
 )
 
 func TestFindInterfaceWireguard_onNonExistantInterfaceWireguard(t *testing.T) {
+	SkipInterfaceWireguardIfUnsupported(t)
 	c := NewClient(GetConfigFromEnv())
 
 	name := "Interface wireguard does not exist"
@@ -18,6 +19,7 @@ func TestFindInterfaceWireguard_onNonExistantInterfaceWireguard(t *testing.T) {
 }
 
 func TestAddFindDeleteInterfaceWireguard(t *testing.T) {
+	SkipInterfaceWireguardIfUnsupported(t)
 	c := NewClient(GetConfigFromEnv())
 
 	name := "new_interface_wireguard"
