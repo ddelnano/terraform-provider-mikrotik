@@ -72,7 +72,7 @@ func Marshal(c string, s interface{}) []string {
 		// fetch mikrotik struct tag, which supports multiple values separated by commas
 		tags := fieldType.Tag.Get("mikrotik")
 		// extract tag value that is the Mikrotik property name
-		// it is assumed tha the first is mikrotik field name
+		// it is assumed that the first is mikrotik field name
 		mikrotikPropName := strings.Split(tags, ",")[0]
 
 		if mikrotikPropName != "" && (!value.IsZero() || value.Kind() == reflect.Bool) {
