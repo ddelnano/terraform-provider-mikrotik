@@ -73,12 +73,18 @@ func Marshal(c string, s interface{}) []string {
 		tags := fieldType.Tag.Get("mikrotik")
 		// extract tag value that is the Mikrotik property name
 		// it is assumed that the first is mikrotik field name
-		mikrotikPropName := strings.Split(tags, ",")[0]
+		mikrotikTags := strings.Split(tags, ",")
+		mikrotikPropName := mikrotikTags[0]
+		// now we have field name in separate variable,
+		// so leave only modifiers in this slice
+		mikrotikTags = mikrotikTags[1:]
 
 		if mikrotikPropName != "" && (!value.IsZero() || value.Kind() == reflect.Bool) {
 			// add conditional to check if a Mikrotik property is READ ONLY, such as the following wireguard props
 			// https://help.mikrotik.com/docs/display/ROS/WireGuard#WireGuard-Read-onlyproperties
-			if strings.Contains(tags, "readonly") {
+			if contains(mikrotikTags, "readonly") {
+
+
 				// if a struct field contains the tag value of 'readonly', do not marshal it
 				continue
 			}
