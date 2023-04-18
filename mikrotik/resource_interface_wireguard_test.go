@@ -16,6 +16,7 @@ var origListenPort int = 13231
 var origMTU int = 1420
 
 func TestAccMikrotikInterfaceWireguard_create(t *testing.T) {
+	client.SkipInterfaceWireguardIfUnsupported(t)
 	name := acctest.RandomWithPrefix("tf-acc-create")
 
 	resourceName := "mikrotik_interface_wireguard.bar"
