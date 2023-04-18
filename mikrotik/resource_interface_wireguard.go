@@ -27,6 +27,7 @@ var (
 // NewInterfaceWireguardResource is a helper function to simplify the provider implementation.
 func NewInterfaceWireguardResource() resource.Resource {
 	return &interfaceWireguard{}
+
 }
 
 func (i *interfaceWireguard) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
