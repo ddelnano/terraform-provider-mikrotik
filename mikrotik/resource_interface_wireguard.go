@@ -136,7 +136,7 @@ func (i *interfaceWireguard) Read(ctx context.Context, req resource.ReadRequest,
 		return
 	}
 
-	resource, err := i.client.FindInterfaceWireguard(state.Name.ValueString())
+	resource, err := i.client.FindInterfaceWireguard(state.ID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading remote resource",
@@ -185,7 +185,7 @@ func (i *interfaceWireguard) Delete(ctx context.Context, req resource.DeleteRequ
 		return
 	}
 
-	if err := i.client.DeleteInterfaceWireguard(state.Name.ValueString()); err != nil {
+	if err := i.client.DeleteInterfaceWireguard(state.ID.ValueString()); err != nil {
 		resp.Diagnostics.AddError("Could not delete interfaceWireguard", err.Error())
 		return
 	}
