@@ -54,7 +54,7 @@ func testAccCheckMikrotikInterfaceWireguardDestroy(s *terraform.State) error {
 			continue
 		}
 
-		interfaceWireguard, err := c.FindInterfaceWireguard(rs.Primary.ID)
+		interfaceWireguard, err := c.FindInterfaceWireguard(rs.Primary.Attributes["name"])
 
 		_, ok := err.(*client.NotFound)
 		if !ok && err != nil {
@@ -75,7 +75,7 @@ func testAccInterfaceWireguardExists(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		if rs.Primary.ID == "" {
+		if rs.Primary.Attributes["name"] == "" {
 			return fmt.Errorf("mikrotik_interface_wireguard does not exist in the statefile")
 		}
 
@@ -89,10 +89,10 @@ func testAccInterfaceWireguardExists(resourceName string) resource.TestCheckFunc
 		}
 
 		if interfaceWireguard == nil {
-			return fmt.Errorf("Unable to get the interface wireguard with name: %s", rs.Primary.ID)
+			return fmt.Errorf("Unable to get the interface wireguard with name: %s", rs.Primary.Attributes["name"])
 		}
 
-		if interfaceWireguard.Name == rs.Primary.ID {
+		if interfaceWireguard.Name == rs.Primary.Attributes["name"] {
 			return nil
 		}
 		return nil
