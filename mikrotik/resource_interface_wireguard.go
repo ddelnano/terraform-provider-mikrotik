@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -48,6 +50,13 @@ func (i *interfaceWireguard) Schema(_ context.Context, _ resource.SchemaRequest,
 	resp.Schema = schema.Schema{
 		Description: "Creates a Mikrotik interface wireguard.",
 		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description: "Identifier of this resource assigned by RouterOS",
+			},
 			"name": schema.StringAttribute{
 				Required:    true,
 				Description: "Name of the interface wireguard.",
@@ -185,6 +194,7 @@ func (i *interfaceWireguard) ImportState(ctx context.Context, req resource.Impor
 }
 
 type interfaceWireguardModel struct {
+	ID         tftypes.String `tfsdk:"id"`
 	Name       tftypes.String `tfsdk:"name"`
 	Comment    tftypes.String `tfsdk:"comment"`
 	Disabled   tftypes.Bool   `tfsdk:"disabled"`
@@ -201,6 +211,7 @@ func interfaceWireguardToModel(i *client.InterfaceWireguard, m *interfaceWiregua
 		diags.AddError("Interface Wireguard cannot be nil", "Cannot build model from nil object")
 		return diags
 	}
+	m.ID = tftypes.StringValue(i.Id)
 	m.Name = tftypes.StringValue(i.Name)
 	m.Comment = tftypes.StringValue(i.Comment)
 	m.Disabled = tftypes.BoolValue(i.Disabled)
@@ -215,6 +226,7 @@ func interfaceWireguardToModel(i *client.InterfaceWireguard, m *interfaceWiregua
 
 func modelToInterfaceWireguard(m *interfaceWireguardModel) *client.InterfaceWireguard {
 	return &client.InterfaceWireguard{
+		Id:         m.ID.ValueString(),
 		Name:       m.Name.ValueString(),
 		Comment:    m.Comment.ValueString(),
 		Disabled:   m.Disabled.ValueBool(),
