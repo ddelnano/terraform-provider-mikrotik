@@ -29,7 +29,7 @@ func TestAccMikrotikInterfaceWireguard_create(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttrSet(resourceName, "commment")),
+					resource.TestCheckResourceAttrSet(resourceName, "comment")),
 				// resource.TestCheckResourceAttrSet(resourceName, "listen_port"),
 				// resource.TestCheckResourceAttrSet(resourceName, "mtu"),
 				// resource.TestCheckResourceAttrSet(resourceName, "disabled")),
