@@ -39,7 +39,7 @@ func TestAddFindDeleteInterfaceWireguard(t *testing.T) {
 	}
 
 	findInterface := &InterfaceWireguard{}
-	findInterface.Name = name
+	findInterface.Id = created.(InterfaceWireguard).Id
 	found, err := c.Find(findInterface)
 	if err != nil {
 		t.Errorf("expected no error, got %v", err)
