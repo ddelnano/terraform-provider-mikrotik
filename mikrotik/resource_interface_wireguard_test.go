@@ -68,35 +68,35 @@ func TestAccMikrotikInterfaceWireguard_updatedComment(t *testing.T) {
 	})
 }
 
-// func TestAccMikrotikInterfaceWireguard_import(t *testing.T) {
-// 	client.SkipInterfaceWireguardIfUnsupported(t)
-// 	name := acctest.RandomWithPrefix("tf-acc-import")
+func TestAccMikrotikInterfaceWireguard_import(t *testing.T) {
+	client.SkipInterfaceWireguardIfUnsupported(t)
+	name := acctest.RandomWithPrefix("tf-acc-import")
 
-// 	resourceName := "mikrotik_interface_wireguard.bar"
-// 	resource.ParallelTest(t, resource.TestCase{
-// 		PreCheck:                 func() { testAccPreCheck(t) },
-// 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
-// 		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardDestroy,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: testAccInterfaceWireguard(name),
-// 				Check: resource.ComposeAggregateTestCheckFunc(
-// 					testAccInterfaceWireguardExists(resourceName),
-// 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-// 					resource.TestCheckResourceAttrSet(resourceName, "name"),
-// 				),
-// 			},
-// 			{
-// 				ResourceName: resourceName,
-// 				ImportState:  true,
-// 				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-// 					return name, nil
-// 				},
-// 				ImportStateVerify: true,
-// 			},
-// 		},
-// 	})
-// }
+	resourceName := "mikrotik_interface_wireguard.bar"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInterfaceWireguard(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccInterfaceWireguardExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+				),
+			},
+			{
+				ResourceName: resourceName,
+				ImportState:  true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					return name, nil
+				},
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
 
 func testAccInterfaceWireguard(name string) string {
 	return fmt.Sprintf(`
