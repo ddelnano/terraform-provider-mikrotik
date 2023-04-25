@@ -2,6 +2,7 @@ package mikrotik
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
@@ -29,10 +30,10 @@ func TestAccMikrotikInterfaceWireguard_create(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttrSet(resourceName, "comment")),
-				// resource.TestCheckResourceAttrSet(resourceName, "listen_port"),
-				// resource.TestCheckResourceAttrSet(resourceName, "mtu"),
-				// resource.TestCheckResourceAttrSet(resourceName, "disabled")),
+					resource.TestCheckResourceAttr(resourceName, "comment", origComment),
+					resource.TestCheckResourceAttr(resourceName, "listen_port", strconv.Itoa(origListenPort)),
+					resource.TestCheckResourceAttr(resourceName, "mtu", strconv.Itoa(origMTU)),
+					resource.TestCheckResourceAttr(resourceName, "disabled", "false")),
 			},
 		},
 	})
@@ -43,8 +44,10 @@ func testAccInterfaceWireguard(name string) string {
 resource "mikrotik_interface_wireguard" "bar" {
     name = "%s"
 	comment = "%s"
+	listen_port = "%d"
+	mtu = "%d"
 }
-`, name, origComment)
+`, name, origComment, origListenPort, origMTU)
 }
 
 func testAccCheckMikrotikInterfaceWireguardDestroy(s *terraform.State) error {
