@@ -14,6 +14,7 @@ import (
 var origComment string = "testing"
 var origListenPort int = 13231
 var origMTU int = 1420
+var updatedComment string = "new_comment"
 
 func TestAccMikrotikInterfaceWireguard_create(t *testing.T) {
 	client.SkipInterfaceWireguardIfUnsupported(t)
@@ -39,6 +40,33 @@ func TestAccMikrotikInterfaceWireguard_create(t *testing.T) {
 	})
 }
 
+func TestAccMikrotikInterfaceWireguard_updatedComment(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-update-comment")
+
+	resourceName := "mikrotik_interface_wireguard.bar"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInterfaceWireguard(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccInterfaceWireguardExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "comment", origComment)),
+			},
+			{
+				Config: testAccInterfaceWireguardUpdatedComment(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccInterfaceWireguardExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment)),
+			},
+		},
+	})
+}
+
 func testAccInterfaceWireguard(name string) string {
 	return fmt.Sprintf(`
 resource "mikrotik_interface_wireguard" "bar" {
@@ -48,6 +76,17 @@ resource "mikrotik_interface_wireguard" "bar" {
 	mtu = "%d"
 }
 `, name, origComment, origListenPort, origMTU)
+}
+
+func testAccInterfaceWireguardUpdatedComment(name string) string {
+	return fmt.Sprintf(`
+	resource "mikrotik_interface_wireguard" "bar" {
+		name = "%s"
+		comment = "%s"
+		listen_port = "%d"
+		mtu = "%d"
+	}
+	`, name, updatedComment, origListenPort, origMTU)
 }
 
 func testAccCheckMikrotikInterfaceWireguardDestroy(s *terraform.State) error {
