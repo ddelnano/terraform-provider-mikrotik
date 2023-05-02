@@ -162,10 +162,10 @@ func testAccInterfaceWireguardExists(resourceName string) resource.TestCheckFunc
 		}
 
 		if interfaceWireguard == nil {
-			return fmt.Errorf("Unable to get the interface wireguard with id: %s", rs.Primary.ID)
+			return fmt.Errorf("Unable to get the interface wireguard with name: %s", rs.Primary.ID)
 		}
 
-		if interfaceWireguard.Id == rs.Primary.ID {
+		if interfaceWireguard.Name == rs.Primary.ID {
 			return nil
 		}
 		return nil
