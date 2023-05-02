@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -18,7 +19,7 @@ func resourceLease() *schema.Resource {
 		UpdateContext: resourceLeaseUpdate,
 		DeleteContext: resourceLeaseDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			StateContext: utils.ImportStateContextUppercaseWrapper(schema.ImportStatePassthroughContext),
 		},
 
 		Schema: map[string]*schema.Schema{
