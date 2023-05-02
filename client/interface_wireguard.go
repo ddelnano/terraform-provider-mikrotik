@@ -27,35 +27,35 @@ func (i *InterfaceWireguard) ActionToCommand(action Action) string {
 }
 
 func (i *InterfaceWireguard) IDField() string {
-	return ".id"
+	return "name"
 }
 
 func (i *InterfaceWireguard) ID() string {
-	return i.Id
+	return i.Name
 }
 
-func (i *InterfaceWireguard) SetID(id string) {
-	i.Id = id
+func (i *InterfaceWireguard) SetID(name string) {
+	i.Name = name
 }
 
 func (i *InterfaceWireguard) AfterAddHook(r *routeros.Reply) {
-	i.Id = r.Done.Map["ret"]
+	i.Name = r.Done.Map["ret"]
 }
 
 func (i *InterfaceWireguard) FindField() string {
-	return ".id"
+	return "name"
 }
 
 func (i *InterfaceWireguard) FindFieldValue() string {
-	return i.Id
+	return i.Name
 }
 
 func (i *InterfaceWireguard) DeleteField() string {
-	return ".id"
+	return "name"
 }
 
 func (i *InterfaceWireguard) DeleteFieldValue() string {
-	return i.Id
+	return i.Name
 }
 
 func (client Mikrotik) AddInterfaceWireguard(i *InterfaceWireguard) (*InterfaceWireguard, error) {
@@ -67,8 +67,8 @@ func (client Mikrotik) AddInterfaceWireguard(i *InterfaceWireguard) (*InterfaceW
 	return res.(*InterfaceWireguard), nil
 }
 
-func (client Mikrotik) FindInterfaceWireguard(id string) (*InterfaceWireguard, error) {
-	res, err := client.Find(&InterfaceWireguard{Id: id})
+func (client Mikrotik) FindInterfaceWireguard(name string) (*InterfaceWireguard, error) {
+	res, err := client.Find(&InterfaceWireguard{Name: name})
 	if err != nil {
 		return nil, err
 	}
@@ -85,6 +85,6 @@ func (client Mikrotik) UpdateInterfaceWireguard(i *InterfaceWireguard) (*Interfa
 	return res.(*InterfaceWireguard), nil
 }
 
-func (client Mikrotik) DeleteInterfaceWireguard(id string) error {
-	return client.Delete(&InterfaceWireguard{Id: id})
+func (client Mikrotik) DeleteInterfaceWireguard(name string) error {
+	return client.Delete(&InterfaceWireguard{Name: name})
 }
