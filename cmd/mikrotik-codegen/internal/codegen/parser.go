@@ -13,41 +13,60 @@ import (
 )
 
 type (
+	// Struct holds information about parsed struct.
 	Struct struct {
+		// Name is a of parsed struct.
 		Name string
-		// Original struct's field name to be used as Mikrotik resource ID
+
+		// MikrotikIDField is a field name which holds MikroTik resource ID.
 		MikrotikIDField string
-		// Client's field to be used as Terraform resource ID
+
+		// TerraformIDField holds a field name which will be used as Terraform resource ID.
 		TerraformIDField string
-		DeleteField      string
-		Fields           []Field
+
+		// DeleteField holds a field name to use when deleting resource on MikroTik system.
+		DeleteField string
+
+		// Fields is a collection of field definitions in the parsed struct.
+		Fields []*Field
 	}
 
+	// Field holds information about particular field in parsed struct.
 	Field struct {
-		OriginalName    string
-		Name            string
-		Type            string
-		ElemType        string
-		Required        bool
-		Optional        bool
-		DefaultValueStr string
-		Computed        bool
+		// OriginalName is an original field name without chnages.
+		OriginalName string
+
+		// Name is a field name defined by struct tag.
+		Name string
+
+		// Required marsk field as `required` in Terraform definition.
+		Required bool
+
+		// Optional marsk field as `optional` in Terraform definition.
+		Optional bool
+
+		// Computed marsk field as `computed` in Terraform definition.
+		Computed bool
+
+		// Type holds a field type.
+		Type string
+
+		// ElemType holds an element type if field type is List or Set
+		ElemType string
 	}
 )
 
 const (
 	codegenTagKey = "codegen"
 
-	optID         = "id"
-	optMikrotikID = "mikrotikID"
-	optDeleteID   = "deleteID"
-	optRequired   = "required"
-	optOptional   = "optional"
-	optDefault    = "default="
-	optType       = "type="
-	optElemType   = "elemType="
-	optComputed   = "computed"
-	optOmit       = "omit"
+	optTerraformID = "terraformID"
+	optMikrotikID  = "mikrotikID"
+	optDeleteID    = "deleteID"
+	optRequired    = "required"
+	optOptional    = "optional"
+	optComputed    = "computed"
+	optElemType    = "elemType="
+	optOmit        = "omit"
 )
 
 // ParseFile parses a .go file with struct declaration.
@@ -158,6 +177,10 @@ func parseStructUsingTags(structNode *ast.StructType) (*Struct, error) {
 		parts := strings.Split(tagValue, ",")
 		name, opts := parts[0], parts[1:]
 
+		if name == "-" {
+			continue
+		}
+
 		field := Field{
 			OriginalName: astField.Names[0].Name,
 			Name:         name,
@@ -166,7 +189,7 @@ func parseStructUsingTags(structNode *ast.StructType) (*Struct, error) {
 		omit := false
 		for _, o := range opts {
 			switch {
-			case o == optID:
+			case o == optTerraformID:
 				if result.TerraformIDField != "" {
 					return nil, fmt.Errorf("failed to set '%s' as Terraform ID field - it is already set to '%s'", field.OriginalName, result.TerraformIDField)
 				}
@@ -176,8 +199,6 @@ func parseStructUsingTags(structNode *ast.StructType) (*Struct, error) {
 					return nil, fmt.Errorf("failed to set '%s' as Mikrotik ID field - it is already set to '%s'", field.OriginalName, result.MikrotikIDField)
 				}
 				result.MikrotikIDField = field.OriginalName
-				// Mikrotik .id field should not appear in Terraform code
-				omit = true
 			case o == optDeleteID:
 				if result.DeleteField != "" {
 					return nil, fmt.Errorf("failed to set '%s' as delete ID field - it is already set to '%s'", field.OriginalName, result.DeleteField)
@@ -187,10 +208,6 @@ func parseStructUsingTags(structNode *ast.StructType) (*Struct, error) {
 				field.Required = true
 			case o == optOptional:
 				field.Optional = true
-			case strings.HasPrefix(o, optDefault):
-				field.DefaultValueStr = strings.TrimPrefix(o, optDefault)
-			case strings.HasPrefix(o, optType):
-				field.Type = strings.TrimPrefix(o, optType)
 			case strings.HasPrefix(o, optElemType):
 				field.ElemType = strings.TrimPrefix(o, optElemType)
 			case o == optComputed:
@@ -202,7 +219,23 @@ func parseStructUsingTags(structNode *ast.StructType) (*Struct, error) {
 		if omit {
 			continue
 		}
-		result.Fields = append(result.Fields, field)
+		if !(field.Computed || field.Required || field.Optional) {
+			field.Optional = true
+		}
+		if field.OriginalName == result.MikrotikIDField {
+			field.Computed = true
+			field.Required = false
+			field.Optional = false
+		}
+
+		result.Fields = append(result.Fields, &field)
+	}
+
+	if result.MikrotikIDField == "" {
+		return nil, fmt.Errorf("MikroTik ID field is not set for any of the fields. Did you forget to mark one with '%s'?", optTerraformID)
+	}
+	if result.TerraformIDField == "" {
+		result.TerraformIDField = result.MikrotikIDField
 	}
 
 	return result, nil

@@ -51,7 +51,7 @@ func testAccBridgeExists(resource string, record *client.Bridge) resource.TestCh
 			return fmt.Errorf("resource %q has empty primary ID in state", resource)
 		}
 		c := client.NewClient(client.GetConfigFromEnv())
-		remoteRecord, err := c.FindBridge(r.Primary.ID)
+		remoteRecord, err := c.FindBridge(r.Primary.Attributes["name"])
 		if err != nil {
 			return err
 		}

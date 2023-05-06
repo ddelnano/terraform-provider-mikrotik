@@ -4,8 +4,9 @@ import (
 	"errors"
 	"go/parser"
 	"go/token"
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParse(t *testing.T) {
@@ -18,53 +19,17 @@ func TestParse(t *testing.T) {
 		expectedError error
 	}{
 		{
-			name: "struct name provided",
-			source: []byte(`
-package testpackage
-
-type DnsRecord struct {
-	Name 			   string` + " `gen:\"name,required\"`" + `
-	GeneratedNumber	   string` + " `gen:\"internal_id,computed\"`" + `
-	Enabled 		   bool` + " `gen:\"enabled,optional\"`" + `
-	ExplicitlyOmitted  bool` + " `gen:\"-,omit\"`" + `
-}
-			`),
-
-			expected: &Struct{
-				Name: "DnsRecord",
-				Fields: []Field{
-					{
-						OriginalName: "Name",
-						Name:         "name",
-						Type:         "string",
-						Required:     true,
-					},
-					{
-						OriginalName: "GeneratedNumber",
-						Name:         "internal_id",
-						Type:         "string",
-						Computed:     true,
-					},
-					{
-						OriginalName: "Enabled",
-						Name:         "enabled",
-						Type:         "bool",
-						Optional:     true,
-					},
-				},
-			},
-		},
-		{
 			name: "terraform and mikrotik id fields are parsed",
 			source: []byte(`
 package testpackage
 
 type DnsRecord struct {
-	ID	 			   string` + " `gen:\"-,mikrotikID\"`" + `
-	Name 			   string` + " `gen:\"name,id,required\"`" + `
-	GeneratedNumber	   string` + " `gen:\"internal_id,computed\"`" + `
-	Enabled 		   bool` + " `gen:\"enabled,optional\"`" + `
-	ExplicitlyOmitted  bool` + " `gen:\"-,omit\"`" + `
+	ID	 			   string` + " `codegen:\"id,mikrotikID\"`" + `
+	Name 			   string` + " `codegen:\"name,required,terraformID\"`" + `
+	GeneratedNumber	   string` + " `codegen:\"internal_id,computed\"`" + `
+	Enabled 		   bool` + " `codegen:\"enabled,optional\"`" + `
+	Omitted			   bool` + " `codegen:\"-\"`" + `
+	ExplicitlyOmitted  bool` + " `codegen:\"-,omit\"`" + `
 }
 			`),
 
@@ -72,7 +37,13 @@ type DnsRecord struct {
 				Name:             "DnsRecord",
 				TerraformIDField: "Name",
 				MikrotikIDField:  "ID",
-				Fields: []Field{
+				Fields: []*Field{
+					{
+						OriginalName: "ID",
+						Name:         "id",
+						Type:         "string",
+						Computed:     true,
+					},
 					{
 						OriginalName: "Name",
 						Name:         "name",
@@ -100,11 +71,11 @@ type DnsRecord struct {
 package testpackage
 
 type DnsRecord struct {
-	ID	 			   string` + " `gen:\"-,mikrotikID\"`" + `
-	Name 			   string` + " `gen:\"name,id,deleteID,required\"`" + `
-	GeneratedNumber	   string` + " `gen:\"internal_id,computed\"`" + `
-	Enabled 		   bool` + " `gen:\"enabled,optional\"`" + `
-	ExplicitlyOmitted  bool` + " `gen:\"-,omit\"`" + `
+	ID	 			   string` + " `codegen:\"id,mikrotikID\"`" + `
+	Name 			   string` + " `codegen:\"name,terraformID,deleteID,required\"`" + `
+	GeneratedNumber	   string` + " `codegen:\"internal_id,computed\"`" + `
+	Enabled 		   bool` + " `codegen:\"enabled,optional\"`" + `
+	ExplicitlyOmitted  bool` + " `codegen:\"-\"`" + `
 }
 			`),
 
@@ -113,7 +84,13 @@ type DnsRecord struct {
 				TerraformIDField: "Name",
 				MikrotikIDField:  "ID",
 				DeleteField:      "Name",
-				Fields: []Field{
+				Fields: []*Field{
+					{
+						OriginalName: "ID",
+						Name:         "id",
+						Type:         "string",
+						Computed:     true,
+					},
 					{
 						OriginalName: "Name",
 						Name:         "name",
@@ -136,47 +113,20 @@ type DnsRecord struct {
 			},
 		},
 		{
-			name: "default values are parsed",
+			name: "mikrotikID is not set",
 			source: []byte(`
 package testpackage
 
 type DnsRecord struct {
-	ID	 			   string` + " `gen:\"-,mikrotikID\"`" + `
-	Name 			   string` + " `gen:\"name,id,deleteID,required\"`" + `
-	GeneratedNumber	   int` + " `gen:\"internal_id,optional,default=10\"`" + `
-	Enabled 		   bool` + " `gen:\"enabled,optional,default=true\"`" + `
-	ExplicitlyOmitted  bool` + " `gen:\"-,omit\"`" + `
+	Id 			   	   string` + " `codegen:\"id\"`" + `
+	Name 			   string` + " `codegen:\"name,terraformID,required\"`" + `
+	GeneratedNumber	   string` + " `codegen:\"internal_id,computed\"`" + `
+	Enabled 		   bool` + " `codegen:\"enabled,id,optional\"`" + `
+	ExplicitlyOmitted  bool` + " `codegen:\"-,omit\"`" + `
 }
 			`),
 
-			expected: &Struct{
-				Name:             "DnsRecord",
-				TerraformIDField: "Name",
-				MikrotikIDField:  "ID",
-				DeleteField:      "Name",
-				Fields: []Field{
-					{
-						OriginalName: "Name",
-						Name:         "name",
-						Type:         "string",
-						Required:     true,
-					},
-					{
-						OriginalName:    "GeneratedNumber",
-						Name:            "internal_id",
-						Type:            "int",
-						Optional:        true,
-						DefaultValueStr: "10",
-					},
-					{
-						OriginalName:    "Enabled",
-						Name:            "enabled",
-						Type:            "bool",
-						Optional:        true,
-						DefaultValueStr: "true",
-					},
-				},
-			},
+			expectedError: errors.New(""),
 		},
 		{
 			name: "terraform id field set multiple times",
@@ -184,10 +134,11 @@ type DnsRecord struct {
 package testpackage
 
 type DnsRecord struct {
-	Name 			   string` + " `gen:\"name,id,required\"`" + `
-	GeneratedNumber	   string` + " `gen:\"internal_id,computed\"`" + `
-	Enabled 		   bool` + " `gen:\"enabled,id,optional\"`" + `
-	ExplicitlyOmitted  bool` + " `gen:\"-,omit\"`" + `
+	Id 			   	   string` + " `codegen:\"id,mikrotikID\"`" + `
+	Name 			   string` + " `codegen:\"name,terraformID,required\"`" + `
+	GeneratedNumber	   string` + " `codegen:\"internal_id,computed\"`" + `
+	Enabled 		   bool` + " `codegen:\"enabled,terraformID,optional\"`" + `
+	ExplicitlyOmitted  bool` + " `codegen:\"-,omit\"`" + `
 }
 			`),
 
@@ -199,11 +150,11 @@ type DnsRecord struct {
 package testpackage
 
 type DnsRecord struct {
-	ID 				   string` + " `gen:\"name,id,mikrotikID,required\"`" + `
-	Name 			   string` + " `gen:\"name,mikrotikID,required\"`" + `
-	GeneratedNumber	   string` + " `gen:\"internal_id,computed\"`" + `
-	Enabled 		   bool` + " `gen:\"enabled,optional\"`" + `
-	ExplicitlyOmitted  bool` + " `gen:\"-,omit\"`" + `
+	ID 				   string` + " `codegen:\"id,mikrotikID\"`" + `
+	Name 			   string` + " `codegen:\"name,mikrotikID,required\"`" + `
+	GeneratedNumber	   string` + " `codegen:\"internal_id,computed\"`" + `
+	Enabled 		   bool` + " `codegen:\"enabled,optional\"`" + `
+	ExplicitlyOmitted  bool` + " `codegen:\"-,omit\"`" + `
 }
 			`),
 
@@ -215,11 +166,11 @@ type DnsRecord struct {
 package testpackage
 
 type DnsRecord struct {
-	ID 				   string` + " `gen:\"name,id,required\"`" + `
-	Name 			   string` + " `gen:\"name,mikrotikID,deleteID,required\"`" + `
-	GeneratedNumber	   string` + " `gen:\"internal_id,deleteID,computed\"`" + `
-	Enabled 		   bool` + " `gen:\"enabled,optional\"`" + `
-	ExplicitlyOmitted  bool` + " `gen:\"-,omit\"`" + `
+	ID 				   string` + " `codegen:\"id,required\"`" + `
+	Name 			   string` + " `codegen:\"name,mikrotikID,deleteID,required\"`" + `
+	GeneratedNumber	   string` + " `codegen:\"internal_id,deleteID,computed\"`" + `
+	Enabled 		   bool` + " `codegen:\"enabled,optional\"`" + `
+	ExplicitlyOmitted  bool` + " `codegen:\"-,omit\"`" + `
 }
 			`),
 
@@ -241,15 +192,7 @@ type DnsRecord struct {
 			if err != nil {
 				return
 			}
-			if !reflect.DeepEqual(tc.expected, result) {
-				t.Errorf(`
-				objects differ:
-					wanted:
-						%+#v
-					got:
-						%+#v
-					`, tc.expected, result)
-			}
+			assert.Equal(t, tc.expected, result)
 		})
 	}
 }
