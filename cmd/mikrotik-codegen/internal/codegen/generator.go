@@ -9,14 +9,6 @@ import (
 )
 
 var (
-	// we should find a better (typed) way to represent this mapping
-	stringTypeToTerraformType = map[string]string{
-		"slice":  "List",
-		"string": "String",
-		"bool":   "Bool",
-		"int":    "Int64",
-	}
-
 	defaultImports = []string{
 		"context",
 		"github.com/ddelnano/terraform-provider-mikrotik/client",
@@ -44,8 +36,8 @@ type (
 		Optional      bool
 		Computed      bool
 		MikrotikField *Field
-		Type          string
-		ElemType      string
+		Type          Type
+		ElemType      Type
 	}
 
 	templateData struct {
@@ -171,9 +163,9 @@ func convertToTerraformDefinition(fields []*Field) ([]*terraformField, error) {
 
 	for _, f := range fields {
 		fieldType := typeToTerraformType(f.Type)
-		elemType := "String"
+		elemType := UnknownType
 		// currently, only list supports element typing
-		if fieldType == "List" || fieldType == "Set" {
+		if fieldType.Is(ListType) || fieldType.Is(SetType) {
 			elemType = typeToTerraformType(f.ElemType)
 		}
 		result = append(result, &terraformField{
@@ -191,12 +183,19 @@ func convertToTerraformDefinition(fields []*Field) ([]*terraformField, error) {
 	return result, nil
 }
 
-func typeToTerraformType(typ string) string {
-	if t, ok := stringTypeToTerraformType[typ]; ok {
-		return t
+func typeToTerraformType(typ string) Type {
+	switch typ {
+	case "slice":
+		return ListType
+	case "bool":
+		return BoolType
+	case "int":
+		return Int64Type
+	case "string":
+		return StringType
 	}
 
-	return stringTypeToTerraformType["string"]
+	return UnknownType
 }
 
 func writeWrapper(w sourceWriter, data []byte) error {

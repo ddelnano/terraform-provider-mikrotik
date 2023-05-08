@@ -49,7 +49,7 @@ func (s *{{$resourceStructName}}) Schema(_ context.Context, _ resource.SchemaReq
 		Description: "Creates a MikroTik {{.ResourceName}}.",
 		Attributes: map[string]schema.Attribute{
 			{{range .Fields -}}
-			"{{.AttributeName}}": schema.{{.Type}}Attribute{
+			"{{.AttributeName}}": schema.{{.Type.Name}}Attribute{
 				Required: {{.Required}},
 				Optional: {{.Optional}},
 				Computed: {{.Computed}},
@@ -160,7 +160,7 @@ func (r *{{$resourceStructName}}) ImportState(ctx context.Context, req resource.
 
 type {{$resourceStructName}}Model struct {
 	{{range .Fields -}}
-	{{.Name}}        tftypes.{{.Type}} ` + "`" + `tfsdk:"{{.AttributeName}}"` + "`" + `
+	{{.Name}}        tftypes.{{.Type.Name}} ` + "`" + `tfsdk:"{{.AttributeName}}"` + "`" + `
 	{{end}}
 }
 
@@ -172,7 +172,7 @@ func {{.ResourceName | firstLower}}ToModel(r *client.{{.ResourceName}}, m *{{$re
 	}
 
 	{{range .Fields -}}
-	m.{{.Name}} = tftypes.{{.Type}}Value(r.{{.MikrotikField.OriginalName}})
+	m.{{.Name}} = tftypes.{{.Type.Name}}Value(r.{{.MikrotikField.OriginalName}})
 	{{end}}
 
 	return diags
@@ -181,7 +181,7 @@ func {{.ResourceName | firstLower}}ToModel(r *client.{{.ResourceName}}, m *{{$re
 func modelTo{{.ResourceName}}(m *{{$resourceStructName}}Model) *client.{{.ResourceName}} {
 	return &client.{{.ResourceName}}{
 	{{range .Fields -}}
-		{{.MikrotikField.OriginalName}}: m.{{.Name}}.Value{{.Type}}(),
+		{{.MikrotikField.OriginalName}}: m.{{.Name}}.Value{{.Type.Name}}(),
 	{{end}}
 	}
 }
