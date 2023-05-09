@@ -39,13 +39,13 @@ type (
 		// Name is a field name defined by struct tag.
 		Name string
 
-		// Required marsk field as `required` in Terraform definition.
+		// Required marks field as `required` in Terraform definition.
 		Required bool
 
-		// Optional marsk field as `optional` in Terraform definition.
+		// Optional marks field as `optional` in Terraform definition.
 		Optional bool
 
-		// Computed marsk field as `computed` in Terraform definition.
+		// Computed marks field as `computed` in Terraform definition.
 		Computed bool
 
 		// Type holds a field type.
@@ -232,7 +232,7 @@ func parseStructUsingTags(structNode *ast.StructType) (*Struct, error) {
 	}
 
 	if result.MikrotikIDField == "" {
-		return nil, fmt.Errorf("MikroTik ID field is not set for any of the fields. Did you forget to mark one with '%s'?", optTerraformID)
+		return nil, fmt.Errorf("MikroTik ID field is not set for any of the fields. Did you forget to mark one with '%s'?", optMikrotikID)
 	}
 	if result.TerraformIDField == "" {
 		result.TerraformIDField = result.MikrotikIDField

@@ -55,12 +55,6 @@ func realMain(args []string) error {
 	if err != nil {
 		return err
 	}
-	if s.TerraformIDField == "" {
-		return errors.New("Terraform ID field is not set to any of struct's fields")
-	}
-	if s.MikrotikIDField == "" {
-		return errors.New("Mikrotik ID field is not set to any of struct's fields")
-	}
 
 	if config.StructName == "" {
 		config.StructName = s.Name
