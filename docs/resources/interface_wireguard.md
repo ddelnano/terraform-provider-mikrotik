@@ -1,6 +1,8 @@
 # mikrotik_interface_wireguard (Resource)
 Creates a Mikrotik interface_wireguard.
 
+!> This resource is supported for RouterOS v7+.
+
 ## Example Usage
 ```terraform
 resource "mikrotik_interface_wireguard" "interface_wireguard" {
