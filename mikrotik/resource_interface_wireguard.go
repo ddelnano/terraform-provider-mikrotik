@@ -92,12 +92,12 @@ func (i *interfaceWireguard) Schema(_ context.Context, _ resource.SchemaRequest,
 			"public_key": schema.StringAttribute{
 				Optional:    false,
 				Computed:    true,
-				Description: "",
+				Description: "A base64 public key is calculated from the private key.",
 			},
 			"running": schema.BoolAttribute{
 				Optional:    false,
 				Computed:    true,
-				Description: "",
+				Description: "Whether the interface is running.",
 			},
 		},
 	}
