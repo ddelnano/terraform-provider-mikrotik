@@ -1,0 +1,13 @@
+---
+
+version: "2.4"
+
+services:
+  routeros:
+    image: evilfreelancer/docker-routeros:${ROUTEROS_VERSION:-6.48.3}
+    ports:
+      - 127.0.0.1:8728:8728
+    volumes:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - "NET_ADMIN"
