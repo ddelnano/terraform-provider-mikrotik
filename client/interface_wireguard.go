@@ -27,19 +27,19 @@ func (i *InterfaceWireguard) ActionToCommand(action Action) string {
 }
 
 func (i *InterfaceWireguard) IDField() string {
-	return "name"
+	return ".id"
 }
 
 func (i *InterfaceWireguard) ID() string {
-	return i.Name
+	return i.Id
 }
 
-func (i *InterfaceWireguard) SetID(name string) {
-	i.Name = name
+func (i *InterfaceWireguard) SetID(id string) {
+	i.Id = id
 }
 
 func (i *InterfaceWireguard) AfterAddHook(r *routeros.Reply) {
-	i.Name = r.Done.Map["ret"]
+	i.Id = r.Done.Map["ret"]
 }
 
 func (i *InterfaceWireguard) FindField() string {
@@ -51,7 +51,7 @@ func (i *InterfaceWireguard) FindFieldValue() string {
 }
 
 func (i *InterfaceWireguard) DeleteField() string {
-	return "name"
+	return "numbers"
 }
 
 func (i *InterfaceWireguard) DeleteFieldValue() string {
