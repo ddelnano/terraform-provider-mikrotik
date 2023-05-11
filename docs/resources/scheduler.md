@@ -21,13 +21,13 @@ resource "mikrotik_scheduler" "scheduler" {
 
 ### Optional
 
-- `interval` (Number) Interval between two script executions, if time interval is set to zero, the script is only executed at its start time, otherwise it is executed repeatedly at the time interval is specified. Default: `0`.
+- `interval` (Number) Interval between two script executions, if time interval is set to zero, the script is only executed at its start time, otherwise it is executed repeatedly at the time interval is specified.
+- `start_date` (String) Date of the first script execution.
+- `start_time` (String) Time of the first script execution.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
-- `start_date` (String) Date of the first script execution.
-- `start_time` (String) Time of the first script execution.
+- `id` (String) Identifier of this resource assigned by RouterOS
 
 ## Import
 Import is supported using the following syntax:
