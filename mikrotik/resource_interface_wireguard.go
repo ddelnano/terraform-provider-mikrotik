@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -13,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -49,7 +51,7 @@ func (i *interfaceWireguard) Metadata(_ context.Context, req resource.MetadataRe
 // Schema defines the schema for the resource.
 func (i *interfaceWireguard) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Creates a Mikrotik interface wireguard.",
+		Description: "Creates a Mikrotik interface wireguard only supported by RouterOS v7+.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -79,14 +81,18 @@ func (i *interfaceWireguard) Schema(_ context.Context, _ resource.SchemaRequest,
 				Description: "Port for WireGuard service to listen on for incoming sessions.",
 			},
 			"mtu": schema.Int64Attribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     int64default.StaticInt64(1420),
+				Optional: true,
+				Computed: true,
+				Default:  int64default.StaticInt64(1420),
+				Validators: []validator.Int64{
+					int64validator.Between(0, 65536),
+				},
 				Description: "Layer3 Maximum transmission unit.",
 			},
 			"private_key": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
+				Sensitive:   true,
 				Description: "A base64 private key. If not specified, it will be automatically generated upon interface creation.",
 			},
 			"public_key": schema.StringAttribute{

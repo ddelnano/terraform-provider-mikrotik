@@ -53,19 +53,21 @@ func TestAddFindDeleteInterfaceWireguard(t *testing.T) {
 	if !reflect.DeepEqual(created, found) {
 		t.Error("expected created and found resources to be equal, but they don't")
 	}
-	err = c.Delete(found.(Resource))
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
+	defer func() {
+		err = c.Delete(found.(Resource))
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
 
-	_, err = c.Find(findInterface)
-	if err == nil {
-		t.Errorf("expected error, got nothing")
-		return
-	}
+		_, err = c.Find(findInterface)
+		if err == nil {
+			t.Errorf("expected error, got nothing")
+			return
+		}
 
-	target := &NotFound{}
-	if !errors.As(err, &target) {
-		t.Errorf("expected error to be of type %T, got %T", &NotFound{}, err)
-	}
+		target := &NotFound{}
+		if !errors.As(err, &target) {
+			t.Errorf("expected error to be of type %T, got %T", &NotFound{}, err)
+		}
+	}()
 }
