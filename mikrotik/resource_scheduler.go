@@ -47,7 +47,7 @@ func (s *scheduler) Metadata(_ context.Context, req resource.MetadataRequest, re
 // Schema defines the schema for the resource.
 func (s *scheduler) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Creates a Mikrotik scheduler.",
+		Description: "Creates a Mikrotik scheduler. this will fail",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
