@@ -71,8 +71,8 @@ const (
 
 // ParseFile parses a .go file with struct declaration.
 //
-// This functions searches for struct named `structName` or, in case of empty `structName`,
-// finds first struct after the line where '//go:generate' is placed.
+// This functions searches for struct definition `structName` and parses it.
+// If `structName` is empty, function stops at first struct definition in the file right after `startLine`.
 func ParseFile(filename string, startLine int, structName string) (*Struct, error) {
 	_, err := os.Stat(filename)
 	if err != nil {

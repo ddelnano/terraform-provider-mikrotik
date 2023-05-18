@@ -40,7 +40,7 @@ func (r *{{$resourceStructName}}) Configure(_ context.Context, req resource.Conf
 
 // Metadata returns the resource type name.
 func (r *{{$resourceStructName}}) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
-	resp.TypeName = req.ProviderTypeName + "_{{.ResourceName | lowercase}}"
+	resp.TypeName = req.ProviderTypeName + "_{{.ResourceName | snakeCase}}"
 }
 
 // Schema defines the schema for the resource.
@@ -54,11 +54,11 @@ func (s *{{$resourceStructName}}) Schema(_ context.Context, _ resource.SchemaReq
 				Optional: {{.Optional}},
 				Computed: {{.Computed}},
 				{{if .Computed -}}
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+				PlanModifiers: []planmodifier.{{.Type.Name}}{
+					{{.Type.Name | lowercase}}planmodifier.UseStateForUnknown(),
 				},
 				{{- end}}
-				Description: "Identifier of this resource assigned by RouterOS",
+				Description: "",
 			},
 			{{end}}
 		},

@@ -6,6 +6,8 @@ import (
 	"io"
 	"strings"
 	"text/template"
+
+	"github.com/ddelnano/terraform-provider-mikrotik/cmd/mikrotik-codegen/internal/utils"
 )
 
 var (
@@ -89,6 +91,7 @@ func generateResource(w sourceWriter, s Struct) error {
 	t := template.New("resource")
 	t.Funcs(template.FuncMap{
 		"lowercase": strings.ToLower,
+		"snakeCase": utils.ToSnakeCase,
 		"firstLower": func(s string) string {
 			if len(s) < 1 {
 				return s

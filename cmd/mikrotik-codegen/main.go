@@ -30,11 +30,6 @@ func main() {
 	os.Exit(0)
 }
 
-// todo:
-//
-//	omit fields by default: Id
-//	different fields for update/delete client funcs
-//		(sometimes it is Id, sometimes it's Name, etc)
 func realMain(args []string) error {
 	config, err := parseConfig(args)
 	if err != nil {
@@ -56,18 +51,11 @@ func realMain(args []string) error {
 		return err
 	}
 
+	// If struct name is not provider, use one found in the parsed file.
+	// See `ParseFile()` for details.
 	if config.StructName == "" {
 		config.StructName = s.Name
 	}
-	// if destination was not provided via args, build it using struct name
-	// the initialization is delayed, because config.StructName might not be provided, so we get it after actual file parsing
-	// skip this not to accidently rewrite existing file
-	// if config.DestFile == "" {
-	// 	config.DestFile, err = filepath.Abs(path.Join("../mikrotik", "resource_"+utils.ToSnakeCase(config.StructName)) + ".go")
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
 
 	if config.DestFile == "" {
 		return errors.New("destination file must be set via flags or 'go:generate' mode must be used")
@@ -98,7 +86,7 @@ func parseConfig(args []string) (*Configuration, error) {
 		destFile   = flag.String("dest", "-", "File to write result to. Default: write to stdout.")
 		srcFile    = flag.String("src", "", "Source file to parse struct from.")
 		structName = flag.String("struct", "", "Name of a struct to process.")
-		formatCode = flag.Bool("formatCode", true, "Whether to format resulting code.")
+		formatCode = flag.Bool("formatCode", true, "Whether to format resulting code. Useful for debugging to see raw source code right after generation.")
 	)
 
 	if err := flag.CommandLine.Parse(args); err != nil {
