@@ -3,6 +3,8 @@ package utils
 import (
 	"testing"
 
+	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -74,6 +76,78 @@ func TestCopyStruct(t *testing.T) {
 				Name:             "field name",
 				DestinationField: 20,
 				Items:            []string{"one", "two"},
+			},
+		},
+		{
+			name: "custom field to regular",
+			src: client.BridgeVlan{
+				Id:       "identifier",
+				Bridge:   "bridge1",
+				Tagged:   types.MikrotikList{"tagged1", "tagged2"},
+				Untagged: types.MikrotikList{"untagged1", "untagged2"},
+				VlanIds:  types.MikrotikIntList{3, 4, 5},
+			},
+			dest: &struct {
+				Id         string
+				Bridge     string
+				Tagged     []string
+				Untagged   []string
+				VlanIds    []int
+				ExtraField string
+			}{
+				Id:         "identifier old",
+				Bridge:     "bridge old",
+				Tagged:     []string{"tagged old"},
+				Untagged:   []string{"untagged old"},
+				VlanIds:    []int{2},
+				ExtraField: "unchanged",
+			},
+			expected: &struct {
+				Id         string
+				Bridge     string
+				Tagged     []string
+				Untagged   []string
+				VlanIds    []int
+				ExtraField string
+			}{
+				Id:         "identifier",
+				Bridge:     "bridge1",
+				Tagged:     []string{"tagged1", "tagged2"},
+				Untagged:   []string{"untagged1", "untagged2"},
+				VlanIds:    []int{3, 4, 5},
+				ExtraField: "unchanged",
+			},
+		},
+		{
+			name: "regular type to custom field",
+			src: struct {
+				Id         string
+				Bridge     string
+				Tagged     []string
+				Untagged   []string
+				VlanIds    []int
+				ExtraField string
+			}{
+				Id:         "identifier new",
+				Bridge:     "bridge new",
+				Tagged:     []string{"tagged new"},
+				Untagged:   []string{"untagged new"},
+				VlanIds:    []int{2},
+				ExtraField: "extra field",
+			},
+			dest: &client.BridgeVlan{
+				Id:       "identifier",
+				Bridge:   "bridge1",
+				Tagged:   types.MikrotikList{"tagged1", "tagged2"},
+				Untagged: types.MikrotikList{"untagged1", "untagged2"},
+				VlanIds:  types.MikrotikIntList{3, 4, 5},
+			},
+			expected: &client.BridgeVlan{
+				Id:       "identifier new",
+				Bridge:   "bridge new",
+				Tagged:   types.MikrotikList{"tagged new"},
+				Untagged: types.MikrotikList{"untagged new"},
+				VlanIds:  types.MikrotikIntList{2},
 			},
 		},
 		{
