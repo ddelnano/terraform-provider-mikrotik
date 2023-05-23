@@ -38,35 +38,28 @@ func TestAddFindDeleteInterfaceWireguard(t *testing.T) {
 		return
 	}
 	defer func() {
-		findInterface := &InterfaceWireguard{}
-		findInterface.Name = name
-		found, err := c.Find(findInterface)
-		if err != nil {
-			t.Errorf("expected no error, got %v", err)
-			return
-		}
-
-		if _, ok := found.(Resource); !ok {
-			t.Error("expected found resource to implement Resource interface, but it doesn't")
-			return
-		}
-		if !reflect.DeepEqual(created, found) {
-			t.Error("expected created and found resources to be equal, but they don't")
-		}
-		err = c.Delete(found.(Resource))
+		err = c.Delete(interfaceWireguard)
 		if err != nil {
 			t.Errorf("expected no error, got %v", err)
 		}
-
-		_, err = c.Find(findInterface)
-		if err == nil {
-			t.Errorf("expected error, got nothing")
-			return
-		}
-
-		target := &NotFound{}
-		if !errors.As(err, &target) {
-			t.Errorf("expected error to be of type %T, got %T", &NotFound{}, err)
+		expected := &NotFound{}
+		if _, err := c.Find(interfaceWireguard); err == nil || !errors.As(err, &expected) {
+			t.Error(err)
 		}
 	}()
+	findInterface := &InterfaceWireguard{}
+	findInterface.Name = name
+	found, err := c.Find(findInterface)
+	if err != nil {
+		t.Errorf("expected no error, got %v", err)
+		return
+	}
+
+	if _, ok := found.(Resource); !ok {
+		t.Error("expected found resource to implement Resource interface, but it doesn't")
+		return
+	}
+	if !reflect.DeepEqual(created, found) {
+		t.Error("expected created and found resources to be equal, but they don't")
+	}
 }
