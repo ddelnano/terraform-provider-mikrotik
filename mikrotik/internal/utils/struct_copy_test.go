@@ -5,12 +5,13 @@ import (
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
+	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCopyStruct(t *testing.T) {
-
 	testCases := []struct {
 		name        string
 		src         interface{}
@@ -172,14 +173,82 @@ func TestCopyStruct(t *testing.T) {
 			},
 			expectError: true,
 		},
+		{
+			name: "core type to terraform type",
+			src: struct {
+				String     string
+				Int        int
+				ExtraField int
+				Boolean    bool
+				Float32    float32
+				Float64    float64
+				IntList    []int
+				StringList []string
+			}{
+				String:     "name new",
+				Int:        10,
+				ExtraField: 30,
+				Boolean:    true,
+				IntList:    []int{10, 20, 30},
+				StringList: []string{"new value"},
+			},
+			dest: &struct {
+				String        tftypes.String
+				Int           tftypes.Int64
+				UnmappedField tftypes.String
+				Boolean       tftypes.Bool
+				IntList       tftypes.List
+				StringList    tftypes.List
+			}{
+				String:        tftypes.StringValue("field name"),
+				Int:           tftypes.Int64Value(20),
+				UnmappedField: tftypes.StringValue("unmapped field"),
+				Boolean:       tftypes.BoolValue(false),
+				IntList: tftypes.ListValueMust(tftypes.Int64Type,
+					[]attr.Value{
+						tftypes.Int64Value(2),
+						tftypes.Int64Value(4),
+						tftypes.Int64Value(5),
+					}),
+				StringList: tftypes.ListValueMust(tftypes.StringType,
+					[]attr.Value{
+						tftypes.StringValue("old value 1"),
+						tftypes.StringValue("old value 2"),
+					}),
+			},
+			expected: &struct {
+				String        tftypes.String
+				Int           tftypes.Int64
+				UnmappedField tftypes.String
+				Boolean       tftypes.Bool
+				IntList       tftypes.List
+				StringList    tftypes.List
+			}{
+				String:        tftypes.StringValue("name new"),
+				Int:           tftypes.Int64Value(10),
+				UnmappedField: tftypes.StringValue("unmapped field"),
+				Boolean:       tftypes.BoolValue(true),
+				IntList: tftypes.ListValueMust(tftypes.Int64Type,
+					[]attr.Value{
+						tftypes.Int64Value(10),
+						tftypes.Int64Value(20),
+						tftypes.Int64Value(30),
+					}),
+				StringList: tftypes.ListValueMust(tftypes.StringType,
+					[]attr.Value{
+						tftypes.StringValue("new value"),
+					}),
+			},
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			err := CopyStruct(tc.src, tc.dest)
-			require.True(t, (err != nil) == tc.expectError, "expected err to be %v but got %v", tc.expectError, err)
 			if tc.expectError {
+				require.Error(t, err)
 				return
 			}
+			require.NoError(t, err)
 			assert.Equal(t, tc.expected, tc.dest)
 		})
 	}
