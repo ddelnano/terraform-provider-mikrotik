@@ -19,12 +19,15 @@ jobs:
         # Test against latest stable release, v6 beta and v7 beta
         routeros: ["6.48.3", "6.49beta54"]
         legacy_bgp_support: [true]
+        interface_wireguard_support: [false]
         include:
           - experimental: true
             go: 1.18
             os: ubuntu-latest
             routeros: "latest"
             legacy_bgp_support: false
+            interface_wireguard_support: true
+
     steps:
       - name: Set up Go
         uses: actions/setup-go@v1
@@ -52,6 +55,7 @@ jobs:
           MIKROTIK_PASSWORD: ''
           TF_ACC: 1
           LEGACY_BGP_SUPPORT: ${{ matrix.legacy_bgp_support }}
+          INTERFACE_WIREGUARD_SUPPORT: ${{ matrix.interface_wireguard_support }}
 
       - name: Run client tests
         run: make testclient
@@ -61,6 +65,7 @@ jobs:
           MIKROTIK_PASSWORD: ''
           TF_ACC: 1
           LEGACY_BGP_SUPPORT: ${{ matrix.legacy_bgp_support }}
+          INTERFACE_WIREGUARD_SUPPORT: ${{ matrix.interface_wireguard_support }}
 
     services:
       routeros:
