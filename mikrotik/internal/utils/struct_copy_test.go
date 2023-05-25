@@ -240,6 +240,67 @@ func TestCopyStruct(t *testing.T) {
 					}),
 			},
 		},
+		{
+			name: "terraform type to core type",
+			src: struct {
+				String        tftypes.String
+				Int           tftypes.Int64
+				UnmappedField tftypes.String
+				Boolean       tftypes.Bool
+				IntList       tftypes.List
+				StringList    tftypes.List
+			}{
+				String:        tftypes.StringValue("new field name"),
+				Int:           tftypes.Int64Value(20),
+				UnmappedField: tftypes.StringValue("unmapped field"),
+				Boolean:       tftypes.BoolValue(true),
+				IntList: tftypes.ListValueMust(tftypes.Int64Type,
+					[]attr.Value{
+						tftypes.Int64Value(2),
+						tftypes.Int64Value(4),
+						tftypes.Int64Value(5),
+					}),
+				StringList: tftypes.ListValueMust(tftypes.StringType,
+					[]attr.Value{
+						tftypes.StringValue("new value 1"),
+						tftypes.StringValue("new value 2"),
+					}),
+			},
+			dest: &struct {
+				String     string
+				Int        int
+				ExtraField int
+				Boolean    bool
+				Float32    float32
+				Float64    float64
+				IntList    []int
+				StringList []string
+			}{
+				String:     "name old",
+				Int:        10,
+				ExtraField: 30,
+				Boolean:    false,
+				IntList:    []int{10, 20, 30},
+				StringList: []string{"old value"},
+			},
+			expected: &struct {
+				String     string
+				Int        int
+				ExtraField int
+				Boolean    bool
+				Float32    float32
+				Float64    float64
+				IntList    []int
+				StringList []string
+			}{
+				String:     "new field name",
+				Int:        20,
+				ExtraField: 30,
+				Boolean:    true,
+				IntList:    []int{2, 4, 5},
+				StringList: []string{"new value 1", "new value 2"},
+			},
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
