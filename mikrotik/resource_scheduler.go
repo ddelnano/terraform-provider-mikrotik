@@ -5,7 +5,8 @@ import (
 	"fmt"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
+	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -96,20 +97,13 @@ func (s *scheduler) Create(ctx context.Context, req resource.CreateRequest, resp
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	var target client.Scheduler
-	if err := utils.CopyStruct(plan, &target); err != nil {
-		resp.Diagnostics.AddError("creation failed", err.Error())
-		return
-	}
-	created, err := s.client.Add(&target)
+	created, err := s.client.AddScheduler(modelToScheduler(&plan))
 	if err != nil {
 		resp.Diagnostics.AddError("creation failed", err.Error())
 		return
 	}
-	if err := utils.CopyStruct(created, &plan); err != nil {
-		resp.Diagnostics.AddError("cannot map created resource to Terraform model", err.Error())
-	}
 
+	resp.Diagnostics.Append(schedulerToModel(created, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -137,12 +131,11 @@ func (s *scheduler) Read(ctx context.Context, req resource.ReadRequest, resp *re
 		return
 	}
 
-	if err := utils.CopyStruct(resource, &state); err != nil {
-		resp.Diagnostics.AddError("cannot map resource to Terraform model", err.Error())
+	resp.Diagnostics.Append(schedulerToModel(resource, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
@@ -153,23 +146,21 @@ func (s *scheduler) Update(ctx context.Context, req resource.UpdateRequest, resp
 		return
 	}
 
-	var target client.Scheduler
-	if err := utils.CopyStruct(plan, &target); err != nil {
-		resp.Diagnostics.AddError("cannot map planned model to resource struct", err.Error())
-		return
-	}
-	updated, err := s.client.Update(&target)
+	updated, err := s.client.UpdateScheduler(modelToScheduler(&plan))
 	if err != nil {
 		resp.Diagnostics.AddError("update failed", err.Error())
 		return
 	}
 
-	if err := utils.CopyStruct(updated, &plan); err != nil {
-		resp.Diagnostics.AddError("cannot map resource to Terraform model", err.Error())
+	resp.Diagnostics.Append(schedulerToModel(updated, &plan)...)
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
@@ -200,30 +191,30 @@ type schedulerModel struct {
 	Interval  tftypes.Int64  `tfsdk:"interval"`
 }
 
-// func schedulerToModel(s *client.Scheduler, m *schedulerModel) diag.Diagnostics {
-// 	var diags diag.Diagnostics
-// 	if s == nil {
-// 		diags.AddError("Scheduler cannot be nil", "Cannot build model from nil object")
-// 		return diags
-// 	}
+func schedulerToModel(s *client.Scheduler, m *schedulerModel) diag.Diagnostics {
+	var diags diag.Diagnostics
+	if s == nil {
+		diags.AddError("Scheduler cannot be nil", "Cannot build model from nil object")
+		return diags
+	}
 
-// 	m.ID = tftypes.StringValue(s.Id)
-// 	m.Name = tftypes.StringValue(s.Name)
-// 	m.Interval = tftypes.Int64Value(int64(s.Interval))
-// 	m.OnEvent = tftypes.StringValue(s.OnEvent)
-// 	m.StartDate = tftypes.StringValue(s.StartDate)
-// 	m.StartTime = tftypes.StringValue(s.StartTime)
+	m.ID = tftypes.StringValue(s.Id)
+	m.Name = tftypes.StringValue(s.Name)
+	m.Interval = tftypes.Int64Value(int64(s.Interval))
+	m.OnEvent = tftypes.StringValue(s.OnEvent)
+	m.StartDate = tftypes.StringValue(s.StartDate)
+	m.StartTime = tftypes.StringValue(s.StartTime)
 
-// 	return diags
-// }
+	return diags
+}
 
-// func modelToScheduler(m *schedulerModel) *client.Scheduler {
-// 	return &client.Scheduler{
-// 		Id:        m.ID.ValueString(),
-// 		Name:      m.Name.ValueString(),
-// 		OnEvent:   m.OnEvent.ValueString(),
-// 		StartDate: m.StartDate.ValueString(),
-// 		StartTime: m.StartTime.ValueString(),
-// 		Interval:  types.MikrotikDuration(m.Interval.ValueInt64()),
-// 	}
-// }
+func modelToScheduler(m *schedulerModel) *client.Scheduler {
+	return &client.Scheduler{
+		Id:        m.ID.ValueString(),
+		Name:      m.Name.ValueString(),
+		OnEvent:   m.OnEvent.ValueString(),
+		StartDate: m.StartDate.ValueString(),
+		StartTime: m.StartTime.ValueString(),
+		Interval:  types.MikrotikDuration(m.Interval.ValueInt64()),
+	}
+}
