@@ -15,10 +15,10 @@ type (
 	DeleteFunc func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse)
 )
 
-// GenericCreateResourceFunc creates the resource and sets the initial Terraform state.
+// GenericCreateResource creates the resource and sets the initial Terraform state.
 //
 // terraformModel and mikrotikModel must be passed as pointers
-func GenericCreateResourceFunc(terraformModel interface{}, mikrotikModel client.Resource, client *client.Mikrotik) CreateFunc {
+func GenericCreateResource(terraformModel interface{}, mikrotikModel client.Resource, client *client.Mikrotik) CreateFunc {
 	return func(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 
 		diags := req.Plan.Get(ctx, terraformModel)
@@ -54,6 +54,10 @@ func GenericReadResource(terraformModel interface{}, mikrotikModel client.Resour
 	return func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 		resp.Diagnostics.Append(req.State.Get(ctx, terraformModel)...)
 		if resp.Diagnostics.HasError() {
+			return
+		}
+		if err := utils.CopyStruct(terraformModel, mikrotikModel); err != nil {
+			resp.Diagnostics.AddError("Cannot copy model: Terraform -> MikroTik", err.Error())
 			return
 		}
 
@@ -107,6 +111,11 @@ func GenericDeleteResource(terraformModel interface{}, mikrotikModel client.Reso
 	return func(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 		resp.Diagnostics.Append(req.State.Get(ctx, terraformModel)...)
 		if resp.Diagnostics.HasError() {
+			return
+		}
+
+		if err := utils.CopyStruct(terraformModel, mikrotikModel); err != nil {
+			resp.Diagnostics.AddError("Cannot copy model: Terraform -> MikroTik", err.Error())
 			return
 		}
 
