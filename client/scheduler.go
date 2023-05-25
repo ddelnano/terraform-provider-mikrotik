@@ -1,6 +1,9 @@
 package client
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
 )
 
@@ -13,55 +16,49 @@ type Scheduler struct {
 	Interval  types.MikrotikDuration `mikrotik:"interval"`
 }
 
-func (s *Scheduler) ActionToCommand(action Action) string {
-	return map[Action]string{
-		Add:    "/system/scheduler/add",
-		Find:   "/system/scheduler/print",
-		List:   "/system/scheduler/print",
-		Update: "/system/scheduler/set",
-		Delete: "/system/scheduler/remove",
-	}[action]
-}
-
-func (s *Scheduler) IDField() string {
-	return ".id"
-}
-
-func (s *Scheduler) ID() string {
-	return s.Id
-}
-
-func (s *Scheduler) SetID(id string) {
-	s.Id = id
-}
-
-func (s *Scheduler) FindField() string {
-	return "name"
-}
-
-func (s *Scheduler) FindFieldValue() string {
-	return s.Name
-}
-
-func (s *Scheduler) DeleteField() string {
-	return "numbers"
-}
-
-func (s *Scheduler) DeleteFieldValue() string {
-	return s.Id
-}
-
 func (client Mikrotik) FindScheduler(name string) (*Scheduler, error) {
-	res, err := client.Find(&Scheduler{Name: name})
+	c, err := client.getMikrotikClient()
+
 	if err != nil {
 		return nil, err
 	}
 
-	return res.(*Scheduler), nil
+	cmd := []string{"/system/scheduler/print", "?name=" + name}
+	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
+	r, err := c.RunArgs(cmd)
+
+	log.Printf("[DEBUG] Found scheduler from mikrotik api %v", r)
+	scheduler := &Scheduler{}
+	err = Unmarshal(*r, scheduler)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if scheduler.Name == "" {
+		return nil, NewNotFound(fmt.Sprintf("scheduler `%s` not found", name))
+	}
+	return scheduler, err
 }
 
 func (client Mikrotik) DeleteScheduler(name string) error {
-	return client.Delete(&Scheduler{Id: name})
+	c, err := client.getMikrotikClient()
+
+	if err != nil {
+		return err
+	}
+
+	scheduler, err := client.FindScheduler(name)
+
+	if err != nil {
+		return err
+	}
+	cmd := []string{"/system/scheduler/remove", "=numbers=" + scheduler.Id}
+	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
+	r, err := c.RunArgs(cmd)
+	log.Printf("[DEBUG] Remove scheduler from mikrotik api %v", r)
+
+	return err
 }
 
 // AddScheduler is an alias to CreateScheduler
@@ -70,19 +67,46 @@ func (client Mikrotik) AddScheduler(s *Scheduler) (*Scheduler, error) {
 }
 
 func (client Mikrotik) CreateScheduler(s *Scheduler) (*Scheduler, error) {
-	res, err := client.Add(s)
+	c, err := client.getMikrotikClient()
+
 	if err != nil {
 		return nil, err
 	}
 
-	return res.(*Scheduler), nil
+	cmd := Marshal("/system/scheduler/add", s)
+
+	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
+	r, err := c.RunArgs(cmd)
+	log.Printf("[DEBUG] /system/scheduler/add returned %v", r)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return client.FindScheduler(s.Name)
 }
 
 func (client Mikrotik) UpdateScheduler(s *Scheduler) (*Scheduler, error) {
-	res, err := client.Update(s)
+	c, err := client.getMikrotikClient()
+
 	if err != nil {
 		return nil, err
 	}
 
-	return res.(*Scheduler), nil
+	scheduler, err := client.FindScheduler(s.Name)
+
+	if err != nil {
+		return scheduler, err
+	}
+
+	cmd := Marshal("/system/scheduler/set", s)
+
+	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
+	_, err = c.RunArgs(cmd)
+
+	if err != nil {
+		return scheduler, err
+	}
+
+	return client.FindScheduler(s.Name)
 }
