@@ -39,7 +39,7 @@ func TestAddFindDeleteInterfacePeer(t *testing.T) {
 	}
 
 	interfacePeer := &InterfacePeer{
-		Interface: created_interface.(InterfaceWireguard).Name,
+		Interface: created_interface.(*InterfaceWireguard).Name,
 		Disabled:  false,
 		Comment:   "new interface from test",
 	}
@@ -68,7 +68,7 @@ func TestAddFindDeleteInterfacePeer(t *testing.T) {
 		}
 	}()
 	findInterface := &InterfacePeer{}
-	findInterface.Interface = created_interface.(InterfaceWireguard).Name
+	findInterface.Interface = created_interface.(*InterfaceWireguard).Name
 	found, err := c.Find(findInterface)
 	if err != nil {
 		t.Errorf("expected no error, got %v", err)
