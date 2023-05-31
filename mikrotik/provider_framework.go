@@ -186,6 +186,7 @@ func (p *ProviderFramework) Resources(ctx context.Context) []func() resource.Res
 		NewInterfaceWireguardResource,
 		NewSchedulerResource,
 		NewScriptResource,
+		NewInterfaceWireguardPeerResource,
 	}
 }
 
