@@ -49,11 +49,11 @@ func (i *InterfacePeer) AfterAddHook(r *routeros.Reply) {
 }
 
 func (i *InterfacePeer) FindField() string {
-	return ".id"
+	return "interface"
 }
 
 func (i *InterfacePeer) FindFieldValue() string {
-	return i.Id
+	return i.Interface
 }
 
 func (i *InterfacePeer) DeleteField() string {
@@ -73,8 +73,8 @@ func (client Mikrotik) AddInterfacePeer(i *InterfacePeer) (*InterfacePeer, error
 	return res.(*InterfacePeer), nil
 }
 
-func (client Mikrotik) FindInterfacePeer(id string) (*InterfacePeer, error) {
-	res, err := client.Find(&InterfacePeer{Id: id})
+func (client Mikrotik) FindInterfacePeer(interfaceName string) (*InterfacePeer, error) {
+	res, err := client.Find(&InterfacePeer{Interface: interfaceName})
 	if err != nil {
 		return nil, err
 	}
