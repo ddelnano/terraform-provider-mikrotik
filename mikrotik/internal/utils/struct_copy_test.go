@@ -304,7 +304,142 @@ func TestCopyStruct(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := CopyStruct(tc.src, tc.dest)
+			err := copyStruct(tc.src, tc.dest)
+			if tc.expectError {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, tc.dest)
+		})
+	}
+}
+
+func TestCopyTerraformToMikrotik(t *testing.T) {
+	testCases := []struct {
+		name        string
+		src         interface{}
+		dest        client.Resource
+		expected    interface{}
+		expectError bool
+	}{
+		{
+			name: "pass",
+			src: struct {
+				Id       tftypes.String
+				Bridge   tftypes.String
+				Tagged   tftypes.List
+				Untagged tftypes.List
+				VlanIds  tftypes.List
+			}{
+				Id:     tftypes.StringValue("new id field"),
+				Bridge: tftypes.StringValue("new bridge"),
+				Tagged: tftypes.ListValueMust(tftypes.StringType, []attr.Value{
+					tftypes.StringValue("new tagged 3"),
+				}),
+				Untagged: tftypes.ListValueMust(tftypes.StringType, []attr.Value{
+					tftypes.StringValue("new untagged 5"),
+				}),
+
+				VlanIds: tftypes.ListValueMust(tftypes.Int64Type, []attr.Value{
+					tftypes.Int64Value(2),
+					tftypes.Int64Value(5),
+					tftypes.Int64Value(10),
+				}),
+			},
+			dest: &client.BridgeVlan{
+				Id:       "old id field",
+				Bridge:   "old bridge",
+				Tagged:   types.MikrotikList{"old tagged 1", "old tagged 2"},
+				Untagged: types.MikrotikList{"old untagged 1"},
+				VlanIds:  types.MikrotikIntList{1, 3},
+			},
+			expected: &client.BridgeVlan{
+				Id:       "new id field",
+				Bridge:   "new bridge",
+				Tagged:   types.MikrotikList{"new tagged 3"},
+				Untagged: types.MikrotikList{"new untagged 5"},
+				VlanIds:  types.MikrotikIntList{2, 5, 10},
+			},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := TerraformModelToMikrotikStruct(tc.src, tc.dest)
+			if tc.expectError {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, tc.dest)
+		})
+	}
+}
+
+func TestCopyMikrotikToTerraform(t *testing.T) {
+	testCases := []struct {
+		name        string
+		src         client.Resource
+		dest        interface{}
+		expected    interface{}
+		expectError bool
+	}{
+		{
+			name: "pass",
+			src: &client.BridgeVlan{
+				Id:       "new id field",
+				Bridge:   "new bridge",
+				Tagged:   types.MikrotikList{"new tagged 1", "new tagged 2"},
+				Untagged: types.MikrotikList{"new untagged 1"},
+				VlanIds:  types.MikrotikIntList{1, 3},
+			},
+			dest: &struct {
+				Id       tftypes.String
+				Bridge   tftypes.String
+				Tagged   tftypes.List
+				Untagged tftypes.List
+				VlanIds  tftypes.List
+			}{
+				Id:     tftypes.StringValue("old id field"),
+				Bridge: tftypes.StringValue("old bridge"),
+				Tagged: tftypes.ListValueMust(tftypes.StringType, []attr.Value{
+					tftypes.StringValue("old tagged 3"),
+				}),
+				Untagged: tftypes.ListValueMust(tftypes.StringType, []attr.Value{
+					tftypes.StringValue("old untagged 5"),
+				}),
+				VlanIds: tftypes.ListValueMust(tftypes.Int64Type, []attr.Value{
+					tftypes.Int64Value(2),
+					tftypes.Int64Value(5),
+					tftypes.Int64Value(10),
+				}),
+			},
+			expected: &struct {
+				Id       tftypes.String
+				Bridge   tftypes.String
+				Tagged   tftypes.List
+				Untagged tftypes.List
+				VlanIds  tftypes.List
+			}{
+				Id:     tftypes.StringValue("new id field"),
+				Bridge: tftypes.StringValue("new bridge"),
+				Tagged: tftypes.ListValueMust(tftypes.StringType, []attr.Value{
+					tftypes.StringValue("new tagged 1"),
+					tftypes.StringValue("new tagged 2"),
+				}),
+				Untagged: tftypes.ListValueMust(tftypes.StringType, []attr.Value{
+					tftypes.StringValue("new untagged 1"),
+				}),
+				VlanIds: tftypes.ListValueMust(tftypes.Int64Type, []attr.Value{
+					tftypes.Int64Value(1),
+					tftypes.Int64Value(3),
+				}),
+			},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := MikrotikStructToTerraformModel(tc.src, tc.dest)
 			if tc.expectError {
 				require.Error(t, err)
 				return

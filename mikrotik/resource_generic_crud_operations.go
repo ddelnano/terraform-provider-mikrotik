@@ -26,7 +26,7 @@ func GenericCreateResource(terraformModel interface{}, mikrotikModel client.Reso
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		if err := utils.CopyStruct(terraformModel, mikrotikModel); err != nil {
+		if err := utils.TerraformModelToMikrotikStruct(terraformModel, mikrotikModel); err != nil {
 			resp.Diagnostics.AddError("Cannot copy model: Terraform -> MikroTik", err.Error())
 			return
 		}
@@ -37,7 +37,7 @@ func GenericCreateResource(terraformModel interface{}, mikrotikModel client.Reso
 			return
 		}
 
-		if err := utils.CopyStruct(created, terraformModel); err != nil {
+		if err := utils.MikrotikStructToTerraformModel(created, terraformModel); err != nil {
 			resp.Diagnostics.AddError("Cannot copy model: MikroTik -> Terraform", err.Error())
 			return
 		}
@@ -56,7 +56,7 @@ func GenericReadResource(terraformModel interface{}, mikrotikModel client.Resour
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		if err := utils.CopyStruct(terraformModel, mikrotikModel); err != nil {
+		if err := utils.TerraformModelToMikrotikStruct(terraformModel, mikrotikModel); err != nil {
 			resp.Diagnostics.AddError("Cannot copy model: Terraform -> MikroTik", err.Error())
 			return
 		}
@@ -69,7 +69,7 @@ func GenericReadResource(terraformModel interface{}, mikrotikModel client.Resour
 			)
 			return
 		}
-		if err := utils.CopyStruct(resource, terraformModel); err != nil {
+		if err := utils.MikrotikStructToTerraformModel(resource, terraformModel); err != nil {
 			resp.Diagnostics.AddError("Cannot copy model: MikroTik -> Terraform", err.Error())
 			return
 		}
@@ -88,7 +88,7 @@ func GenericUpdateResource(terraformModel interface{}, mikrotikModel client.Reso
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		if err := utils.CopyStruct(terraformModel, mikrotikModel); err != nil {
+		if err := utils.TerraformModelToMikrotikStruct(terraformModel, mikrotikModel); err != nil {
 			resp.Diagnostics.AddError("Cannot copy model: Terraform -> MikroTik", err.Error())
 			return
 		}
@@ -97,7 +97,7 @@ func GenericUpdateResource(terraformModel interface{}, mikrotikModel client.Reso
 			resp.Diagnostics.AddError("Update failed", err.Error())
 			return
 		}
-		if err := utils.CopyStruct(updated, terraformModel); err != nil {
+		if err := utils.MikrotikStructToTerraformModel(updated, terraformModel); err != nil {
 			resp.Diagnostics.AddError("Cannot copy model: MikroTik -> Terraform", err.Error())
 			return
 		}
@@ -114,7 +114,7 @@ func GenericDeleteResource(terraformModel interface{}, mikrotikModel client.Reso
 			return
 		}
 
-		if err := utils.CopyStruct(terraformModel, mikrotikModel); err != nil {
+		if err := utils.TerraformModelToMikrotikStruct(terraformModel, mikrotikModel); err != nil {
 			resp.Diagnostics.AddError("Cannot copy model: Terraform -> MikroTik", err.Error())
 			return
 		}

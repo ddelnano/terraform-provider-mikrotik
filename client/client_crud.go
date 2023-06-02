@@ -63,7 +63,7 @@ type (
 )
 
 // Add creates new resource on remote system
-func (client Mikrotik) Add(d Resource) (interface{}, error) {
+func (client Mikrotik) Add(d Resource) (Resource, error) {
 	c, err := client.getMikrotikClient()
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (client Mikrotik) Add(d Resource) (interface{}, error) {
 }
 
 // Find retrieves resource from remote system
-func (client Mikrotik) Find(d Resource) (interface{}, error) {
+func (client Mikrotik) Find(d Resource) (Resource, error) {
 	findField := d.IDField()
 	findFieldValue := d.ID()
 	if finder, ok := d.(Finder); ok {
@@ -95,7 +95,7 @@ func (client Mikrotik) Find(d Resource) (interface{}, error) {
 }
 
 // Update updates existing resource on remote system
-func (client Mikrotik) Update(resource Resource) (interface{}, error) {
+func (client Mikrotik) Update(resource Resource) (Resource, error) {
 	c, err := client.getMikrotikClient()
 	if err != nil {
 		return nil, err
@@ -132,7 +132,7 @@ func (client Mikrotik) Delete(d Resource) error {
 	return err
 }
 
-func (client Mikrotik) findByField(d Resource, field, value string) (interface{}, error) {
+func (client Mikrotik) findByField(d Resource, field, value string) (Resource, error) {
 	cmd := []string{d.ActionToCommand(Find), "?" + field + "=" + value}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 
@@ -152,11 +152,13 @@ func (client Mikrotik) findByField(d Resource, field, value string) (interface{}
 	if err != nil {
 		return nil, err
 	}
-	if targetStructInterface.(Resource).ID() == "" {
+	// assertion is not checked as we are creating the targetStruct from 'd' argument which satisfies Resource interface
+	targetResource := targetStructInterface.(Resource)
+	if targetResource.ID() == "" {
 		return nil, NewNotFound(fmt.Sprintf("resource `%T` with field `%s=%s` not found", targetStruct, field, value))
 	}
 
-	return targetStructInterface, nil
+	return targetResource, nil
 }
 
 func (client Mikrotik) newTargetStruct(d interface{}) reflect.Value {

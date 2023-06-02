@@ -6,16 +6,27 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-// CopyStruct copies fields of src struct to fields of dest struct.
+// MikrotikStructToTerraformModel is a wrapper for copyStruct() to ensure proper src/dest typing
+func MikrotikStructToTerraformModel(src client.Resource, dest interface{}) error {
+	return copyStruct(src, dest)
+}
+
+// TerraformModelToMikrotikStruct is a wrapper for copyStruct() to ensure proper src/dest typing
+func TerraformModelToMikrotikStruct(src interface{}, dest client.Resource) error {
+	return copyStruct(src, dest)
+}
+
+// copyStruct copies fields of src struct to fields of dest struct.
 //
 // The fields matching is done based on field names.
 // If dest struct has no field with particular name, it is skipped.
-func CopyStruct(src, dest interface{}) error {
+func copyStruct(src, dest interface{}) error {
 	if reflect.ValueOf(dest).Kind() != reflect.Pointer {
 		return errors.New("destination must be a pointer")
 	}
