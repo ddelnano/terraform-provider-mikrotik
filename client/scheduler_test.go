@@ -1,16 +1,16 @@
 package client
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateUpdateDeleteAndFindScheduler(t *testing.T) {
 	c := NewClient(GetConfigFromEnv())
 
-	schedulerName := "scheduler"
+	schedulerName := "scheduler_" + RandomString()
 	onEvent := "onevent"
 	interval := 0
 	expectedScheduler := &Scheduler{
@@ -19,32 +19,22 @@ func TestCreateUpdateDeleteAndFindScheduler(t *testing.T) {
 		Interval: types.MikrotikDuration(interval),
 	}
 	scheduler, err := c.CreateScheduler(expectedScheduler)
-
-	if err != nil || scheduler == nil {
-		t.Errorf("Error creating a scheduler with: %v and value: %v", err, scheduler)
-	}
+	require.NoError(t, err)
+	require.NotNil(t, scheduler)
 
 	expectedScheduler.Id = scheduler.Id
 	expectedScheduler.StartDate = scheduler.StartDate
 	expectedScheduler.StartTime = scheduler.StartTime
 
-	if !reflect.DeepEqual(scheduler, expectedScheduler) {
-		t.Errorf("The scheduler does not match what we expected. actual: %v expected: %v", scheduler, expectedScheduler)
-	}
+	require.Equal(t, expectedScheduler, scheduler)
 
 	// update and reassert
 	expectedScheduler.OnEvent = "test"
 	scheduler, err = c.UpdateScheduler(expectedScheduler)
-
-	if !reflect.DeepEqual(scheduler, expectedScheduler) {
-		t.Errorf("The updated scheduler does not match what we expected. actual: %v expected: %v", scheduler, expectedScheduler)
-	}
+	require.Equal(t, expectedScheduler, scheduler)
 
 	err = c.DeleteScheduler(schedulerName)
-
-	if err != nil {
-		t.Errorf("Error deleting a scheduler with: %v", err)
-	}
+	require.NoError(t, err)
 }
 
 func TestFindScheduler_onNonExistantScript(t *testing.T) {
