@@ -12,10 +12,7 @@ func SkipLegacyBgpIfUnsupported(t *testing.T) {
 }
 
 func IsLegacyBgpSupported() bool {
-	if os.Getenv("LEGACY_BGP_SUPPORT") == "true" {
-		return true
-	}
-	return false
+	return os.Getenv("LEGACY_BGP_SUPPORT") == "true"
 }
 
 func SkipInterfaceWireguardIfUnsupported(t *testing.T) {
@@ -25,8 +22,5 @@ func SkipInterfaceWireguardIfUnsupported(t *testing.T) {
 }
 
 func IsInterfaceWireguardSupported() bool {
-	if os.Getenv("INTERFACE_WIREGUARD_SUPPORT") == "true" {
-		return true
-	}
-	return false
+	return os.Getenv("INTERFACE_WIREGUARD_SUPPORT") == "true"
 }
