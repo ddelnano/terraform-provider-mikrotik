@@ -23,3 +23,15 @@ func ToSnakeCase(in string) string {
 
 	return buf.String()
 }
+
+// FirstLower makes first symbol lowercase in the string
+func FirstLower(s string) string {
+	if len(s) < 1 {
+		return s
+	}
+	if len(s) == 1 {
+		return strings.ToLower(s)
+	}
+
+	return strings.ToLower(s[:1]) + s[1:]
+}

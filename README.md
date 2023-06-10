@@ -58,6 +58,9 @@ $ export TF_CLI_CONFIG_FILE=path/to/custom.tfrc
 - RouterOS. See which versions are supported by what is tested in [CI](.github/workflows/continuous-integration.yml)
 - Terraform 0.12+
 
+
+For code generation of boilerplate code, see [codegen Readme](./cmd/mikrotik-codegen/internal/codegen/README.md)
+
 ### Testing
 
 The provider is tested with Terraform's acceptance testing framework. As long as you have a RouterOS device you should be able to run them. Please be aware it will create resources on your device! Code that is accepted by the project will not be destructive for anything existing on your router but be careful when changing test code!
@@ -113,5 +116,5 @@ $ make routeros ROUTEROS_VERSION=latest
 
 To cleanup everything, just run:
 ```sh
-$ make routeros clean
+$ make routeros-clean
 ```

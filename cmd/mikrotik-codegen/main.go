@@ -1,25 +1,30 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"log"
 	"os"
-	"path/filepath"
 	"strconv"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/cmd/mikrotik-codegen/internal/codegen"
 )
 
 type (
-	Configuration struct {
-		SrcFile    string
-		DestFile   string
-		StructName string
-		FormatCode bool
+	MikrotikConfiguration struct {
+		CommandBasePath string
+		ResourceName    string
 	}
+
+	TerraformConfiguration struct {
+		SrcFile    string
+		StructName string
+	}
+
+	GeneratorFunc func(w io.Writer) error
 )
 
 func main() {
@@ -30,42 +35,89 @@ func main() {
 	os.Exit(0)
 }
 
+func usage(w io.Writer) {
+	_, _ = w.Write([]byte(`
+Sub commands:
+  mikrotik - generate MikroTik model
+  terraform - generate Terraform resource
+`))
+}
+
 func realMain(args []string) error {
-	config, err := parseConfig(args)
-	if err != nil {
-		return err
+	if len(args) < 1 {
+		usage(flag.CommandLine.Output())
+		return nil
 	}
+	subcommand := args[0]
+	args = args[1:]
 
-	startLine := 1
-	lineStr := os.Getenv("GOLINE")
-	if lineStr != "" {
-		lineInt, err := strconv.Atoi(lineStr)
-		if err != nil {
-			return fmt.Errorf("fail to parse GOLINE: %v", err.Error())
+	var formatCode bool
+	var destFile string
+	var generator func() GeneratorFunc
+
+	switch subcommand {
+	case "terraform":
+		config := TerraformConfiguration{}
+		fs := flag.NewFlagSet("terraform", flag.ExitOnError)
+		commonFlags(fs, &destFile, &formatCode)
+		fs.StringVar(&config.SrcFile, "src", "", "Source file to parse struct from.")
+		fs.StringVar(&config.StructName, "struct", "", "Name of a struct to process.")
+		_ = fs.Parse(args)
+
+		startLine := 1
+		lineStr := os.Getenv("GOLINE")
+		if lineStr != "" {
+			lineInt, err := strconv.Atoi(lineStr)
+			if err != nil {
+				return fmt.Errorf("fail to parse GOLINE: %v", err.Error())
+			}
+			startLine = lineInt
 		}
-		startLine = lineInt
-	}
 
-	s, err := codegen.ParseFile(config.SrcFile, startLine, config.StructName)
-	if err != nil {
-		return err
-	}
+		s, err := codegen.ParseFile(config.SrcFile, startLine, config.StructName)
+		if err != nil {
+			return err
+		}
 
-	// If struct name is not provider, use one found in the parsed file.
-	// See `ParseFile()` for details.
-	if config.StructName == "" {
-		config.StructName = s.Name
-	}
+		// If struct name is not provider, use one found in the parsed file.
+		// See `ParseFile()` for details.
+		if config.StructName == "" {
+			config.StructName = s.Name
+		}
 
-	if config.DestFile == "" {
-		return errors.New("destination file must be set via flags or 'go:generate' mode must be used")
+		if destFile == "" {
+			return errors.New("destination file must be set via flags or 'go:generate' mode must be used")
+		}
+
+		generator = func(s *codegen.Struct) func() GeneratorFunc {
+			return func() GeneratorFunc {
+				return func(w io.Writer) error {
+					return codegen.GenerateResource(s, w)
+				}
+			}
+		}(s)
+	case "mikrotik":
+		config := MikrotikConfiguration{}
+		fs := flag.NewFlagSet("mikrotik", flag.ExitOnError)
+		commonFlags(fs, &destFile, &formatCode)
+		fs.StringVar(&config.ResourceName, "name", "", "Name of the resource to generate.")
+		fs.StringVar(&config.CommandBasePath, "commandBase", "/", "The command base path in MikroTik.")
+		_ = fs.Parse(args)
+
+		generator = func() GeneratorFunc {
+			return func(w io.Writer) error {
+				return codegen.GenerateMikrotikResource(config.ResourceName, config.CommandBasePath, w)
+			}
+		}
+	default:
+		return errors.New("unsupported subcommand: " + subcommand)
 	}
 
 	var out io.Writer
-	if config.DestFile == "-" {
+	if destFile == "-" {
 		out = os.Stdout
 	} else {
-		file, err := os.OpenFile(config.DestFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+		file, err := os.OpenFile(destFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 		if err != nil {
 			return err
 		}
@@ -75,37 +127,34 @@ func realMain(args []string) error {
 		}()
 	}
 	writeHooks := []codegen.SourceWriteHookFunc{}
-	if config.FormatCode {
+	if formatCode {
 		writeHooks = append(writeHooks, codegen.SourceFormatHook)
 	}
-	return codegen.GenerateResource(s, out, writeHooks...)
-}
 
-func parseConfig(args []string) (*Configuration, error) {
-	var (
-		destFile   = flag.String("dest", "-", "File to write result to. Default: write to stdout.")
-		srcFile    = flag.String("src", "", "Source file to parse struct from.")
-		structName = flag.String("struct", "", "Name of a struct to process.")
-		formatCode = flag.Bool("formatCode", true, "Whether to format resulting code. Useful for debugging to see raw source code right after generation.")
-	)
+	var err error
+	var buf bytes.Buffer
 
-	if err := flag.CommandLine.Parse(args); err != nil {
-		return nil, err
+	if err := generator()(&buf); err != nil {
+		return err
 	}
 
-	config := Configuration{}
-	config.DestFile = *destFile
-	config.SrcFile = *srcFile
-	config.StructName = *structName
-	config.FormatCode = *formatCode
-
-	if config.SrcFile == "" {
-		var err error
-		config.SrcFile, err = filepath.Abs(os.Getenv("GOFILE"))
+	var result []byte
+	result = buf.Bytes()
+	for _, h := range writeHooks {
+		result, err = h(result)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return &config, nil
+	if _, err := out.Write(result); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func commonFlags(fs *flag.FlagSet, dest *string, formatCode *bool) {
+	fs.StringVar(dest, "dest", "-", "File to write result to. Default: write to stdout.")
+	fs.BoolVar(formatCode, "formatCode", true, "Whether to format resulting code. Useful for debugging to see raw source code right after generation.")
 }

@@ -3,7 +3,6 @@ package utils
 import "testing"
 
 func TestToSnakeCase(t *testing.T) {
-
 	testCases := []struct {
 		name     string
 		input    string
@@ -38,6 +37,35 @@ func TestToSnakeCase(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			result := ToSnakeCase(tc.input)
+			if result != tc.expected {
+				t.Errorf(`
+				expected %s,
+				got %s`, tc.expected, result)
+			}
+		})
+	}
+}
+
+func TestFirstLower(t *testing.T) {
+	testCases := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "title case",
+			input:    "ClientResourceName",
+			expected: "clientResourceName",
+		},
+		{
+			name:     "kebab case",
+			input:    "clientResourceName",
+			expected: "clientResourceName",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := FirstLower(tc.input)
 			if result != tc.expected {
 				t.Errorf(`
 				expected %s,
