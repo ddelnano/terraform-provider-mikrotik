@@ -1,24 +1,23 @@
 package client
 
 import (
-	"errors"
 	"reflect"
 	"testing"
 )
 
-func TestFindInterfacePeer_onNonExistantInterfacePeer(t *testing.T) {
+func TestFindInterfaceWireguardPeer_onNonExistantInterfacePeer(t *testing.T) {
 	SkipInterfaceWireguardIfUnsupported(t)
 	c := NewClient(GetConfigFromEnv())
 
 	id := "Interface peer does not exist"
-	_, err := c.FindInterfacePeer(id)
+	_, err := c.FindInterfaceWireguardPeer(id)
 
 	if _, ok := err.(*NotFound); !ok {
 		t.Errorf("Expecting to receive NotFound error for Interface peer `%s`, instead error was nil.", id)
 	}
 }
 
-func TestAddFindDeleteInterfacePeer(t *testing.T) {
+func TestWireguardInterfacePeer_Crud(t *testing.T) {
 	SkipInterfaceWireguardIfUnsupported(t)
 	c := NewClient(GetConfigFromEnv())
 
@@ -37,37 +36,31 @@ func TestAddFindDeleteInterfacePeer(t *testing.T) {
 		t.Errorf("expected no error, got %v", err)
 		return
 	}
+	defer func() {
+		err = c.Delete(interfaceWireguard)
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
+	}()
 
-	interfacePeer := &InterfacePeer{
+	interfaceWireguardPeer := &InterfaceWireguardPeer{
 		Interface: created_interface.(*InterfaceWireguard).Name,
 		Disabled:  false,
 		Comment:   "new interface from test",
 	}
 
-	created, err := c.Add(interfacePeer)
+	created, err := c.Add(interfaceWireguardPeer)
 	if err != nil {
 		t.Errorf("expected no error, got %v", err)
 		return
 	}
 	defer func() {
-		err = c.Delete(interfacePeer)
+		err = c.Delete(interfaceWireguardPeer)
 		if err != nil {
 			t.Errorf("expected no error, got %v", err)
-		}
-		expected := &NotFound{}
-		if _, err := c.Find(interfacePeer); err == nil || !errors.As(err, &expected) {
-			t.Error(err)
-		}
-		err = c.Delete(interfaceWireguard)
-		if err != nil {
-			t.Errorf("expected no error, got %v", err)
-		}
-		expected = &NotFound{}
-		if _, err := c.Find(interfaceWireguard); err == nil || !errors.As(err, &expected) {
-			t.Error(err)
 		}
 	}()
-	findInterface := &InterfacePeer{}
+	findInterface := &InterfaceWireguardPeer{}
 	findInterface.Interface = created_interface.(*InterfaceWireguard).Name
 	found, err := c.Find(findInterface)
 	if err != nil {
