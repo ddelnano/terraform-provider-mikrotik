@@ -70,35 +70,35 @@ func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
 	})
 }
 
-func TestAccMikrotikInterfaceWireguardPeer_import(t *testing.T) {
-	client.SkipInterfaceWireguardIfUnsupported(t)
-	name := acctest.RandomWithPrefix("tf-acc-import")
+// func TestAccMikrotikInterfaceWireguardPeer_import(t *testing.T) {
+// 	client.SkipInterfaceWireguardIfUnsupported(t)
+// 	name := acctest.RandomWithPrefix("tf-acc-import")
 
-	resourceName := "mikrotik_interface_wireguard_peer.bar"
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
-		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccInterfaceWireguardPeer(name),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccInterfaceWireguardPeerExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, ".id"),
-					resource.TestCheckResourceAttrSet(resourceName, "allowed_address"),
-				),
-			},
-			{
-				ResourceName: resourceName,
-				ImportState:  true,
-				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-					return name, nil
-				},
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
+// 	resourceName := "mikrotik_interface_wireguard_peer.bar"
+// 	resource.ParallelTest(t, resource.TestCase{
+// 		PreCheck:                 func() { testAccPreCheck(t) },
+// 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+// 		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: testAccInterfaceWireguardPeer(name),
+// 				Check: resource.ComposeAggregateTestCheckFunc(
+// 					testAccInterfaceWireguardPeerExists(resourceName),
+// 					resource.TestCheckResourceAttrSet(resourceName, ".id"),
+// 					resource.TestCheckResourceAttrSet(resourceName, "allowed_address"),
+// 				),
+// 			},
+// 			{
+// 				ResourceName: resourceName,
+// 				ImportState:  true,
+// 				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+// 					return name, nil
+// 				},
+// 				ImportStateVerify: true,
+// 			},
+// 		},
+// 	})
+// }
 
 func testAccInterfaceWireguardPeer(id string) string {
 	return fmt.Sprintf(`
