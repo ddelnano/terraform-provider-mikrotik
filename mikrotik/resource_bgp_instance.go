@@ -92,12 +92,12 @@ func resourceBgpInstance() *schema.Resource {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     false,
-				Description: " If enabled, the router will redistribute the information about static routes added to its routing database.",
+				Description: "If enabled, the router will redistribute the information about static routes added to its routing database.",
 			},
 			"router_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				Description: " 	BGP Router ID (for this instance). If set to 0.0.0.0, BGP will use one of router's IP addresses.",
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "BGP Router ID (for this instance). If set to 0.0.0.0, BGP will use one of router's IP addresses.",
 			},
 			"routing_table": {
 				Type:        schema.TypeString,
@@ -106,9 +106,9 @@ func resourceBgpInstance() *schema.Resource {
 				Description: "Name of routing table this BGP instance operates on. ",
 			},
 			"cluster_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Description: " 	In case this instance is a route reflector: cluster ID of the router reflector cluster this instance belongs to.",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "In case this instance is a route reflector: cluster ID of the router reflector cluster this instance belongs to.",
 			},
 			"confederation": {
 				Type:        schema.TypeInt,
@@ -141,7 +141,7 @@ func resourceBgpInstanceRead(ctx context.Context, d *schema.ResourceData, m inte
 		return diag.FromErr(err)
 	}
 
-	if _, ok := err.(*client.NotFound); ok {
+	if client.IsNotFoundError(err) {
 		d.SetId("")
 		return nil
 	}

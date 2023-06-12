@@ -1,9 +1,10 @@
 package client
 
 import (
-	"errors"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestFindDnsRecord_onNonExistantDnsRecord(t *testing.T) {
@@ -12,9 +13,8 @@ func TestFindDnsRecord_onNonExistantDnsRecord(t *testing.T) {
 	name := "dns record does not exist"
 	_, err := c.FindDnsRecord(name)
 
-	if _, ok := err.(*NotFound); !ok {
-		t.Errorf("Expecting to receive NotFound error for dns record `%s`, instead error was nil.", name)
-	}
+	require.Truef(t, IsNotFoundError(err),
+		"Expecting to receive NotFound error for dns record %q", name)
 }
 
 func TestAddFindDeleteDnsRecord(t *testing.T) {
@@ -55,13 +55,8 @@ func TestAddFindDeleteDnsRecord(t *testing.T) {
 	}
 
 	_, err = c.Find(findRecord)
-	if err == nil {
-		t.Errorf("expected error, got nothing")
-		return
-	}
+	require.Error(t, err)
 
-	target := &NotFound{}
-	if !errors.As(err, &target) {
-		t.Errorf("expected error to be of type %T, got %T", &NotFound{}, err)
-	}
+	require.True(t, IsNotFoundError(err),
+		"expected to get NotFound error")
 }

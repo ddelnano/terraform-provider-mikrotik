@@ -3,6 +3,8 @@ package client
 import (
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 // required BGP Peer fields
@@ -129,7 +131,6 @@ func TestFindBgpPeer_onNonExistantBgpPeer(t *testing.T) {
 	name := "bgp peer does not exist"
 	_, err := c.FindBgpPeer(name)
 
-	if _, ok := err.(*NotFound); !ok {
-		t.Errorf("Expecting to receive NotFound error for bgp peer `%s`, instead error was nil.", name)
-	}
+	require.Truef(t, IsNotFoundError(err),
+		"Expecting to receive NotFound error for bgp peer %q.", name)
 }

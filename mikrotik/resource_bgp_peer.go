@@ -188,7 +188,7 @@ func resourceBgpPeerRead(ctx context.Context, d *schema.ResourceData, m interfac
 	c := m.(*client.Mikrotik)
 
 	bgpPeer, err := c.FindBgpPeer(d.Id())
-	if _, ok := err.(*client.NotFound); ok {
+	if client.IsNotFoundError(err) {
 		d.SetId("")
 		return nil
 	}
