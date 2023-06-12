@@ -108,7 +108,7 @@ func resourceScriptRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	script, err := c.FindScript(d.Id())
 
-	if _, ok := err.(*client.NotFound); ok {
+	if client.IsNotFoundError(err) {
 		d.SetId("")
 		return nil
 	}

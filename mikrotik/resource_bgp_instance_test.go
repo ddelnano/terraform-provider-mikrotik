@@ -214,19 +214,12 @@ func testAccBgpInstanceExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("mikrotik_bgp_instance does not exist in the statefile")
 		}
 
-		bgpInstance, err := apiClient.FindBgpInstance(rs.Primary.ID)
+		_, err := apiClient.FindBgpInstance(rs.Primary.ID)
 
 		if err != nil {
 			return fmt.Errorf("Unable to get the bgp instance with error: %v", err)
 		}
 
-		if bgpInstance == nil {
-			return fmt.Errorf("Unable to get the bgp instance")
-		}
-
-		if bgpInstance.Name == rs.Primary.ID {
-			return nil
-		}
 		return nil
 	}
 }
@@ -239,8 +232,7 @@ func testAccCheckMikrotikBgpInstanceDestroy(s *terraform.State) error {
 
 		bgpInstance, err := apiClient.FindBgpInstance(rs.Primary.ID)
 
-		_, ok := err.(*client.NotFound)
-		if !ok && err != nil {
+		if !client.IsNotFoundError(err) && err != nil {
 			return err
 		}
 

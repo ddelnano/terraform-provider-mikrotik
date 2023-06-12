@@ -155,8 +155,7 @@ func testAccCheckMikrotikIpAddressDestroy(s *terraform.State) error {
 
 		ipaddr, err := c.FindIpAddress(rs.Primary.ID)
 
-		_, ok := err.(*client.NotFound)
-		if !ok && err != nil {
+		if !client.IsNotFoundError(err) && err != nil {
 			return err
 		}
 
@@ -164,5 +163,6 @@ func testAccCheckMikrotikIpAddressDestroy(s *terraform.State) error {
 			return fmt.Errorf("ip address (%s) still exists", ipaddr.Id)
 		}
 	}
+
 	return nil
 }

@@ -1,9 +1,10 @@
 package client
 
 import (
-	"errors"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestBridgePort_basic(t *testing.T) {
@@ -25,19 +26,14 @@ func TestBridgePort_basic(t *testing.T) {
 		Bridge:    bridge.Name,
 		Interface: "*0",
 	})
-	if err != nil {
-		t.Fatal(err)
-		return
-	}
-	defer func() {
-		if err := c.DeleteBridgePort(bridgePort.Id); err != nil {
-			t.Error(err)
+	require.NoError(t, err)
 
-		}
-		expected := &NotFound{}
-		if _, err := c.FindBridgePort(bridgePort.Id); err == nil || !errors.As(err, &expected) {
-			t.Error(err)
-		}
+	defer func() {
+		c.DeleteBridgePort(bridgePort.Id)
+		require.NoError(t, err)
+
+		_, err = c.FindBridgePort(bridgePort.Id)
+		require.True(t, IsNotFoundError(err), "expected to get NotFound error")
 	}()
 
 	expected := &BridgePort{

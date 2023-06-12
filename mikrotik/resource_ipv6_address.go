@@ -87,8 +87,7 @@ func resourceIpv6AddressRead(ctx context.Context, d *schema.ResourceData, m inte
 	ipv6addr, err := c.FindIpv6Address(d.Id())
 
 	// Clear the state if the error represents that the resource no longer exists
-	_, resourceMissing := err.(*client.NotFound)
-	if resourceMissing && err != nil {
+	if client.IsNotFoundError(err) {
 		d.SetId("")
 		return nil
 	}
