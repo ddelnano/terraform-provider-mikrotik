@@ -197,8 +197,7 @@ func testAccCheckMikrotikScriptDestroy(s *terraform.State) error {
 
 		script, err := c.FindScript(rs.Primary.ID)
 
-		_, ok := err.(*client.NotFound)
-		if !ok && err != nil {
+		if !client.IsNotFoundError(err) && err != nil {
 			return err
 		}
 
@@ -224,8 +223,7 @@ func testAccScriptExists(resourceName string) resource.TestCheckFunc {
 
 		script, err := c.FindScript(rs.Primary.ID)
 
-		_, ok = err.(*client.NotFound)
-		if !ok && err != nil {
+		if !client.IsNotFoundError(err) && err != nil {
 			return fmt.Errorf("Unable to get the script with error: %v", err)
 		}
 

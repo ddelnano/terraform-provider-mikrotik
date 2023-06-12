@@ -239,8 +239,7 @@ func testAccCheckMikrotikBgpInstanceDestroy(s *terraform.State) error {
 
 		bgpInstance, err := apiClient.FindBgpInstance(rs.Primary.ID)
 
-		_, ok := err.(*client.NotFound)
-		if !ok && err != nil {
+		if !client.IsNotFoundError(err) && err != nil {
 			return err
 		}
 

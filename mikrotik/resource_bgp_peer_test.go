@@ -265,8 +265,7 @@ func testAccCheckMikrotikBgpPeerDestroy(s *terraform.State) error {
 
 		bgpPeer, err := c.FindBgpPeer(rs.Primary.ID)
 
-		_, ok := err.(*client.NotFound)
-		if !ok && err != nil {
+		if !client.IsNotFoundError(err) && err != nil {
 			return err
 		}
 
