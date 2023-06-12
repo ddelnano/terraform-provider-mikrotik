@@ -3,6 +3,8 @@ package client
 import (
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 var bgpName string = "test-bgp"
@@ -120,7 +122,6 @@ func TestFindBgpInstance_onNonExistantBgpInstance(t *testing.T) {
 	name := "bgp instance does not exist"
 	_, err := c.FindBgpInstance(name)
 
-	if _, ok := err.(*NotFound); !ok {
-		t.Errorf("Expecting to receive NotFound error for bgp instance `%s`, instead error was nil.", name)
-	}
+	require.Truef(t, IsNotFoundError(err),
+		"Expecting to receive NotFound error for bgp instance %q", name)
 }

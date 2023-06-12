@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateUpdateDeleteAndFindScheduler(t *testing.T) {
@@ -53,7 +54,6 @@ func TestFindScheduler_onNonExistantScript(t *testing.T) {
 	name := "scheduler does not exist"
 	_, err := c.FindScheduler(name)
 
-	if _, ok := err.(*NotFound); !ok {
-		t.Errorf("Expecting to receive NotFound error for scheduler `%s`, instead error was nil.", name)
-	}
+	require.Truef(t, IsNotFoundError(err),
+		"Expecting to receive NotFound error for scheduler %q.", name)
 }

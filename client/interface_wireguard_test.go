@@ -1,9 +1,10 @@
 package client
 
 import (
-	"errors"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestFindInterfaceWireguard_onNonExistantInterfaceWireguard(t *testing.T) {
@@ -13,9 +14,8 @@ func TestFindInterfaceWireguard_onNonExistantInterfaceWireguard(t *testing.T) {
 	name := "Interface wireguard does not exist"
 	_, err := c.FindInterfaceWireguard(name)
 
-	if _, ok := err.(*NotFound); !ok {
-		t.Errorf("Expecting to receive NotFound error for Interface wireguard `%s`, instead error was nil.", name)
-	}
+	require.Truef(t, IsNotFoundError(err),
+		"Expecting to receive NotFound error for Interface wireguard %q.", name)
 }
 
 func TestAddFindDeleteInterfaceWireguard(t *testing.T) {
@@ -39,14 +39,12 @@ func TestAddFindDeleteInterfaceWireguard(t *testing.T) {
 	}
 	defer func() {
 		err = c.Delete(interfaceWireguard)
-		if err != nil {
-			t.Errorf("expected no error, got %v", err)
-		}
-		expected := &NotFound{}
-		if _, err := c.Find(interfaceWireguard); err == nil || !errors.As(err, &expected) {
-			t.Error(err)
-		}
+		require.NoError(t, err)
+
+		_, err := c.Find(interfaceWireguard)
+		require.True(t, IsNotFoundError(err), "expected to get NotFound error")
 	}()
+
 	findInterface := &InterfaceWireguard{}
 	findInterface.Name = name
 	found, err := c.Find(findInterface)
