@@ -74,7 +74,7 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 				Default:     booldefault.StaticBool(false),
 				Description: "Boolean for whether or not the interface peer is disabled.",
 			},
-			"endpoint_address": schema.Int64Attribute{
+			"endpoint_address": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "An endpoint IP or hostname can be left blank to allow remote connection from any address.",
