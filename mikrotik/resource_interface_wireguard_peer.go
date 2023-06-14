@@ -227,7 +227,7 @@ type interfacePeerModel struct {
 	EndpointAddress        tftypes.String `tfsdk:"endpoint_address"`
 	EndpointPort           tftypes.Int64  `tfsdk:"endpoint_port"`
 	Interface              tftypes.String `tfsdk:"interface"`
-	PersistentKeepalive    tftypes.Int64  `tfsdk:"presistent_keepalive"`
+	PersistentKeepalive    tftypes.Int64  `tfsdk:"persistent_keepalive"`
 	PresharedKey           tftypes.String `tfsdk:"preshared_key"`
 	PublicKey              tftypes.String `tfsdk:"public_key"`
 	CurrentEndpointAddress tftypes.String `tfsdk:"current_endpoint_address"`
