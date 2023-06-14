@@ -97,8 +97,11 @@ func TestAccMikrotikInterfaceWireguardPeer_import(t *testing.T) {
 	})
 }
 
-func testAccInterfaceWireguardPeer(tinterface string) string {
+func testAccInterfaceWireguardPeer(interfaceName string) string {
 	return fmt.Sprintf(`
+	resource "mikrotik_interface_wireguard" "bar" {
+		name = "%s"
+	}
 resource "mikrotik_interface_wireguard_peer" "bar" {
 	comment = "%s"
 	allowed_address = "%d"
@@ -106,11 +109,14 @@ resource "mikrotik_interface_wireguard_peer" "bar" {
 	endpoint_port = "%d"
 	interface = "%s"
 }
-`, origComment_peer, origAllowedAddress, origEndpointAddress, origEndpointPort, tinterface)
+`, interfaceName, origComment_peer, origAllowedAddress, origEndpointAddress, origEndpointPort, interfaceName)
 }
 
-func testAccInterfaceWireguardPeerUpdatedComment(tinterface string) string {
+func testAccInterfaceWireguardPeerUpdatedComment(interfaceName string) string {
 	return fmt.Sprintf(`
+	resource "mikrotik_interface_wireguard" "bar" {
+		name = "%s"
+	}
 	resource "mikrotik_interface_wireguard_peer" "bar" {
 		comment = "%s"
 		allowed_address = "%d"
@@ -118,7 +124,7 @@ func testAccInterfaceWireguardPeerUpdatedComment(tinterface string) string {
 		endpoint_port = "%d"
 		interface = "%s"
 	}
-	`, updatedComment_peer, origAllowedAddress, origEndpointAddress, origEndpointPort, tinterface)
+	`, interfaceName, updatedComment_peer, origAllowedAddress, origEndpointAddress, origEndpointPort, interfaceName)
 }
 
 func testAccCheckMikrotikInterfaceWireguardPeerDestroy(s *terraform.State) error {
