@@ -23,7 +23,7 @@ Creates a Mikrotik Interface Wireguard Peer only supported by RouterOS v7+.
 
 ### Read-Only
 
-- `current_endpoint_address` (Number) The most recent source IP address of correctly authenticated packets from the peer.
+- `current_endpoint_address` (String) The most recent source IP address of correctly authenticated packets from the peer.
 - `current_endpoint_port` (Number) The most recent source IP port of correctly authenticated packets from the peer.
 - `id` (String) Identifier of this resource assigned by RouterOS
 
