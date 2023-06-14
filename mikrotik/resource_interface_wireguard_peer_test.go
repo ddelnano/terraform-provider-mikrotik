@@ -53,18 +53,18 @@ func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
 		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInterfaceWireguardPeer(name),
+				Config: testAccInterfaceWireguardPeer(name), //what parameter should I use here?
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardPeerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "comment", origComment)),
+					//resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "comment", origComment_peer)),
 			},
 			{
 				Config: testAccInterfaceWireguardPeerUpdatedComment(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardPeerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", name),
-					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment)),
+					//resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment_peer)),
 			},
 		},
 	})
@@ -103,27 +103,25 @@ func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
 func testAccInterfaceWireguardPeer(id string) string {
 	return fmt.Sprintf(`
 resource "mikrotik_interface_wireguard_peer" "bar" {
-    .id = "%s"
 	comment = "%s"
 	allowed_address = "%d"
 	endpoint_address = "%d"
 	endpoint_port = "%d"
 	interface = "%s"
 }
-`, id, origComment_peer, origAllowedAddress, origEndpointAddress, origEndpointPort, origInterface)
+`, origComment_peer, origAllowedAddress, origEndpointAddress, origEndpointPort, origInterface)
 }
 
 func testAccInterfaceWireguardPeerUpdatedComment(id string) string {
 	return fmt.Sprintf(`
 	resource "mikrotik_interface_wireguard_peer" "bar" {
-		.id = "%s"
 		comment = "%s"
 		allowed_address = "%d"
 		endpoint_address = "%d"
 		endpoint_port = "%d"
 		interface = "%s"
 	}
-	`, id, updatedComment_peer, origAllowedAddress, origEndpointAddress, origEndpointPort, origInterface)
+	`, updatedComment_peer, origAllowedAddress, origEndpointAddress, origEndpointPort, origInterface)
 }
 
 func testAccCheckMikrotikInterfaceWireguardPeerDestroy(s *terraform.State) error {
