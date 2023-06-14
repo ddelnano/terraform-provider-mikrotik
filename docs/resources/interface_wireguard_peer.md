@@ -14,7 +14,7 @@ Creates a Mikrotik Interface Wireguard Peer only supported by RouterOS v7+.
 
 - `comment` (String) Short description of the peer.
 - `disabled` (Boolean) Boolean for whether or not the interface peer is disabled.
-- `endpoint_address` (Number) An endpoint IP or hostname can be left blank to allow remote connection from any address.
+- `endpoint_address` (String) An endpoint IP or hostname can be left blank to allow remote connection from any address.
 - `endpoint_port` (Number) An endpoint port can be left blank to allow remote connection from any port.
 - `interface` (String, Sensitive) Name of the WireGuard interface the peer belongs to.
 - `persistent_keepalive` (Number) A seconds interval, between 1 and 65535 inclusive, of how often to send an authenticated empty packet to the peer for the purpose of keeping a stateful firewall or NAT mapping valid persistently. For example, if the interface very rarely sends traffic, but it might at anytime receive traffic from a peer, and it is behind NAT, the interface might benefit from having a persistent keepalive interval of 25 seconds.
