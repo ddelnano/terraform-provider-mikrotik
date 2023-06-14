@@ -108,7 +108,7 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 				Description: "A base64 preshared key. Optional, and may be omitted. This option adds an additional layer of symmetric-key cryptography to be mixed into the already existing public-key cryptography, for post-quantum resistance.",
 			},
 			"public_key": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
 				Computed:    true,
 				Description: "The remote peer's calculated public key.",
 			},
