@@ -112,7 +112,7 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 				Computed:    true,
 				Description: "The remote peer's calculated public key.",
 			},
-			"current_endpoint_address": schema.Int64Attribute{
+			"current_endpoint_address": schema.StringAttribute{
 				Optional:    false,
 				Computed:    true,
 				Description: "The most recent source IP address of correctly authenticated packets from the peer.",
