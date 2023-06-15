@@ -12,7 +12,7 @@ import (
 )
 
 var origComment_peer string = "testing"
-var origAllowedAddress int = 10
+var origAllowedAddress string = "192.168.0.2"
 var origEndpointAddress string = "192.168.0.1"
 var origEndpointPort int = 13231
 var origInterface string = "test_interface"
@@ -31,7 +31,7 @@ func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
 				Config: testAccInterfaceWireguardPeer(origInterface),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardPeerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "allowed_address", strconv.Itoa(origAllowedAddress)),
+					resource.TestCheckResourceAttr(resourceName, "allowed_address", origAllowedAddress),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_address", origEndpointAddress),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_port", strconv.Itoa(origEndpointPort)),
 					resource.TestCheckResourceAttr(resourceName, "interface", origInterface)),
@@ -50,7 +50,7 @@ func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
 		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInterfaceWireguardPeer(origInterface), //what parameter should I use here?
+				Config: testAccInterfaceWireguardPeer(origInterface),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardPeerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "interface", origInterface),
@@ -101,10 +101,11 @@ func testAccInterfaceWireguardPeer(interfaceName string) string {
 	return fmt.Sprintf(`
 	resource "mikrotik_interface_wireguard" "bar" {
 		name = "%s"
+		comment = "dummy interface"
 	}
 resource "mikrotik_interface_wireguard_peer" "bar" {
 	comment = "%s"
-	allowed_address = "%d"
+	allowed_address = "%s"
 	endpoint_address = "%s"
 	endpoint_port = "%d"
 	interface = "%s"
@@ -119,7 +120,7 @@ func testAccInterfaceWireguardPeerUpdatedComment(interfaceName string) string {
 	}
 	resource "mikrotik_interface_wireguard_peer" "bar" {
 		comment = "%s"
-		allowed_address = "%d"
+		allowed_address = "%s"
 		endpoint_address = "%s"
 		endpoint_port = "%d"
 		interface = "%s"
