@@ -15,7 +15,7 @@ var origComment_peer string = "testing"
 var origAllowedAddress string = "192.168.0.2"
 var origEndpointAddress string = "192.168.0.1"
 var origEndpointPort int = 13231
-var origInterface string = "test_interface"
+var origInterface string = "interface_for_peer"
 var updatedComment_peer string = "new_comment"
 
 func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
@@ -116,16 +116,16 @@ resource "mikrotik_interface_wireguard_peer" "bar" {
 func testAccInterfaceWireguardPeerUpdatedComment(interfaceName string) string {
 	return fmt.Sprintf(`
 	resource "mikrotik_interface_wireguard" "bar" {
-		name = "%s"
+		name = "interface_updated"
 	}
 	resource "mikrotik_interface_wireguard_peer" "bar" {
 		comment = "%s"
 		allowed_address = "%s"
 		endpoint_address = "%s"
 		endpoint_port = "%d"
-		interface = "%s"
+		interface = "interface_updated"
 	}
-	`, interfaceName, updatedComment_peer, origAllowedAddress, origEndpointAddress, origEndpointPort, interfaceName)
+	`, updatedComment_peer, origAllowedAddress, origEndpointAddress, origEndpointPort)
 }
 
 func testAccCheckMikrotikInterfaceWireguardPeerDestroy(s *terraform.State) error {
