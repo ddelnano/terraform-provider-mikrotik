@@ -159,11 +159,11 @@ func (i *interfaceWireguardPeer) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	resource, err := i.client.FindInterfaceWireguardPeer(state.ID.ValueString())
+	resource, err := i.client.FindInterfaceWireguardPeer(state.Interface.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading remote resource",
-			fmt.Sprintf("Could not read interfaceWireguardPeer with id %q", state.ID.ValueString()),
+			fmt.Sprintf("Could not read interfaceWireguardPeer with id %q", state.Interface.ValueString()),
 		)
 		return
 	}
