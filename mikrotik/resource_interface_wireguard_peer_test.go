@@ -11,16 +11,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-var origComment_peer string = "testing"
+var origCommentPeer string = "testing"
 var origAllowedAddress string = "192.168.0.2"
 var origEndpointAddress string = "192.168.0.1"
 var origEndpointPort int = 13231
-var origInterface string = "interface_for_peer"
-var updatedComment_peer string = "new_comment"
+var updatedCommentPeer string = "new_comment"
 
 func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
 	client.SkipInterfaceWireguardIfUnsupported(t)
 
+	interfaceName := acctest.RandomWithPrefix("tf-acc-interface")
 	resourceName := "mikrotik_interface_wireguard_peer.bar"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -28,13 +28,13 @@ func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
 		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInterfaceWireguardPeer(origInterface),
+				Config: testAccInterfaceWireguardPeer(interfaceName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardPeerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "allowed_address", origAllowedAddress),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_address", origEndpointAddress),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_port", strconv.Itoa(origEndpointPort)),
-					resource.TestCheckResourceAttr(resourceName, "interface", origInterface)),
+					resource.TestCheckResourceAttr(resourceName, "interface", interfaceName)),
 			},
 		},
 	})
@@ -43,6 +43,7 @@ func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
 func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
 	client.SkipInterfaceWireguardIfUnsupported(t)
 
+	interfaceName := acctest.RandomWithPrefix("tf-acc-interface")
 	resourceName := "mikrotik_interface_wireguard_peer.bar"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -50,18 +51,18 @@ func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
 		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInterfaceWireguardPeer(origInterface),
+				Config: testAccInterfaceWireguardPeer(interfaceName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardPeerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "interface", origInterface),
-					resource.TestCheckResourceAttr(resourceName, "comment", origComment_peer)),
+					resource.TestCheckResourceAttr(resourceName, "interface", interfaceName),
+					resource.TestCheckResourceAttr(resourceName, "comment", origCommentPeer)),
 			},
 			{
-				Config: testAccInterfaceWireguardPeerUpdatedComment(origInterface),
+				Config: testAccInterfaceWireguardPeerUpdatedComment(interfaceName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardPeerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "interface", origInterface),
-					resource.TestCheckResourceAttr(resourceName, "comment", updatedComment_peer)),
+					resource.TestCheckResourceAttr(resourceName, "interface", interfaceName),
+					resource.TestCheckResourceAttr(resourceName, "comment", updatedCommentPeer)),
 			},
 		},
 	})
@@ -69,8 +70,8 @@ func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
 
 func TestAccMikrotikInterfaceWireguardPeer_import(t *testing.T) {
 	client.SkipInterfaceWireguardIfUnsupported(t)
-	name := acctest.RandomWithPrefix("tf-acc-import")
 
+	interfaceName := acctest.RandomWithPrefix("tf-acc-interface")
 	resourceName := "mikrotik_interface_wireguard_peer.bar"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -78,7 +79,7 @@ func TestAccMikrotikInterfaceWireguardPeer_import(t *testing.T) {
 		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInterfaceWireguardPeer(origInterface),
+				Config: testAccInterfaceWireguardPeer(interfaceName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardPeerExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "interface"),
@@ -89,7 +90,7 @@ func TestAccMikrotikInterfaceWireguardPeer_import(t *testing.T) {
 				ResourceName: resourceName,
 				ImportState:  true,
 				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-					return name, nil
+					return interfaceName, nil
 				},
 				ImportStateVerify: true,
 			},
@@ -101,33 +102,36 @@ func testAccInterfaceWireguardPeer(interfaceName string) string {
 	return fmt.Sprintf(`
 	resource "mikrotik_interface_wireguard" "bar" {
 		name = "%s"
-		comment = "dummy interface"
+		comment = "test interface"
 		listen_port = "12321"
 		mtu = "1420"
-		}
+	}
 	resource "mikrotik_interface_wireguard_peer" "bar" {
+		interface = mikrotik_interface_wireguard.bar.name
 		comment = "%s"
 		allowed_address = "%s"
 		endpoint_address = "%s"
 		endpoint_port = "%d"
-		interface = "%s"
 	}
-	`, interfaceName, origComment_peer, origAllowedAddress, origEndpointAddress, origEndpointPort, interfaceName)
+	`, interfaceName, origCommentPeer, origAllowedAddress, origEndpointAddress, origEndpointPort)
 }
 
 func testAccInterfaceWireguardPeerUpdatedComment(interfaceName string) string {
 	return fmt.Sprintf(`
 	resource "mikrotik_interface_wireguard" "bar" {
 		name = "%s"
+		comment = "test interface"
+		listen_port = "12321"
+		mtu = "1420"
 	}
 	resource "mikrotik_interface_wireguard_peer" "bar" {
+		interface = mikrotik_interface_wireguard.bar.name
 		comment = "%s"
 		allowed_address = "%s"
 		endpoint_address = "%s"
 		endpoint_port = "%d"
-		interface = "%s"
 	}
-	`, interfaceName, updatedComment_peer, origAllowedAddress, origEndpointAddress, origEndpointPort, interfaceName)
+	`, interfaceName, updatedCommentPeer, origAllowedAddress, origEndpointAddress, origEndpointPort)
 }
 
 func testAccCheckMikrotikInterfaceWireguardPeerDestroy(s *terraform.State) error {
