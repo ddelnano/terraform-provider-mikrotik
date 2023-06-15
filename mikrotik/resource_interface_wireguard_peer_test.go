@@ -102,30 +102,32 @@ func testAccInterfaceWireguardPeer(interfaceName string) string {
 	resource "mikrotik_interface_wireguard" "bar" {
 		name = "%s"
 		comment = "dummy interface"
+		listen_port = "12321"
+		mtu = "1420"
+		}
+	resource "mikrotik_interface_wireguard_peer" "bar" {
+		comment = "%s"
+		allowed_address = "%s"
+		endpoint_address = "%s"
+		endpoint_port = "%d"
+		interface = "%s"
 	}
-resource "mikrotik_interface_wireguard_peer" "bar" {
-	comment = "%s"
-	allowed_address = "%s"
-	endpoint_address = "%s"
-	endpoint_port = "%d"
-	interface = "%s"
-}
-`, interfaceName, origComment_peer, origAllowedAddress, origEndpointAddress, origEndpointPort, interfaceName)
+	`, interfaceName, origComment_peer, origAllowedAddress, origEndpointAddress, origEndpointPort, interfaceName)
 }
 
 func testAccInterfaceWireguardPeerUpdatedComment(interfaceName string) string {
 	return fmt.Sprintf(`
 	resource "mikrotik_interface_wireguard" "bar" {
-		name = "interface_updated"
+		name = "%s"
 	}
 	resource "mikrotik_interface_wireguard_peer" "bar" {
 		comment = "%s"
 		allowed_address = "%s"
 		endpoint_address = "%s"
 		endpoint_port = "%d"
-		interface = "interface_updated"
+		interface = "%s"
 	}
-	`, updatedComment_peer, origAllowedAddress, origEndpointAddress, origEndpointPort)
+	`, interfaceName, updatedComment_peer, origAllowedAddress, origEndpointAddress, origEndpointPort, interfaceName)
 }
 
 func testAccCheckMikrotikInterfaceWireguardPeerDestroy(s *terraform.State) error {
