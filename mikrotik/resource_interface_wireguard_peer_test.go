@@ -11,8 +11,7 @@ import (
 )
 
 var origCommentPeer string = "testing"
-var origAllowedAddress string = "192.168.0.2/32"
-var origEndpointAddress string = "192.168.0.1/32"
+var origAllowedAddress string = "192.168.8.1/32"
 var origEndpointPort int = 13231
 var updatedCommentPeer string = "new_comment"
 
@@ -31,7 +30,6 @@ func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardPeerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "allowed_address", origAllowedAddress),
-					resource.TestCheckResourceAttr(resourceName, "endpoint_address", origEndpointAddress),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_port", strconv.Itoa(origEndpointPort)),
 					resource.TestCheckResourceAttr(resourceName, "interface", interfaceName)),
 			},
@@ -109,10 +107,9 @@ func testAccInterfaceWireguardPeer(interfaceName string) string {
 		interface = mikrotik_interface_wireguard.bar.name
 		comment = "%s"
 		allowed_address = "%s"
-		endpoint_address = "%s"
 		endpoint_port = "%d"
 	}
-	`, interfaceName, origCommentPeer, origAllowedAddress, origEndpointAddress, origEndpointPort)
+	`, interfaceName, origCommentPeer, origAllowedAddress, origEndpointPort)
 }
 
 func testAccInterfaceWireguardPeerUpdatedComment(interfaceName string) string {
@@ -127,10 +124,9 @@ func testAccInterfaceWireguardPeerUpdatedComment(interfaceName string) string {
 		interface = mikrotik_interface_wireguard.bar.name
 		comment = "%s"
 		allowed_address = "%s"
-		endpoint_address = "%s"
 		endpoint_port = "%d"
 	}
-	`, interfaceName, updatedCommentPeer, origAllowedAddress, origEndpointAddress, origEndpointPort)
+	`, interfaceName, updatedCommentPeer, origAllowedAddress, origEndpointPort)
 }
 
 func testAccCheckMikrotikInterfaceWireguardPeerDestroy(s *terraform.State) error {
