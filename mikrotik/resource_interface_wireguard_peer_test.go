@@ -109,7 +109,7 @@ func testAccInterfaceWireguardPeer(interfaceName string, publicKey string) strin
 	}
 	resource "mikrotik_interface_wireguard_peer" "bar" {
 		interface = mikrotik_interface_wireguard.bar.name
-		public-key = "%s"
+		public_key = "%s"
 		comment = "%s"
 		allowed_address = "%s"
 		endpoint_port = "%d"
@@ -127,7 +127,7 @@ func testAccInterfaceWireguardPeerUpdatedComment(interfaceName string, publicKey
 	}
 	resource "mikrotik_interface_wireguard_peer" "bar" {
 		interface = mikrotik_interface_wireguard.bar.name
-		public-key = "%s"
+		public_key = "%s"
 		comment = "%s"
 		allowed_address = "%s"
 		endpoint_port = "%d"
