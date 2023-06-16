@@ -139,11 +139,9 @@ func testAccCheckMikrotikInterfaceWireguardPeerDestroy(s *terraform.State) error
 
 		interfaceWireguardPeer, err := c.FindInterfaceWireguardPeer(rs.Primary.Attributes["interface"])
 
-		_, ok := err.(*client.NotFound)
 		log.Printf("err type:  %T", err)
 		log.Printf("err:  %v", err)
-		log.Printf("ok:  %v", ok)
-		if !ok && err != nil {
+		if !client.IsNotFoundError(err) && err != nil {
 			return err
 		}
 

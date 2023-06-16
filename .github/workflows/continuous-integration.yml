@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         experimental: [false]
-        go: ["1.19"]
+        go: ["1.18"]
         os: [ubuntu-latest]
         # Test against latest stable release, v6 beta and v7 beta
         routeros: ["6.48.3", "6.49beta54"]
@@ -22,7 +22,7 @@ jobs:
         interface_wireguard_support: [false]
         include:
           - experimental: true
-            go: 1.19
+            go: 1.18
             os: ubuntu-latest
             routeros: "latest"
             legacy_bgp_support: false
