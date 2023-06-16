@@ -19,6 +19,7 @@ func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
 	client.SkipInterfaceWireguardIfUnsupported(t)
 
 	interfaceName := "tf-acc-interface-wireguard"
+	publicKey := "/yZWgiYAgNNSy7AIcxuEewYwOVPqJJRKG90s9ypwfiM="
 	resourceName := "mikrotik_interface_wireguard_peer.bar"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -26,7 +27,7 @@ func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
 		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInterfaceWireguardPeer(interfaceName),
+				Config: testAccInterfaceWireguardPeer(interfaceName, publicKey),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardPeerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "allowed_address", origAllowedAddress),
@@ -41,6 +42,7 @@ func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
 //	client.SkipInterfaceWireguardIfUnsupported(t)
 //
 //	interfaceName := "tf-acc-interface-wireguard"
+//  publicKey := "/bTmUihbgNsSy2AIcxuEcwYwOVdqJJRKG51s4ypwfiM="
 //	interfaceNameUpdated := "tf-acc-interface-wireguard-updated"
 //	resourceName := "mikrotik_interface_wireguard_peer.bar"
 //	resource.ParallelTest(t, resource.TestCase{
@@ -49,14 +51,14 @@ func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
 //		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
 //		Steps: []resource.TestStep{
 //			{
-//				Config: testAccInterfaceWireguardPeer(interfaceName),
+//				Config: testAccInterfaceWireguardPeer(interfaceName, publicKey),
 //				Check: resource.ComposeAggregateTestCheckFunc(
 //					testAccInterfaceWireguardPeerExists(resourceName),
 //					resource.TestCheckResourceAttr(resourceName, "interface", interfaceName),
 //					resource.TestCheckResourceAttr(resourceName, "comment", origCommentPeer)),
 //			},
 //			{
-//				Config: testAccInterfaceWireguardPeerUpdatedComment(interfaceName, interfaceNameUpdated),
+//				Config: testAccInterfaceWireguardPeerUpdatedComment(interfaceName, publicKey),
 //				Check: resource.ComposeAggregateTestCheckFunc(
 //					testAccInterfaceWireguardPeerExists(resourceName),
 //					resource.TestCheckResourceAttr(resourceName, "interface", interfaceNameUpdated),
@@ -70,6 +72,7 @@ func TestAccMikrotikInterfaceWireguardPeer_import(t *testing.T) {
 	client.SkipInterfaceWireguardIfUnsupported(t)
 
 	interfaceName := "tf-acc-interface-wireguard-import"
+	publicKey := "/zYaGiYbgNsSy8AIcxuEcwYwOVdqJJRKG91s9ypwfiM="
 	resourceName := "mikrotik_interface_wireguard_peer.bar"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -77,7 +80,7 @@ func TestAccMikrotikInterfaceWireguardPeer_import(t *testing.T) {
 		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccInterfaceWireguardPeer(interfaceName),
+				Config: testAccInterfaceWireguardPeer(interfaceName, publicKey),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardPeerExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "interface"),
@@ -96,7 +99,7 @@ func TestAccMikrotikInterfaceWireguardPeer_import(t *testing.T) {
 	})
 }
 
-func testAccInterfaceWireguardPeer(interfaceName string) string {
+func testAccInterfaceWireguardPeer(interfaceName string, publicKey string) string {
 	return fmt.Sprintf(`
 	resource "mikrotik_interface_wireguard" "bar" {
 		name = "%s"
@@ -106,14 +109,15 @@ func testAccInterfaceWireguardPeer(interfaceName string) string {
 	}
 	resource "mikrotik_interface_wireguard_peer" "bar" {
 		interface = mikrotik_interface_wireguard.bar.name
+		public-key = "%s"
 		comment = "%s"
 		allowed_address = "%s"
 		endpoint_port = "%d"
 	}
-	`, interfaceName, origCommentPeer, origAllowedAddress, origEndpointPort)
+	`, interfaceName, publicKey, origCommentPeer, origAllowedAddress, origEndpointPort)
 }
 
-func testAccInterfaceWireguardPeerUpdatedComment(interfaceName string, interfaceNameUpdated string) string {
+func testAccInterfaceWireguardPeerUpdatedComment(interfaceName string, publicKey string) string {
 	return fmt.Sprintf(`
 	resource "mikrotik_interface_wireguard" "bar" {
 		name = "%s"
@@ -121,19 +125,14 @@ func testAccInterfaceWireguardPeerUpdatedComment(interfaceName string, interface
 		listen_port = "12321"
 		mtu = "1420"
 	}
-	resource "mikrotik_interface_wireguard" "foo" {
-		name = "%s"
-		comment = "test interface"
-		listen_port = "12321"
-		mtu = "1420"
-	}
 	resource "mikrotik_interface_wireguard_peer" "bar" {
-		interface = mikrotik_interface_wireguard.foo.name
+		interface = mikrotik_interface_wireguard.bar.name
+		public-key = "%s"
 		comment = "%s"
 		allowed_address = "%s"
 		endpoint_port = "%d"
 	}
-	`, interfaceName, interfaceNameUpdated, updatedCommentPeer, origAllowedAddress, origEndpointPort)
+	`, interfaceName, publicKey, updatedCommentPeer, origAllowedAddress, origEndpointPort)
 }
 
 func testAccCheckMikrotikInterfaceWireguardPeerDestroy(s *terraform.State) error {
