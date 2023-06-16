@@ -48,7 +48,7 @@ jobs:
         run: make lint
 
       - name: Run provider tests
-        run: make testacc
+        run: TF_LOG=DEBUG make testacc
         env:
           MIKROTIK_HOST: 127.0.0.1:8728
           MIKROTIK_USER: admin
