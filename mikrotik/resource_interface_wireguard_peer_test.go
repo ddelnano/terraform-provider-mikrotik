@@ -2,6 +2,7 @@ package mikrotik
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"testing"
 
@@ -139,6 +140,9 @@ func testAccCheckMikrotikInterfaceWireguardPeerDestroy(s *terraform.State) error
 		interfaceWireguardPeer, err := c.FindInterfaceWireguardPeer(rs.Primary.Attributes["interface"])
 
 		_, ok := err.(*client.NotFound)
+		log.Printf("err type:  %T", err)
+		log.Printf("err:  %v", err)
+		log.Printf("ok:  %v", ok)
 		if !ok && err != nil {
 			return err
 		}

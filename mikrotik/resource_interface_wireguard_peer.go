@@ -3,6 +3,7 @@ package mikrotik
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -159,11 +160,12 @@ func (i *interfaceWireguardPeer) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
+	log.Printf("HIT")
 	resource, err := i.client.FindInterfaceWireguardPeer(state.Interface.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Error reading remote resource",
-			fmt.Sprintf("Could not read interfaceWireguardPeer with id %q", state.Interface.ValueString()),
+			fmt.Sprintf("Could not read interfaceWireguardPeer with interface name %q", state.Interface.ValueString()),
 		)
 		return
 	}
