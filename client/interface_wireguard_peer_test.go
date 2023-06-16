@@ -3,18 +3,19 @@ package client
 import (
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestFindInterfaceWireguardPeer_onNonExistantInterfacePeer(t *testing.T) {
 	SkipInterfaceWireguardIfUnsupported(t)
 	c := NewClient(GetConfigFromEnv())
 
-	id := "Interface peer does not exist"
-	_, err := c.FindInterfaceWireguardPeer(id)
+	interfaceName := "Interface peer does not exist"
+	_, err := c.FindInterfaceWireguardPeer(interfaceName)
 
-	if _, ok := err.(*NotFound); !ok {
-		t.Errorf("Expecting to receive NotFound error for Interface peer `%s`, instead error was nil.", id)
-	}
+	require.Truef(t, IsNotFoundError(err),
+		"Expecting to receive NotFound error for Interface peer `%q`, instead error was nil.", interfaceName)
 }
 
 func TestWireguardInterfacePeer_Crud(t *testing.T) {
@@ -31,7 +32,7 @@ func TestWireguardInterfacePeer_Crud(t *testing.T) {
 		Comment:    "new interface from test",
 	}
 
-	created_interface, err := c.Add(interfaceWireguard)
+	createdInterface, err := c.Add(interfaceWireguard)
 	if err != nil {
 		t.Errorf("expected no error, got %v", err)
 		return
@@ -44,7 +45,7 @@ func TestWireguardInterfacePeer_Crud(t *testing.T) {
 	}()
 
 	interfaceWireguardPeer := &InterfaceWireguardPeer{
-		Interface: created_interface.(*InterfaceWireguard).Name,
+		Interface: createdInterface.(*InterfaceWireguard).Name,
 		Disabled:  false,
 		Comment:   "new interface from test",
 	}
@@ -61,7 +62,7 @@ func TestWireguardInterfacePeer_Crud(t *testing.T) {
 		}
 	}()
 	findInterface := &InterfaceWireguardPeer{}
-	findInterface.Interface = created_interface.(*InterfaceWireguard).Name
+	findInterface.Interface = createdInterface.(*InterfaceWireguard).Name
 	found, err := c.Find(findInterface)
 	if err != nil {
 		t.Errorf("expected no error, got %v", err)
