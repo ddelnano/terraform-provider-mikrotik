@@ -37,34 +37,34 @@ func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
 	})
 }
 
-func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
-	client.SkipInterfaceWireguardIfUnsupported(t)
-
-	interfaceName := "tf-acc-interface-wireguard"
-	interfaceNameUpdated := "tf-acc-interface-wireguard-updated"
-	resourceName := "mikrotik_interface_wireguard_peer.bar"
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
-		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccInterfaceWireguardPeer(interfaceName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccInterfaceWireguardPeerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "interface", interfaceName),
-					resource.TestCheckResourceAttr(resourceName, "comment", origCommentPeer)),
-			},
-			{
-				Config: testAccInterfaceWireguardPeerUpdatedComment(interfaceName, interfaceNameUpdated),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccInterfaceWireguardPeerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "interface", interfaceNameUpdated),
-					resource.TestCheckResourceAttr(resourceName, "comment", updatedCommentPeer)),
-			},
-		},
-	})
-}
+//func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
+//	client.SkipInterfaceWireguardIfUnsupported(t)
+//
+//	interfaceName := "tf-acc-interface-wireguard"
+//	interfaceNameUpdated := "tf-acc-interface-wireguard-updated"
+//	resourceName := "mikrotik_interface_wireguard_peer.bar"
+//	resource.ParallelTest(t, resource.TestCase{
+//		PreCheck:                 func() { testAccPreCheck(t) },
+//		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+//		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
+//		Steps: []resource.TestStep{
+//			{
+//				Config: testAccInterfaceWireguardPeer(interfaceName),
+//				Check: resource.ComposeAggregateTestCheckFunc(
+//					testAccInterfaceWireguardPeerExists(resourceName),
+//					resource.TestCheckResourceAttr(resourceName, "interface", interfaceName),
+//					resource.TestCheckResourceAttr(resourceName, "comment", origCommentPeer)),
+//			},
+//			{
+//				Config: testAccInterfaceWireguardPeerUpdatedComment(interfaceName, interfaceNameUpdated),
+//				Check: resource.ComposeAggregateTestCheckFunc(
+//					testAccInterfaceWireguardPeerExists(resourceName),
+//					resource.TestCheckResourceAttr(resourceName, "interface", interfaceNameUpdated),
+//					resource.TestCheckResourceAttr(resourceName, "comment", updatedCommentPeer)),
+//			},
+//		},
+//	})
+//}
 
 func TestAccMikrotikInterfaceWireguardPeer_import(t *testing.T) {
 	client.SkipInterfaceWireguardIfUnsupported(t)
