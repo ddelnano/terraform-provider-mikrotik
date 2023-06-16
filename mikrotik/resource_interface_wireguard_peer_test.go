@@ -40,7 +40,8 @@ func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
 func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
 	client.SkipInterfaceWireguardIfUnsupported(t)
 
-	interfaceName := "tf-acc-interface-wireguard-update"
+	interfaceName := "tf-acc-interface-wireguard"
+	interfaceNameUpdated := "tf-acc-interface-wireguard-updated"
 	resourceName := "mikrotik_interface_wireguard_peer.bar"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -55,10 +56,10 @@ func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "comment", origCommentPeer)),
 			},
 			{
-				Config: testAccInterfaceWireguardPeerUpdatedComment(interfaceName),
+				Config: testAccInterfaceWireguardPeerUpdatedComment(interfaceName, interfaceNameUpdated),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardPeerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "interface", interfaceName),
+					resource.TestCheckResourceAttr(resourceName, "interface", interfaceNameUpdated),
 					resource.TestCheckResourceAttr(resourceName, "comment", updatedCommentPeer)),
 			},
 		},
@@ -112,7 +113,7 @@ func testAccInterfaceWireguardPeer(interfaceName string) string {
 	`, interfaceName, origCommentPeer, origAllowedAddress, origEndpointPort)
 }
 
-func testAccInterfaceWireguardPeerUpdatedComment(interfaceName string) string {
+func testAccInterfaceWireguardPeerUpdatedComment(interfaceName string, interfaceNameUpdated string) string {
 	return fmt.Sprintf(`
 	resource "mikrotik_interface_wireguard" "bar" {
 		name = "%s"
@@ -120,13 +121,19 @@ func testAccInterfaceWireguardPeerUpdatedComment(interfaceName string) string {
 		listen_port = "12321"
 		mtu = "1420"
 	}
+	resource "mikrotik_interface_wireguard" "foo" {
+		name = "%s"
+		comment = "test interface"
+		listen_port = "12321"
+		mtu = "1420"
+	}
 	resource "mikrotik_interface_wireguard_peer" "bar" {
-		interface = mikrotik_interface_wireguard.bar.name
+		interface = mikrotik_interface_wireguard.foo.name
 		comment = "%s"
 		allowed_address = "%s"
 		endpoint_port = "%d"
 	}
-	`, interfaceName, updatedCommentPeer, origAllowedAddress, origEndpointPort)
+	`, interfaceName, interfaceNameUpdated, updatedCommentPeer, origAllowedAddress, origEndpointPort)
 }
 
 func testAccCheckMikrotikInterfaceWireguardPeerDestroy(s *terraform.State) error {
