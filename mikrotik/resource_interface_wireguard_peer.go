@@ -216,7 +216,7 @@ func (i *interfaceWireguardPeer) Delete(ctx context.Context, req resource.Delete
 
 func (i *interfaceWireguardPeer) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("interface"), req, resp)
 }
 
 type interfacePeerModel struct {
