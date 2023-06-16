@@ -31,6 +31,7 @@ func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardPeerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "allowed_address", origAllowedAddress),
+					resource.TestCheckResourceAttr(resourceName, "public_key", publicKey),
 					resource.TestCheckResourceAttr(resourceName, "endpoint_port", strconv.Itoa(origEndpointPort)),
 					resource.TestCheckResourceAttr(resourceName, "interface", interfaceName)),
 			},
@@ -38,35 +39,36 @@ func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
 	})
 }
 
-//func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
-//	client.SkipInterfaceWireguardIfUnsupported(t)
-//
-//	interfaceName := "tf-acc-interface-wireguard"
-//  publicKey := "/bTmUihbgNsSy2AIcxuEcwYwOVdqJJRKG51s4ypwfiM="
-//	interfaceNameUpdated := "tf-acc-interface-wireguard-updated"
-//	resourceName := "mikrotik_interface_wireguard_peer.bar"
-//	resource.ParallelTest(t, resource.TestCase{
-//		PreCheck:                 func() { testAccPreCheck(t) },
-//		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
-//		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
-//		Steps: []resource.TestStep{
-//			{
-//				Config: testAccInterfaceWireguardPeer(interfaceName, publicKey),
-//				Check: resource.ComposeAggregateTestCheckFunc(
-//					testAccInterfaceWireguardPeerExists(resourceName),
-//					resource.TestCheckResourceAttr(resourceName, "interface", interfaceName),
-//					resource.TestCheckResourceAttr(resourceName, "comment", origCommentPeer)),
-//			},
-//			{
-//				Config: testAccInterfaceWireguardPeerUpdatedComment(interfaceName, publicKey),
-//				Check: resource.ComposeAggregateTestCheckFunc(
-//					testAccInterfaceWireguardPeerExists(resourceName),
-//					resource.TestCheckResourceAttr(resourceName, "interface", interfaceNameUpdated),
-//					resource.TestCheckResourceAttr(resourceName, "comment", updatedCommentPeer)),
-//			},
-//		},
-//	})
-//}
+func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
+	client.SkipInterfaceWireguardIfUnsupported(t)
+
+	interfaceName := "tf-acc-interface-wireguard"
+	publicKey := "/bTmUihbgNsSy2AIcxuEcwYwOVdqJJRKG51s4ypwfiM="
+	interfaceNameUpdated := "tf-acc-interface-wireguard-updated"
+	resourceName := "mikrotik_interface_wireguard_peer.bar"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccInterfaceWireguardPeer(interfaceName, publicKey),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccInterfaceWireguardPeerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "interface", interfaceName),
+					resource.TestCheckResourceAttr(resourceName, "public_key", publicKey),
+					resource.TestCheckResourceAttr(resourceName, "comment", origCommentPeer)),
+			},
+			{
+				Config: testAccInterfaceWireguardPeerUpdatedComment(interfaceName, publicKey),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccInterfaceWireguardPeerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "interface", interfaceNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "comment", updatedCommentPeer)),
+			},
+		},
+	})
+}
 
 func TestAccMikrotikInterfaceWireguardPeer_import(t *testing.T) {
 	client.SkipInterfaceWireguardIfUnsupported(t)
@@ -84,6 +86,7 @@ func TestAccMikrotikInterfaceWireguardPeer_import(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardPeerExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "interface"),
+					resource.TestCheckResourceAttr(resourceName, "public_key", publicKey),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 				),
 			},
