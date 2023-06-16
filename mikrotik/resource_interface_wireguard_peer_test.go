@@ -42,9 +42,8 @@ func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
 func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
 	client.SkipInterfaceWireguardIfUnsupported(t)
 
-	interfaceName := "tf-acc-interface-wireguard"
+	interfaceName := "tf-acc-interface-wireguard-updated"
 	publicKey := "/bTmUihbgNsSy2AIcxuEcwYwOVdqJJRKG51s4ypwfiM="
-	interfaceNameUpdated := "tf-acc-interface-wireguard-updated"
 	resourceName := "mikrotik_interface_wireguard_peer.bar"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
@@ -63,7 +62,7 @@ func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
 				Config: testAccInterfaceWireguardPeerUpdatedComment(interfaceName, publicKey),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardPeerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "interface", interfaceNameUpdated),
+					resource.TestCheckResourceAttr(resourceName, "interface", interfaceName),
 					resource.TestCheckResourceAttr(resourceName, "comment", updatedCommentPeer)),
 			},
 		},
