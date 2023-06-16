@@ -147,13 +147,17 @@ func (client Mikrotik) findByField(d Resource, field, value string) (Resource, e
 	log.Printf("[DEBUG] find response: %v", r)
 
 	targetStruct := client.newTargetStruct(d)
+	log.Printf("targetStruct:  %v | %T", targetStruct, targetStruct)
 	targetStructInterface := targetStruct.Interface()
+	log.Printf("targetStructInterface:  %v | %T", targetStructInterface, targetStructInterface)
 	err = Unmarshal(*r, targetStructInterface)
 	if err != nil {
 		return nil, err
 	}
 	// assertion is not checked as we are creating the targetStruct from 'd' argument which satisfies Resource interface
 	targetResource := targetStructInterface.(Resource)
+	log.Printf("targetStructInterface.(Resource):  %v | %T", targetStructInterface.(Resource), targetStructInterface.(Resource))
+	log.Printf("targetResource.ID():  %v | %T", targetResource.ID(), targetResource.ID())
 	if targetResource.ID() == "" {
 		return nil, NewNotFound(fmt.Sprintf("resource `%T` with field `%s=%s` not found", targetStruct, field, value))
 	}
