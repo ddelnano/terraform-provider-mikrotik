@@ -84,6 +84,37 @@ func (client Mikrotik) Add(d Resource) (Resource, error) {
 }
 
 // Find retrieves resource from remote system
+func (client Mikrotik) List(d Resource) ([]Resource, error) {
+	cmd := []string{d.ActionToCommand(Find)}
+	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
+
+	c, err := client.getMikrotikClient()
+	if err != nil {
+		return nil, err
+	}
+	r, err := c.RunArgs(cmd)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("[DEBUG] find response: %v", r)
+
+	targetStruct := client.newTargetStruct(d)
+	targetSlicePtr := reflect.New(reflect.SliceOf(reflect.Indirect(targetStruct).Type()))
+	targetSlice := reflect.Indirect(targetSlicePtr)
+	err = Unmarshal(*r, targetSlicePtr.Interface())
+	if err != nil {
+		return nil, err
+	}
+
+	returnSlice := make([]Resource, 0)
+	for i := 0; i < targetSlice.Len(); i++ {
+		returnSlice = append(returnSlice, targetSlice.Index(i).Addr().Interface().(Resource))
+	}
+
+	return returnSlice, nil
+}
+
+// Find retrieves resource from remote system
 func (client Mikrotik) Find(d Resource) (Resource, error) {
 	findField := d.IDField()
 	findFieldValue := d.ID()
