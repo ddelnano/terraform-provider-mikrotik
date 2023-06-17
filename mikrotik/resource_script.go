@@ -67,12 +67,14 @@ func resourceScriptCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	c := m.(*client.Mikrotik)
 
-	script, err := c.CreateScript(
-		name,
-		owner,
-		source,
-		policies,
-		dontReqPerms,
+	script, err := c.AddScript(
+		&client.Script{
+			Name:                   name,
+			Owner:                  owner,
+			Source:                 source,
+			Policy:                 policies,
+			DontRequirePermissions: dontReqPerms,
+		},
 	)
 	if err != nil {
 		return diag.FromErr(err)
@@ -86,7 +88,7 @@ func scriptToData(s *client.Script, d *schema.ResourceData) diag.Diagnostics {
 		"name":                     s.Name,
 		"owner":                    s.Owner,
 		"source":                   s.Source,
-		"policy":                   s.Policy(),
+		"policy":                   s.Policy,
 		"dont_require_permissions": s.DontRequirePermissions,
 	}
 
@@ -134,7 +136,15 @@ func resourceScriptUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	c := m.(*client.Mikrotik)
 
-	script, err := c.UpdateScript(name, owner, source, policies, dontReqPerms)
+	script, err := c.UpdateScript(
+		&client.Script{
+			Name:                   name,
+			Owner:                  owner,
+			Source:                 source,
+			Policy:                 policies,
+			DontRequirePermissions: dontReqPerms,
+		},
+	)
 	if err != nil {
 		return diag.FromErr(err)
 	}
