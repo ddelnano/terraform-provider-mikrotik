@@ -1,8 +1,7 @@
 package client
 
 import (
-	"fmt"
-	"log"
+	"github.com/go-routeros/routeros"
 )
 
 // InterfaceList manages a list of interfaces
@@ -12,81 +11,79 @@ type InterfaceList struct {
 	Name    string `mikrotik:"name"`
 }
 
-func (client Mikrotik) AddInterfaceList(d *InterfaceList) (*InterfaceList, error) {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return nil, err
-	}
+var _ Resource = (*InterfaceList)(nil)
 
-	cmd := Marshal("/interface/list/add", d)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("[DEBUG] command returned: %v", r)
-
-	return client.FindInterfaceList(d.Name)
+func (b *InterfaceList) ActionToCommand(a Action) string {
+	return map[Action]string{
+		Add:    "/interface/list/add",
+		Find:   "/interface/list/print",
+		Update: "/interface/list/set",
+		Delete: "/interface/list/remove",
+	}[a]
 }
 
-func (client Mikrotik) FindInterfaceList(id string) (*InterfaceList, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-	cmd := []string{"/interface/list/print", "?name=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("[DEBUG] Found record: %v", r)
-
-	record := InterfaceList{}
-	err = Unmarshal(*r, &record)
-	if err != nil {
-		return nil, err
-	}
-
-	if record.Id == "" {
-		return nil, NewNotFound(fmt.Sprintf("interface list `%s` not found", id))
-	}
-
-	return &record, nil
+func (b *InterfaceList) IDField() string {
+	return ".id"
 }
 
-func (client Mikrotik) UpdateInterfaceList(d *InterfaceList) (*InterfaceList, error) {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return nil, err
-	}
-
-	cmd := Marshal("/interface/list/set", d)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("[DEBUG] command returned: %v", r)
-
-	return client.FindInterfaceList(d.Name)
+func (b *InterfaceList) ID() string {
+	return b.Id
 }
 
-func (client Mikrotik) DeleteInterfaceList(id string) error {
-	c, err := client.getMikrotikClient()
+func (b *InterfaceList) SetID(id string) {
+	b.Id = id
+}
+
+// Uncomment extra methods to satisfy more interfaces
+
+func (b *InterfaceList) AfterAddHook(r *routeros.Reply) {
+	b.Id = r.Done.Map["ret"]
+}
+
+func (b *InterfaceList) FindField() string {
+	return "name"
+}
+
+func (b *InterfaceList) FindFieldValue() string {
+	return b.Name
+}
+
+func (b *InterfaceList) DeleteField() string {
+	return "numbers"
+}
+
+func (b *InterfaceList) DeleteFieldValue() string {
+	return b.Name
+}
+
+// Typed wrappers
+func (c Mikrotik) AddInterfaceList(r *InterfaceList) (*InterfaceList, error) {
+	res, err := c.Add(r)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	cmd := []string{"/interface/list/remove", "=numbers=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	if err != nil {
-		return err
-	}
-	log.Printf("[DEBUG] Command returned: %v", r)
+	return res.(*InterfaceList), nil
+}
 
-	return nil
+func (c Mikrotik) UpdateInterfaceList(r *InterfaceList) (*InterfaceList, error) {
+	res, err := c.Update(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*InterfaceList), nil
+}
+
+func (c Mikrotik) FindInterfaceList(name string) (*InterfaceList, error) {
+	res, err := c.Find(&InterfaceList{Name: name})
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*InterfaceList), nil
+}
+
+func (c Mikrotik) DeleteInterfaceList(name string) error {
+	return c.Delete(&InterfaceList{Name: name})
 }
