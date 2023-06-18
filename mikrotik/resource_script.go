@@ -17,7 +17,10 @@ func resourceScript() *schema.Resource {
 		UpdateContext: resourceScriptUpdate,
 		DeleteContext: resourceScriptDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			StateContext: func(ctx context.Context, rd *schema.ResourceData, i interface{}) ([]*schema.ResourceData, error) {
+				_ = rd.Set("name", rd.Id())
+				return schema.ImportStatePassthroughContext(ctx, rd, i)
+			},
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -92,7 +95,7 @@ func scriptToData(s *client.Script, d *schema.ResourceData) diag.Diagnostics {
 		"dont_require_permissions": s.DontRequirePermissions,
 	}
 
-	d.SetId(s.Name)
+	d.SetId(s.Id)
 
 	var diags diag.Diagnostics
 
@@ -108,7 +111,7 @@ func scriptToData(s *client.Script, d *schema.ResourceData) diag.Diagnostics {
 func resourceScriptRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	c := m.(*client.Mikrotik)
 
-	script, err := c.FindScript(d.Id())
+	script, err := c.FindScript(d.Get("name").(string))
 
 	if client.IsNotFoundError(err) {
 		d.SetId("")
@@ -120,6 +123,7 @@ func resourceScriptRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	return scriptToData(script, d)
 }
+
 func resourceScriptUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	name := d.Get("name").(string)
 	owner := d.Get("owner").(string)
@@ -138,6 +142,7 @@ func resourceScriptUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	script, err := c.UpdateScript(
 		&client.Script{
+			Id:                     d.Id(),
 			Name:                   name,
 			Owner:                  owner,
 			Source:                 source,
@@ -152,12 +157,9 @@ func resourceScriptUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 	return scriptToData(script, d)
 }
 func resourceScriptDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	name := d.Id()
-
 	c := m.(*client.Mikrotik)
 
-	err := c.DeleteScript(name)
-
+	err := c.DeleteScript(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
