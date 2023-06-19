@@ -18,7 +18,7 @@ func TestFindInterfaceWireguardPeer_onNonExistantInterfacePeer(t *testing.T) {
 		"Expecting to receive NotFound error for Interface peer `%q`, instead error was nil.", interfaceName)
 }
 
-func TestWireguardInterfacePeer_Crud(t *testing.T) {
+func TestInterfaceWireguardPeer_Crud(t *testing.T) {
 	SkipInterfaceWireguardIfUnsupported(t)
 	c := NewClient(GetConfigFromEnv())
 
@@ -74,6 +74,6 @@ func TestWireguardInterfacePeer_Crud(t *testing.T) {
 		return
 	}
 	if !reflect.DeepEqual(created, found) {
-		t.Error("expected created and found resources to be equal, but they don't")
+		t.Error("expected created and found resources to be equal, but they aren't")
 	}
 }
