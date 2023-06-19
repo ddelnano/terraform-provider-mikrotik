@@ -151,7 +151,7 @@ func testAccCheckMikrotikInterfaceWireguardPeerDestroy(s *terraform.State) error
 		}
 
 		if interfaceWireguardPeer != nil {
-			return fmt.Errorf("interface wireguard peer (%s) still exists", interfaceWireguardPeer.Id)
+			return fmt.Errorf("interface wireguard peer (%s) still exists", interfaceWireguardPeer.Interface)
 		}
 	}
 	return nil
@@ -178,7 +178,7 @@ func testAccInterfaceWireguardPeerExists(resourceName string) resource.TestCheck
 		}
 
 		if interfaceWireguardPeer == nil {
-			return fmt.Errorf("Unable to get the interface wireguard peer with id: %s", rs.Primary.Attributes[".id"])
+			return fmt.Errorf("Unable to get the interface wireguard peer with interface: %s", rs.Primary.Attributes["interface"])
 		}
 
 		if interfaceWireguardPeer.Id == rs.Primary.Attributes[".id"] {
