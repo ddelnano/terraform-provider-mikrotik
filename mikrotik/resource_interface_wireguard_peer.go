@@ -70,6 +70,7 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 			},
 			"disabled": schema.BoolAttribute{
 				Optional:    true,
+				Computed:    true,
 				Default:     booldefault.StaticBool(false),
 				Description: "Boolean for whether or not the interface peer is disabled.",
 			},
@@ -90,6 +91,7 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 			},
 			"persistent_keepalive": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
 				Default:  int64default.StaticInt64(0),
 				Validators: []validator.Int64{
 					int64validator.Between(0, 65535),
