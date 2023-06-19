@@ -66,6 +66,7 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 			},
 			"comment": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Short description of the peer.",
 			},
 			"disabled": schema.BoolAttribute{
@@ -76,10 +77,12 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 			},
 			"endpoint_address": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "An endpoint IP or hostname can be left blank to allow remote connection from any address.",
 			},
 			"endpoint_port": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
 				Validators: []validator.Int64{
 					int64validator.Between(0, 65535),
 				},
@@ -100,6 +103,7 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 			},
 			"preshared_key": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "A base64 preshared key. Optional, and may be omitted. This option adds an additional layer of symmetric-key cryptography to be mixed into the already existing public-key cryptography, for post-quantum resistance.",
 			},
 			"public_key": schema.StringAttribute{
@@ -123,7 +127,7 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 
 // Create creates the resource and sets the initial Terraform state.
 func (i *interfaceWireguardPeer) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan interfacePeerModel
+	var plan interfaceWireguardPeerModel
 	diags := req.Plan.Get(ctx, &plan)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -135,7 +139,7 @@ func (i *interfaceWireguardPeer) Create(ctx context.Context, req resource.Create
 		return
 	}
 
-	resp.Diagnostics.Append(interfacePeerToModel(created, &plan)...)
+	resp.Diagnostics.Append(interfaceWireguardPeerToModel(created, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -148,7 +152,7 @@ func (i *interfaceWireguardPeer) Create(ctx context.Context, req resource.Create
 
 // Read refreshes the Terraform state with the latest data.
 func (i *interfaceWireguardPeer) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state interfacePeerModel
+	var state interfaceWireguardPeerModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -163,7 +167,7 @@ func (i *interfaceWireguardPeer) Read(ctx context.Context, req resource.ReadRequ
 		return
 	}
 
-	resp.Diagnostics.Append(interfacePeerToModel(resource, &state)...)
+	resp.Diagnostics.Append(interfaceWireguardPeerToModel(resource, &state)...)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -172,7 +176,7 @@ func (i *interfaceWireguardPeer) Read(ctx context.Context, req resource.ReadRequ
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (i *interfaceWireguardPeer) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan interfacePeerModel
+	var plan interfaceWireguardPeerModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -184,7 +188,7 @@ func (i *interfaceWireguardPeer) Update(ctx context.Context, req resource.Update
 		return
 	}
 
-	resp.Diagnostics.Append(interfacePeerToModel(updated, &plan)...)
+	resp.Diagnostics.Append(interfaceWireguardPeerToModel(updated, &plan)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -197,7 +201,7 @@ func (i *interfaceWireguardPeer) Update(ctx context.Context, req resource.Update
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (i *interfaceWireguardPeer) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state interfacePeerModel
+	var state interfaceWireguardPeerModel
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -214,7 +218,7 @@ func (i *interfaceWireguardPeer) ImportState(ctx context.Context, req resource.I
 	resource.ImportStatePassthroughID(ctx, path.Root("interface"), req, resp)
 }
 
-type interfacePeerModel struct {
+type interfaceWireguardPeerModel struct {
 	ID                     tftypes.String `tfsdk:"id"`
 	AllowedAddress         tftypes.String `tfsdk:"allowed_address"`
 	Comment                tftypes.String `tfsdk:"comment"`
@@ -229,7 +233,7 @@ type interfacePeerModel struct {
 	CurrentEndpointPort    tftypes.Int64  `tfsdk:"current_endpoint_port"`
 }
 
-func interfacePeerToModel(i *client.InterfaceWireguardPeer, m *interfacePeerModel) diag.Diagnostics {
+func interfaceWireguardPeerToModel(i *client.InterfaceWireguardPeer, m *interfaceWireguardPeerModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 	if i == nil {
 		diags.AddError("Interface Wireguard Peer cannot be nil", "Cannot build model from nil object")
@@ -251,7 +255,7 @@ func interfacePeerToModel(i *client.InterfaceWireguardPeer, m *interfacePeerMode
 	return diags
 }
 
-func modelToInterfaceWireguardPeer(m *interfacePeerModel) *client.InterfaceWireguardPeer {
+func modelToInterfaceWireguardPeer(m *interfaceWireguardPeerModel) *client.InterfaceWireguardPeer {
 	return &client.InterfaceWireguardPeer{
 		Id:                     m.ID.ValueString(),
 		AllowedAddress:         m.AllowedAddress.ValueString(),
