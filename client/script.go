@@ -6,12 +6,12 @@ import (
 )
 
 type Script struct {
-	Id                     string             `mikrotik:".id"`
-	Name                   string             `mikrotik:"name"`
-	Owner                  string             `mikrotik:"owner"`
-	Policy                 types.MikrotikList `mikrotik:"policy"`
-	DontRequirePermissions bool               `mikrotik:"dont-require-permissions"`
-	Source                 string             `mikrotik:"source"`
+	Id                     string             `mikrotik:".id" codegen:"id,deleteID"`
+	Name                   string             `mikrotik:"name" codegen:"name,required,mikrotikID"`
+	Owner                  string             `mikrotik:"owner" codegen:"owner,required"`
+	Policy                 types.MikrotikList `mikrotik:"policy" codegen:"policy,required"`
+	DontRequirePermissions bool               `mikrotik:"dont-require-permissions" codegen:"dont_require_permissions"`
+	Source                 string             `mikrotik:"source" codegen:"source,required"`
 }
 
 var _ Resource = (*Script)(nil)
