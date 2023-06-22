@@ -74,7 +74,7 @@ func GenericReadResource(terraformModel interface{}, mikrotikModel client.Resour
 			return
 		}
 
-		resp.Diagnostics.Append(resp.State.Set(ctx, &terraformModel)...)
+		resp.Diagnostics.Append(resp.State.Set(ctx, terraformModel)...)
 		if resp.Diagnostics.HasError() {
 			return
 		}
