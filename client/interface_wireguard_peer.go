@@ -5,18 +5,16 @@ import (
 )
 
 type InterfaceWireguardPeer struct {
-	Id                     string `mikrotik:".id"`
-	AllowedAddress         string `mikrotik:"allowed-address"`
-	Comment                string `mikrotik:"comment"`
-	Disabled               bool   `mikrotik:"disabled"`
-	EndpointAddress        string `mikrotik:"endpoint-address"`
-	EndpointPort           int    `mikrotik:"endpoint-port"`
-	Interface              string `mikrotik:"interface"`
-	PersistentKeepalive    int    `mikrotik:"persistent-keepalive"`
-	PresharedKey           string `mikrotik:"preshared-key"`
-	PublicKey              string `mikrotik:"public-key"`
-	CurrentEndpointAddress string `mikrotik:"current-endpoint-address,readonly"`
-	CurrentEndpointPort    int    `mikrotik:"current-endpoint-port,readonly"`
+	Id                  string `mikrotik:".id"`
+	AllowedAddress      string `mikrotik:"allowed-address"`
+	Comment             string `mikrotik:"comment"`
+	Disabled            bool   `mikrotik:"disabled"`
+	EndpointAddress     string `mikrotik:"endpoint-address"`
+	EndpointPort        int64  `mikrotik:"endpoint-port"`
+	Interface           string `mikrotik:"interface"`
+	PersistentKeepalive int64  `mikrotik:"persistent-keepalive"`
+	PresharedKey        string `mikrotik:"preshared-key"`
+	PublicKey           string `mikrotik:"public-key"`
 }
 
 func (i *InterfaceWireguardPeer) ActionToCommand(action Action) string {

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
@@ -62,11 +63,12 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 			},
 			"allowed_address": schema.StringAttribute{
 				Optional:    true,
+				Default:     stringdefault.StaticString(""),
 				Description: "List of IP (v4 or v6) addresses with CIDR masks from which incoming traffic for this peer is allowed and to which outgoing traffic for this peer is directed. The catch-all 0.0.0.0/0 may be specified for matching all IPv4 addresses, and ::/0 may be specified for matching all IPv6 addresses.",
 			},
 			"comment": schema.StringAttribute{
 				Optional:    true,
-				Computed:    true,
+				Default:     stringdefault.StaticString(""),
 				Description: "Short description of the peer.",
 			},
 			"disabled": schema.BoolAttribute{
@@ -77,12 +79,12 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 			},
 			"endpoint_address": schema.StringAttribute{
 				Optional:    true,
-				Computed:    true,
+				Default:     stringdefault.StaticString(""),
 				Description: "An endpoint IP or hostname can be left blank to allow remote connection from any address.",
 			},
 			"endpoint_port": schema.Int64Attribute{
 				Optional: true,
-				Computed: true,
+				Default:  int64default.StaticInt64(0),
 				Validators: []validator.Int64{
 					int64validator.Between(0, 65535),
 				},
@@ -103,23 +105,13 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 			},
 			"preshared_key": schema.StringAttribute{
 				Optional:    true,
-				Computed:    true,
+				Default:     stringdefault.StaticString(""),
 				Description: "A base64 preshared key. Optional, and may be omitted. This option adds an additional layer of symmetric-key cryptography to be mixed into the already existing public-key cryptography, for post-quantum resistance.",
 			},
 			"public_key": schema.StringAttribute{
 				Optional:    true,
-				Computed:    true,
+				Default:     stringdefault.StaticString(""),
 				Description: "The remote peer's calculated public key.",
-			},
-			"current_endpoint_address": schema.StringAttribute{
-				Optional:    false,
-				Computed:    true,
-				Description: "The most recent source IP address of correctly authenticated packets from the peer.",
-			},
-			"current_endpoint_port": schema.Int64Attribute{
-				Optional:    false,
-				Computed:    true,
-				Description: "The most recent source IP port of correctly authenticated packets from the peer.",
 			},
 		},
 	}
@@ -244,30 +236,26 @@ func interfaceWireguardPeerToModel(i *client.InterfaceWireguardPeer, m *interfac
 	m.Comment = tftypes.StringValue(i.Comment)
 	m.Disabled = tftypes.BoolValue(i.Disabled)
 	m.EndpointAddress = tftypes.StringValue(i.EndpointAddress)
-	m.EndpointPort = tftypes.Int64Value(int64(i.EndpointPort))
+	m.EndpointPort = tftypes.Int64Value(i.EndpointPort)
 	m.Interface = tftypes.StringValue(i.Interface)
-	m.PersistentKeepalive = tftypes.Int64Value(int64(i.PersistentKeepalive))
+	m.PersistentKeepalive = tftypes.Int64Value(i.PersistentKeepalive)
 	m.PresharedKey = tftypes.StringValue(i.PresharedKey)
 	m.PublicKey = tftypes.StringValue(i.PublicKey)
-	m.CurrentEndpointAddress = tftypes.StringValue(i.CurrentEndpointAddress)
-	m.CurrentEndpointPort = tftypes.Int64Value(int64(i.CurrentEndpointPort))
 
 	return diags
 }
 
 func modelToInterfaceWireguardPeer(m *interfaceWireguardPeerModel) *client.InterfaceWireguardPeer {
 	return &client.InterfaceWireguardPeer{
-		Id:                     m.ID.ValueString(),
-		AllowedAddress:         m.AllowedAddress.ValueString(),
-		Comment:                m.Comment.ValueString(),
-		Disabled:               m.Disabled.ValueBool(),
-		EndpointAddress:        m.EndpointAddress.ValueString(),
-		EndpointPort:           int(m.EndpointPort.ValueInt64()),
-		Interface:              m.Interface.ValueString(),
-		PersistentKeepalive:    int(m.PersistentKeepalive.ValueInt64()),
-		PresharedKey:           m.PresharedKey.ValueString(),
-		PublicKey:              m.PublicKey.ValueString(),
-		CurrentEndpointAddress: m.CurrentEndpointAddress.ValueString(),
-		CurrentEndpointPort:    int(m.EndpointPort.ValueInt64()),
+		Id:                  m.ID.ValueString(),
+		AllowedAddress:      m.AllowedAddress.ValueString(),
+		Comment:             m.Comment.ValueString(),
+		Disabled:            m.Disabled.ValueBool(),
+		EndpointAddress:     m.EndpointAddress.ValueString(),
+		EndpointPort:        m.EndpointPort.ValueInt64(),
+		Interface:           m.Interface.ValueString(),
+		PersistentKeepalive: m.PersistentKeepalive.ValueInt64(),
+		PresharedKey:        m.PresharedKey.ValueString(),
+		PublicKey:           m.PublicKey.ValueString(),
 	}
 }

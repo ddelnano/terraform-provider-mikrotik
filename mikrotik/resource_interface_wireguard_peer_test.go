@@ -102,13 +102,7 @@ func TestAccMikrotikInterfaceWireguardPeer_import(t *testing.T) {
 }
 
 func testAccInterfaceWireguardPeer(interfaceName string, publicKey string) string {
-	return fmt.Sprintf(`
-	resource "mikrotik_interface_wireguard" "bar" {
-		name = "%s"
-		comment = "test interface"
-		listen_port = "12321"
-		mtu = "1420"
-	}
+	return testAccInterfaceWireguard(interfaceName) + fmt.Sprintf(`
 	resource "mikrotik_interface_wireguard_peer" "bar" {
 		interface = mikrotik_interface_wireguard.bar.name
 		public_key = "%s"
@@ -116,17 +110,11 @@ func testAccInterfaceWireguardPeer(interfaceName string, publicKey string) strin
 		allowed_address = "%s"
 		endpoint_port = "%d"
 	}
-	`, interfaceName, publicKey, origCommentPeer, origAllowedAddress, origEndpointPort)
+	`, publicKey, origCommentPeer, origAllowedAddress, origEndpointPort)
 }
 
 func testAccInterfaceWireguardPeerUpdatedComment(interfaceName string, publicKey string) string {
-	return fmt.Sprintf(`
-	resource "mikrotik_interface_wireguard" "bar" {
-		name = "%s"
-		comment = "test interface"
-		listen_port = "12321"
-		mtu = "1420"
-	}
+	return testAccInterfaceWireguard(interfaceName) + fmt.Sprintf(`
 	resource "mikrotik_interface_wireguard_peer" "bar" {
 		interface = mikrotik_interface_wireguard.bar.name
 		public_key = "%s"
@@ -134,7 +122,7 @@ func testAccInterfaceWireguardPeerUpdatedComment(interfaceName string, publicKey
 		allowed_address = "%s"
 		endpoint_port = "%d"
 	}
-	`, interfaceName, publicKey, updatedCommentPeer, origAllowedAddress, origEndpointPort)
+	`, publicKey, updatedCommentPeer, origAllowedAddress, origEndpointPort)
 }
 
 func testAccCheckMikrotikInterfaceWireguardPeerDestroy(s *terraform.State) error {
