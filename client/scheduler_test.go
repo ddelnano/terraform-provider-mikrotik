@@ -19,7 +19,7 @@ func TestCreateUpdateDeleteAndFindScheduler(t *testing.T) {
 		OnEvent:  onEvent,
 		Interval: types.MikrotikDuration(interval),
 	}
-	scheduler, err := c.CreateScheduler(expectedScheduler)
+	scheduler, err := c.AddScheduler(expectedScheduler)
 
 	if err != nil || scheduler == nil {
 		t.Errorf("Error creating a scheduler with: %v and value: %v", err, scheduler)
