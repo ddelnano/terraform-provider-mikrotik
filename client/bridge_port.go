@@ -1,8 +1,7 @@
 package client
 
 import (
-	"fmt"
-	"log"
+	"github.com/go-routeros/routeros"
 )
 
 // BridgePort defines port-in-bridge association
@@ -14,71 +13,69 @@ type BridgePort struct {
 	Comment   string `mikrotik:"comment"`
 }
 
-func (client Mikrotik) AddBridgePort(r *BridgePort) (*BridgePort, error) {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return nil, err
-	}
-	cmd := Marshal("/interface/bridge/port/add", r)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	response, err := c.RunArgs(cmd)
-	log.Printf("[DEBUG] /interface/bridge/port/add returned %v", response)
-	if err != nil {
-		return nil, err
-	}
-	r.Id = response.Done.Map["ret"]
+var _ Resource = (*BridgePort)(nil)
 
-	return client.FindBridgePort(r.Id)
+func (b *BridgePort) ActionToCommand(a Action) string {
+	return map[Action]string{
+		Add:    "/interface/bridge/port/add",
+		Find:   "/interface/bridge/port/print",
+		Update: "/interface/bridge/port/set",
+		Delete: "/interface/bridge/port/remove",
+	}[a]
 }
 
-func (client Mikrotik) FindBridgePort(id string) (*BridgePort, error) {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return nil, err
-	}
-	cmd := []string{"/interface/bridge/port/print", "?.id=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("[DEBUG] Found bridge port: %v", r)
-
-	record := BridgePort{}
-	err = Unmarshal(*r, &record)
-	if err != nil {
-		return nil, err
-	}
-	if record.Id == "" {
-		return nil, NewNotFound(fmt.Sprintf("bridge port `%s` not found", id))
-	}
-
-	return &record, nil
+func (b *BridgePort) IDField() string {
+	return ".id"
 }
 
-func (client Mikrotik) UpdateBridgePort(r *BridgePort) (*BridgePort, error) {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return nil, err
-	}
-	cmd := Marshal("/interface/bridge/port/set", r)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
-	if err != nil {
-		return nil, err
-	}
-
-	return client.FindBridgePort(r.Id)
+func (b *BridgePort) ID() string {
+	return b.Id
 }
 
-func (client Mikrotik) DeleteBridgePort(id string) error {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return err
-	}
-	cmd := []string{"/interface/bridge/port/remove", "=numbers=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
+func (b *BridgePort) SetID(id string) {
+	b.Id = id
+}
 
-	return err
+func (b *BridgePort) AfterAddHook(r *routeros.Reply) {
+	b.Id = r.Done.Map["ret"]
+}
+
+func (b *BridgePort) DeleteField() string {
+	return "numbers"
+}
+
+func (b *BridgePort) DeleteFieldValue() string {
+	return b.Id
+}
+
+// Typed wrappers
+func (c Mikrotik) AddBridgePort(r *BridgePort) (*BridgePort, error) {
+	res, err := c.Add(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*BridgePort), nil
+}
+
+func (c Mikrotik) UpdateBridgePort(r *BridgePort) (*BridgePort, error) {
+	res, err := c.Update(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*BridgePort), nil
+}
+
+func (c Mikrotik) FindBridgePort(id string) (*BridgePort, error) {
+	res, err := c.Find(&BridgePort{Id: id})
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*BridgePort), nil
+}
+
+func (c Mikrotik) DeleteBridgePort(id string) error {
+	return c.Delete(&BridgePort{Id: id})
 }
