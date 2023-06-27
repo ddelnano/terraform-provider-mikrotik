@@ -1,9 +1,6 @@
 package client
 
-import (
-	"fmt"
-	"log"
-)
+import "github.com/go-routeros/routeros"
 
 // DhcpServerNetwork describes network configuration for DHCP server
 type DhcpServerNetwork struct {
@@ -15,82 +12,61 @@ type DhcpServerNetwork struct {
 	DnsServer string `mikrotik:"dns-server"`
 }
 
-func (client Mikrotik) AddDhcpServerNetwork(d *DhcpServerNetwork) (*DhcpServerNetwork, error) {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return nil, err
-	}
+var _ Resource = (*DhcpServerNetwork)(nil)
 
-	cmd := Marshal("/ip/dhcp-server/network/add", d)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("[DEBUG] command returned: %v", r)
-
-	id := r.Done.Map["ret"]
-	return client.FindDhcpServerNetwork(id)
+func (b *DhcpServerNetwork) ActionToCommand(a Action) string {
+	return map[Action]string{
+		Add:    "/ip/dhcp-server/network/add",
+		Find:   "/ip/dhcp-server/network/print",
+		Update: "/ip/dhcp-server/network/set",
+		Delete: "/ip/dhcp-server/network/remove",
+	}[a]
 }
 
-func (client Mikrotik) FindDhcpServerNetwork(id string) (*DhcpServerNetwork, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-	cmd := []string{"/ip/dhcp-server/network/print", "?.id=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("[DEBUG] Found record: %v", r)
-
-	record := DhcpServerNetwork{}
-	err = Unmarshal(*r, &record)
-	if err != nil {
-		return nil, err
-	}
-
-	if record.Id == "" {
-		return nil, NewNotFound(fmt.Sprintf("record `%s` not found", id))
-	}
-
-	return &record, nil
+func (b *DhcpServerNetwork) IDField() string {
+	return ".id"
 }
 
-func (client Mikrotik) UpdateDhcpServerNetwork(d *DhcpServerNetwork) (*DhcpServerNetwork, error) {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return nil, err
-	}
-
-	cmd := Marshal("/ip/dhcp-server/network/set", d)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("[DEBUG] command returned: %v", r)
-
-	return client.FindDhcpServerNetwork(d.Id)
+func (b *DhcpServerNetwork) ID() string {
+	return b.Id
 }
 
-func (client Mikrotik) DeleteDhcpServerNetwork(id string) error {
-	c, err := client.getMikrotikClient()
+func (b *DhcpServerNetwork) SetID(id string) {
+	b.Id = id
+}
+
+func (b *DhcpServerNetwork) AfterAddHook(r *routeros.Reply) {
+	b.Id = r.Done.Map["ret"]
+}
+
+// Typed wrappers
+func (c Mikrotik) AddDhcpServerNetwork(r *DhcpServerNetwork) (*DhcpServerNetwork, error) {
+	res, err := c.Add(r)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	cmd := []string{"/ip/dhcp-server/network/remove", "=.id=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	if err != nil {
-		return err
-	}
-	log.Printf("[DEBUG] Command returned: %v", r)
+	return res.(*DhcpServerNetwork), nil
+}
 
-	return nil
+func (c Mikrotik) UpdateDhcpServerNetwork(r *DhcpServerNetwork) (*DhcpServerNetwork, error) {
+	res, err := c.Update(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*DhcpServerNetwork), nil
+}
+
+func (c Mikrotik) FindDhcpServerNetwork(id string) (*DhcpServerNetwork, error) {
+	res, err := c.Find(&DhcpServerNetwork{Id: id})
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*DhcpServerNetwork), nil
+}
+
+func (c Mikrotik) DeleteDhcpServerNetwork(id string) error {
+	return c.Delete(&DhcpServerNetwork{Id: id})
 }

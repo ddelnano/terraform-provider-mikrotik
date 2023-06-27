@@ -1,8 +1,7 @@
 package client
 
 import (
-	"fmt"
-	"log"
+	"github.com/go-routeros/routeros"
 )
 
 // DhcpServer represents DHCP server resource
@@ -17,82 +16,77 @@ type DhcpServer struct {
 	LeaseScript   string `mikrotik:"lease-script"`
 }
 
-func (client Mikrotik) AddDhcpServer(d *DhcpServer) (*DhcpServer, error) {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return nil, err
-	}
+var _ Resource = (*DhcpServer)(nil)
 
-	cmd := Marshal("/ip/dhcp-server/add", d)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("[DEBUG] command returned: %v", r)
-
-	return client.FindDhcpServer(d.Name)
+func (b *DhcpServer) ActionToCommand(a Action) string {
+	return map[Action]string{
+		Add:    "/ip/dhcp-server/add",
+		Find:   "/ip/dhcp-server/print",
+		Update: "/ip/dhcp-server/set",
+		Delete: "/ip/dhcp-server/remove",
+	}[a]
 }
 
-func (client Mikrotik) UpdateDhcpServer(d *DhcpServer) (*DhcpServer, error) {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return nil, err
-	}
-
-	cmd := Marshal("/ip/dhcp-server/set", d)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("[DEBUG] command returned: %v", r)
-
-	return client.FindDhcpServer(d.Name)
+func (b *DhcpServer) IDField() string {
+	return ".id"
 }
 
-func (client Mikrotik) FindDhcpServer(name string) (*DhcpServer, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-	cmd := []string{"/ip/dhcp-server/print", "?name=" + name}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-
-	if err != nil {
-		return nil, err
-	}
-
-	log.Printf("[DEBUG] Found record: %v", r)
-	record := DhcpServer{}
-	err = Unmarshal(*r, &record)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if record.Name == "" {
-		return nil, NewNotFound(fmt.Sprintf("dhcp server `%s` not found", name))
-	}
-
-	return &record, nil
+func (b *DhcpServer) ID() string {
+	return b.Id
 }
 
-func (client Mikrotik) DeleteDhcpServer(name string) error {
-	c, err := client.getMikrotikClient()
+func (b *DhcpServer) SetID(id string) {
+	b.Id = id
+}
+
+func (b *DhcpServer) AfterAddHook(r *routeros.Reply) {
+	b.Id = r.Done.Map["ret"]
+}
+
+func (b *DhcpServer) FindField() string {
+	return "name"
+}
+
+func (b *DhcpServer) FindFieldValue() string {
+	return b.Name
+}
+
+func (b *DhcpServer) DeleteField() string {
+	return "numbers"
+}
+
+func (b *DhcpServer) DeleteFieldValue() string {
+	return b.Name
+}
+
+// Typed wrappers
+func (c Mikrotik) AddDhcpServer(r *DhcpServer) (*DhcpServer, error) {
+	res, err := c.Add(r)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	cmd := []string{"/ip/dhcp-server/remove", "=numbers=" + name}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	if err != nil {
-		return err
-	}
-	log.Printf("[DEBUG] Command returned: %v", r)
+	return res.(*DhcpServer), nil
+}
 
-	return nil
+func (c Mikrotik) UpdateDhcpServer(r *DhcpServer) (*DhcpServer, error) {
+	res, err := c.Update(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*DhcpServer), nil
+}
+
+func (c Mikrotik) FindDhcpServer(name string) (*DhcpServer, error) {
+	res, err := c.Find(&DhcpServer{Name: name})
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*DhcpServer), nil
+}
+
+func (c Mikrotik) DeleteDhcpServer(name string) error {
+	return c.Delete(&DhcpServer{Name: name})
 }
