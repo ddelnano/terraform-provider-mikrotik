@@ -4,153 +4,139 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+
+	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func resourceScript() *schema.Resource {
-	return &schema.Resource{
-		Description: "Creates a MikroTik script.",
+type script struct {
+	client *client.Mikrotik
+}
 
-		CreateContext: resourceScriptCreate,
-		ReadContext:   resourceScriptRead,
-		UpdateContext: resourceScriptUpdate,
-		DeleteContext: resourceScriptDelete,
-		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
-		},
+// Ensure the implementation satisfies the expected interfaces.
+var (
+	_ resource.Resource                = &script{}
+	_ resource.ResourceWithConfigure   = &script{}
+	_ resource.ResourceWithImportState = &script{}
+)
 
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:        schema.TypeString,
-				Required:    true,
+// NewScriptResource is a helper function to simplify the provider implementation.
+func NewScriptResource() resource.Resource {
+	return &script{}
+}
+
+func (r *script) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	r.client = req.ProviderData.(*client.Mikrotik)
+}
+
+// Metadata returns the resource type name.
+func (r *script) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_script"
+}
+
+// Schema defines the schema for the resource.
+func (s *script) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Description: "Creates a MikroTik Script.",
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description: "ID of this resource.",
+			},
+			"name": schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description: "The name of script.",
 			},
-			"owner": {
-				Type:        schema.TypeString,
+			"owner": schema.StringAttribute{
 				Required:    true,
 				Description: "The owner of the script.",
 			},
-			"source": {
-				Type:        schema.TypeString,
+			"policy": schema.ListAttribute{
 				Required:    true,
-				Description: "The source code of the script. See the [MikroTik docs](https://wiki.mikrotik.com/wiki/Manual:Scripting) for the scripting language.",
-			},
-			"policy": {
-				Type:     schema.TypeList,
-				Required: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+				ElementType: tftypes.StringType,
 				Description: "What permissions the script has. This must be one of the following: ftp, reboot, read, write, policy, test, password, sniff, sensitive, romon.",
 			},
-			"dont_require_permissions": {
-				Type:        schema.TypeBool,
+			"dont_require_permissions": schema.BoolAttribute{
 				Optional:    true,
-				Default:     false,
+				Computed:    true,
 				Description: "If the script requires permissions or not.",
+				Default:     booldefault.StaticBool(false),
+			},
+			"source": schema.StringAttribute{
+				Required:    true,
+				Description: "The source code of the script. See the [MikroTik docs](https://wiki.mikrotik.com/wiki/Manual:Scripting) for the scripting language.",
 			},
 		},
 	}
 }
 
-func resourceScriptCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	name := d.Get("name").(string)
-	owner := d.Get("owner").(string)
-	source := d.Get("source").(string)
-	policy := d.Get("policy").([]interface{})
-	policies := []string{}
-	for _, p := range policy {
-		policies = append(policies, p.(string))
-	}
-	dontReqPerms := d.Get("dont_require_permissions").(bool)
-
-	c := m.(*client.Mikrotik)
-
-	script, err := c.CreateScript(
-		name,
-		owner,
-		source,
-		policies,
-		dontReqPerms,
-	)
-	if err != nil {
-		return diag.FromErr(err)
+// Create creates the resource and sets the initial Terraform state.
+func (r *script) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var plan scriptModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	return scriptToData(script, d)
+	GenericCreateResource(&plan, &client.Script{}, r.client)(ctx, req, resp)
 }
 
-func scriptToData(s *client.Script, d *schema.ResourceData) diag.Diagnostics {
-	values := map[string]interface{}{
-		"name":                     s.Name,
-		"owner":                    s.Owner,
-		"source":                   s.Source,
-		"policy":                   s.Policy(),
-		"dont_require_permissions": s.DontRequirePermissions,
+// Read refreshes the Terraform state with the latest data.
+func (r *script) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var state scriptModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
-
-	d.SetId(s.Name)
-
-	var diags diag.Diagnostics
-
-	for key, value := range values {
-		if err := d.Set(key, value); err != nil {
-			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
-		}
-	}
-
-	return diags
+	GenericReadResource(&state, &client.Script{}, r.client)(ctx, req, resp)
 }
 
-func resourceScriptRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	script, err := c.FindScript(d.Id())
-
-	if client.IsNotFoundError(err) {
-		d.SetId("")
-		return nil
-	}
-	if err != nil {
-		return diag.FromErr(err)
+// Update updates the resource and sets the updated Terraform state on success.
+func (r *script) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var plan scriptModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
 
-	return scriptToData(script, d)
+	GenericUpdateResource(&plan, &client.Script{}, r.client)(ctx, req, resp)
 }
-func resourceScriptUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	name := d.Get("name").(string)
-	owner := d.Get("owner").(string)
-	source := d.Get("source").(string)
-	dontReqPerms := d.Get("dont_require_permissions").(bool)
-	policy := d.Get("policy").([]interface{})
-	policies := []string{}
-	for _, p := range policy {
-		str, ok := p.(string)
-		if ok {
-			policies = append(policies, str)
-		}
+
+// Delete deletes the resource and removes the Terraform state on success.
+func (r *script) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var state scriptModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
 	}
-
-	c := m.(*client.Mikrotik)
-
-	script, err := c.UpdateScript(name, owner, source, policies, dontReqPerms)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return scriptToData(script, d)
+	GenericDeleteResource(&state, &client.Script{}, r.client)(ctx, req, resp)
 }
-func resourceScriptDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	name := d.Id()
 
-	c := m.(*client.Mikrotik)
+func (r *script) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Retrieve import ID and save to id attribute
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
+}
 
-	err := c.DeleteScript(name)
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	d.SetId("")
-	return nil
+type scriptModel struct {
+	Id                     tftypes.String `tfsdk:"id"`
+	Name                   tftypes.String `tfsdk:"name"`
+	Owner                  tftypes.String `tfsdk:"owner"`
+	Policy                 tftypes.List   `tfsdk:"policy"`
+	DontRequirePermissions tftypes.Bool   `tfsdk:"dont_require_permissions"`
+	Source                 tftypes.String `tfsdk:"source"`
 }
