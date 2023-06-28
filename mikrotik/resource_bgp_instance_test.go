@@ -41,7 +41,7 @@ func TestAccMikrotikBgpInstance_create(t *testing.T) {
 }
 
 func TestAccMikrotikBgpInstance_createFailsOnRouterOSv7(t *testing.T) {
-	client.SkipIfRouterOSV7OrLater(t, sysResources)
+	client.SkipIfRouterOSV6OrEarlier(t, sysResources)
 
 	name := acctest.RandomWithPrefix("tf-acc-create")
 	routerId := internal.GetNewIpAddr()
