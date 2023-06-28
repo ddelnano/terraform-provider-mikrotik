@@ -78,10 +78,6 @@ After those environment variables are set you can run the tests with the followi
 make testacc
 ```
 
-> :warning:
->
-> For RouterOS versions `6.x` you have to set environment variable `LEGACY_BGP_SUPPORT="true"` before running tests.
-
 ### Testing without MikroTik hardware
 
 If you do not have MikroTik hardware or virtual machine with pre-installed RouterOS, you still have a way to run tests locally.
