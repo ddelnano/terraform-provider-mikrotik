@@ -24,7 +24,7 @@ var updatedTTL string = "255"
 var updatedUseBfd string = "true"
 
 func TestAccMikrotikBgpPeer_create(t *testing.T) {
-	client.SkipLegacyBgpIfUnsupported(t)
+	client.SkipIfRouterOSV7OrLater(t, sysResources)
 	name := acctest.RandomWithPrefix("tf-acc-create")
 	remoteAs := acctest.RandIntRange(1, 65535)
 	remoteAddress, _ := acctest.RandIpAddress("192.168.0.0/24")
@@ -62,7 +62,7 @@ func TestAccMikrotikBgpPeer_create(t *testing.T) {
 }
 
 func TestAccMikrotikBgpPeer_createAndPlanWithNonExistantBgpPeer(t *testing.T) {
-	client.SkipLegacyBgpIfUnsupported(t)
+	client.SkipIfRouterOSV7OrLater(t, sysResources)
 	name := acctest.RandomWithPrefix("tf-acc-create_with_plan")
 	remoteAs := acctest.RandIntRange(1, 65535)
 	remoteAddress, _ := acctest.RandIpAddress("192.168.1.0/24")
@@ -101,7 +101,7 @@ func TestAccMikrotikBgpPeer_createAndPlanWithNonExistantBgpPeer(t *testing.T) {
 }
 
 func TestAccMikrotikBgpPeer_updateBgpPeer(t *testing.T) {
-	client.SkipLegacyBgpIfUnsupported(t)
+	client.SkipIfRouterOSV7OrLater(t, sysResources)
 	name := acctest.RandomWithPrefix("tf-acc-update")
 	remoteAs := acctest.RandIntRange(1, 65535)
 	remoteAddress, _ := acctest.RandIpAddress("192.168.3.0/24")
@@ -163,7 +163,7 @@ func TestAccMikrotikBgpPeer_updateBgpPeer(t *testing.T) {
 }
 
 func TestAccMikrotikBgpPeer_import(t *testing.T) {
-	client.SkipLegacyBgpIfUnsupported(t)
+	client.SkipIfRouterOSV7OrLater(t, sysResources)
 	name := acctest.RandomWithPrefix("tf-acc-import")
 	remoteAs := acctest.RandIntRange(1, 65535)
 	remoteAddress, _ := acctest.RandIpAddress("192.168.4.0/24")
