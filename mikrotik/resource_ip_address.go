@@ -72,8 +72,7 @@ func resourceIpAddressRead(ctx context.Context, d *schema.ResourceData, m interf
 	ipaddr, err := c.FindIpAddress(d.Id())
 
 	// Clear the state if the error represents that the resource no longer exists
-	_, resourceMissing := err.(*client.NotFound)
-	if resourceMissing && err != nil {
+	if client.IsNotFoundError(err) {
 		d.SetId("")
 		return nil
 	}

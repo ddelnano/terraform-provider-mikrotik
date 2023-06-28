@@ -163,8 +163,7 @@ func testAccCheckMikrotikIpv6AddressDestroy(s *terraform.State) error {
 
 		ipaddr, err := c.FindIpv6Address(rs.Primary.ID)
 
-		_, ok := err.(*client.NotFound)
-		if !ok && err != nil {
+		if !client.IsNotFoundError(err) && err != nil {
 			return err
 		}
 

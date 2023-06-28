@@ -1,5 +1,5 @@
 # mikrotik_script (Resource)
-Creates a MikroTik script.
+Creates a MikroTik Script.
 
 ## Example Usage
 ```terraform
@@ -28,11 +28,11 @@ EOF
 
 ### Optional
 
-- `dont_require_permissions` (Boolean) If the script requires permissions or not. Default: `false`.
+- `dont_require_permissions` (Boolean) If the script requires permissions or not.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) ID of this resource.
 
 ## Import
 Import is supported using the following syntax:

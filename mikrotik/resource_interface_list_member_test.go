@@ -72,8 +72,7 @@ func testAccCheckInterfaceListMemberDestroy(s *terraform.State) error {
 		}
 
 		remoteRecord, err := c.FindInterfaceListMember(rs.Primary.ID)
-		_, ok := err.(*client.NotFound)
-		if !ok && err != nil {
+		if !client.IsNotFoundError(err) && err != nil {
 			return err
 		}
 

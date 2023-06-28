@@ -1,9 +1,20 @@
 MikroTik code generation
 ========================
 
-This tool allows generating MikroTik resources based on client's struct definition.
+This tool allows generating MikroTik resources for API client and Terraform resources based on Mikrotik struct definition.
 
-## Quickstart
+## MikroTik client resource
+To generate new MikroTik resource definition, simply run
+```sh
+$ go run ./cmd/mikrotik-codegen mikrotik -name BridgeVlan -commandBase "/interface/bridge/vlan"
+```
+where
+
+`name` - a name of MikroTik resource to generate.
+
+`commandBase` - base path to craft commands for CRUD operations.
+
+## Terraform resource
 Just add a `codegen` tag key to struct fields:
 ```go
 type MikrotikResource struct{
@@ -20,7 +31,7 @@ type MikrotikResource struct{
 
 and run:
 ```sh
-$ go run ./cmd/mikrotik-codegen -src client/resource.go -struct MikrotikResource > mikrotik/resource_new.go
+$ go run ./cmd/mikrotik-codegen terraform -src client/resource.go -struct MikrotikResource > mikrotik/resource_new.go
 ```
 
 

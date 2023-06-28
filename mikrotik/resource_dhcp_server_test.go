@@ -69,8 +69,7 @@ func testAccCheckDhcpServerDestroy(s *terraform.State) error {
 		}
 
 		dhcpServer, err := c.FindDhcpServer(rs.Primary.ID)
-		_, ok := err.(*client.NotFound)
-		if err != nil && !ok {
+		if err != nil && !client.IsNotFoundError(err) {
 			return fmt.Errorf("expected not found error, got %+#v", err)
 		}
 

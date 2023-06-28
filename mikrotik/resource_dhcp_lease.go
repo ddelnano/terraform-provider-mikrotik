@@ -77,7 +77,7 @@ func resourceLeaseRead(ctx context.Context, d *schema.ResourceData, m interface{
 
 	lease, err := c.FindDhcpLease(d.Id())
 
-	if _, ok := err.(*client.NotFound); ok {
+	if client.IsNotFoundError(err) {
 		d.SetId("")
 		return nil
 	}

@@ -210,8 +210,7 @@ func testAccCheckMikrotikDnsRecordDestroy(s *terraform.State) error {
 
 		dnsRecord, err := c.FindDnsRecord(rs.Primary.ID)
 
-		_, ok := err.(*client.NotFound)
-		if !ok && err != nil {
+		if !client.IsNotFoundError(err) && err != nil {
 			return err
 		}
 

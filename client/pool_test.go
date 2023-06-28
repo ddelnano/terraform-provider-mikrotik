@@ -3,6 +3,8 @@ package client
 import (
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 var name string = "testacc"
@@ -55,9 +57,7 @@ func TestFindPool_forNonExistingPool(t *testing.T) {
 	poolId := "Invalid id"
 	_, err := c.FindPool(poolId)
 
-	if _, ok := err.(*NotFound); !ok {
-		t.Errorf("client should have NotFound error error but instead received '%v'", err)
-	}
+	require.Truef(t, IsNotFoundError(err), "client should have NotFound error error but instead received")
 }
 
 func TestFindPoolByName_forExistingPool(t *testing.T) {
@@ -86,7 +86,6 @@ func TestFindPoolByName_forNonExistingPool(t *testing.T) {
 	poolName := "Invalid name"
 	_, err := c.FindPoolByName(poolName)
 
-	if _, ok := err.(*NotFound); !ok {
-		t.Errorf("client should have NotFound error error but instead received '%v'", err)
-	}
+	require.True(t, IsNotFoundError(err),
+		"client should have NotFound error")
 }

@@ -73,8 +73,7 @@ func testAccCheckBridgePortDestroy(s *terraform.State) error {
 		}
 
 		remoteRecord, err := c.FindBridgePort(rs.Primary.ID)
-		_, ok := err.(*client.NotFound)
-		if err != nil && !ok {
+		if err != nil && !client.IsNotFoundError(err) {
 			return fmt.Errorf("expected not found error, got %+#v", err)
 		}
 

@@ -18,7 +18,7 @@ func TestCreateUpdateDeleteAndFindScheduler(t *testing.T) {
 		OnEvent:  onEvent,
 		Interval: types.MikrotikDuration(interval),
 	}
-	scheduler, err := c.CreateScheduler(expectedScheduler)
+	scheduler, err := c.AddScheduler(expectedScheduler)
 	require.NoError(t, err)
 	require.NotNil(t, scheduler)
 
@@ -43,7 +43,6 @@ func TestFindScheduler_onNonExistantScript(t *testing.T) {
 	name := "scheduler does not exist"
 	_, err := c.FindScheduler(name)
 
-	if _, ok := err.(*NotFound); !ok {
-		t.Errorf("Expecting to receive NotFound error for scheduler `%s`, instead error was nil.", name)
-	}
+	require.Truef(t, IsNotFoundError(err),
+		"Expecting to receive NotFound error for scheduler %q.", name)
 }

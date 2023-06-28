@@ -79,7 +79,6 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 			"mikrotik_ipv6_address":          resourceIpv6Address(),
 			"mikrotik_firewall_filter_rule":  resourceFirewallFilterRule(),
 			"mikrotik_pool":                  resourcePool(),
-			"mikrotik_script":                resourceScript(),
 			"mikrotik_vlan_interface":        resourceVlanInterface(),
 		},
 	}

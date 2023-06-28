@@ -129,8 +129,7 @@ func testAccCheckMikrotikInterfaceWireguardDestroy(s *terraform.State) error {
 
 		interfaceWireguard, err := c.FindInterfaceWireguard(rs.Primary.Attributes["name"])
 
-		_, ok := err.(*client.NotFound)
-		if !ok && err != nil {
+		if !client.IsNotFoundError(err) && err != nil {
 			return err
 		}
 
@@ -156,8 +155,7 @@ func testAccInterfaceWireguardExists(resourceName string) resource.TestCheckFunc
 
 		interfaceWireguard, err := c.FindInterfaceWireguard(rs.Primary.Attributes["name"])
 
-		_, ok = err.(*client.NotFound)
-		if !ok && err != nil {
+		if err != nil {
 			return fmt.Errorf("Unable to get the interface wireguard with error: %v", err)
 		}
 

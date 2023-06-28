@@ -1,8 +1,7 @@
 package client
 
 import (
-	"fmt"
-	"log"
+	"github.com/go-routeros/routeros"
 )
 
 // Bridge defines /bridge resource
@@ -14,72 +13,77 @@ type Bridge struct {
 	Comment       string `mikrotik:"comment"`
 }
 
-func (client Mikrotik) AddBridge(r *Bridge) (*Bridge, error) {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return nil, err
-	}
-	cmd := Marshal("/interface/bridge/add", r)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	response, err := c.RunArgs(cmd)
-	log.Printf("[DEBUG] /interface/bridge/add returned %v", response)
-	if err != nil {
-		return nil, err
-	}
+var _ Resource = (*Bridge)(nil)
 
-	return client.FindBridge(r.Name)
+func (b *Bridge) ActionToCommand(a Action) string {
+	return map[Action]string{
+		Add:    "/interface/bridge/add",
+		Find:   "/interface/bridge/print",
+		Update: "/interface/bridge/set",
+		Delete: "/interface/bridge/remove",
+	}[a]
 }
 
-func (client Mikrotik) FindBridge(id string) (*Bridge, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-	cmd := []string{"/interface/bridge/print", "?name=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("[DEBUG] Found bridge: %v", r)
-
-	record := Bridge{}
-	err = Unmarshal(*r, &record)
-	if err != nil {
-		return nil, err
-	}
-	if record.Name == "" {
-		return nil, NewNotFound(fmt.Sprintf("bridge `%s` not found", id))
-	}
-
-	return &record, nil
+func (b *Bridge) IDField() string {
+	return ".id"
 }
 
-func (client Mikrotik) UpdateBridge(r *Bridge) (*Bridge, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-	cmd := Marshal("/interface/bridge/set", r)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
-	if err != nil {
-		return nil, err
-	}
-
-	return client.FindBridge(r.Name)
+func (b *Bridge) ID() string {
+	return b.Id
 }
 
-func (client Mikrotik) DeleteBridge(id string) error {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return err
-	}
-	cmd := []string{"/interface/bridge/remove", "=numbers=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
+func (b *Bridge) SetID(id string) {
+	b.Id = id
+}
 
-	return err
+func (b *Bridge) AfterAddHook(r *routeros.Reply) {
+	b.Id = r.Done.Map["ret"]
+}
+
+func (b *Bridge) FindField() string {
+	return "name"
+}
+
+func (b *Bridge) FindFieldValue() string {
+	return b.Name
+}
+
+func (b *Bridge) DeleteField() string {
+	return "numbers"
+}
+
+func (b *Bridge) DeleteFieldValue() string {
+	return b.Name
+}
+
+// Typed wrappers
+func (c Mikrotik) AddBridge(r *Bridge) (*Bridge, error) {
+	res, err := c.Add(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*Bridge), nil
+}
+
+func (c Mikrotik) UpdateBridge(r *Bridge) (*Bridge, error) {
+	res, err := c.Update(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*Bridge), nil
+}
+
+func (c Mikrotik) FindBridge(name string) (*Bridge, error) {
+	res, err := c.Find(&Bridge{Name: name})
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*Bridge), nil
+}
+
+func (c Mikrotik) DeleteBridge(name string) error {
+	return c.Delete(&Bridge{Name: name})
 }

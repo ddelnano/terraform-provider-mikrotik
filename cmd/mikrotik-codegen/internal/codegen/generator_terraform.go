@@ -1,7 +1,6 @@
 package codegen
 
 import (
-	"bytes"
 	"errors"
 	"io"
 	"strings"
@@ -55,24 +54,8 @@ type (
 )
 
 // GenerateResource generates Terraform resource and writes it to specified output
-func GenerateResource(s *Struct, w io.Writer, beforeWriteHooks ...SourceWriteHookFunc) error {
-	var result []byte
-	var buf bytes.Buffer
-	var err error
-
-	if err := generateResource(&buf, *s); err != nil {
-		return err
-	}
-	result = buf.Bytes()
-	for _, h := range beforeWriteHooks {
-		result, err = h(result)
-		if err != nil {
-			return err
-		}
-	}
-
-	_, err = w.Write(result)
-	if err != nil {
+func GenerateResource(s *Struct, w io.Writer) error {
+	if err := generateResource(w, *s); err != nil {
 		return err
 	}
 
@@ -90,18 +73,9 @@ func generateResource(w sourceWriter, s Struct) error {
 
 	t := template.New("resource")
 	t.Funcs(template.FuncMap{
-		"lowercase": strings.ToLower,
-		"snakeCase": utils.ToSnakeCase,
-		"firstLower": func(s string) string {
-			if len(s) < 1 {
-				return s
-			}
-			if len(s) == 1 {
-				return strings.ToLower(s)
-			}
-
-			return strings.ToLower(s[:1]) + s[1:]
-		},
+		"lowercase":  strings.ToLower,
+		"snakeCase":  utils.ToSnakeCase,
+		"firstLower": utils.FirstLower,
 	})
 	if _, err := t.Parse(resourceDefinitionTemplate); err != nil {
 		return err

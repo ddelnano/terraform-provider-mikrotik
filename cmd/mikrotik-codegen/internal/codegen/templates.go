@@ -186,4 +186,100 @@ func modelTo{{.ResourceName}}(m *{{$resourceStructName}}Model) *client.{{.Resour
 	}
 }
 `
+
+	mikrotikResourceDefinitionTemplate = `
+package client
+
+import (
+	"github.com/ddelnano/terraform-provider-mikrotik/client/internal/types"
+	"github.com/go-routeros/routeros"
+)
+
+// {{.ResourceName}} defines resource
+type {{.ResourceName}} struct {
+	Id string ` + "`" + `mikrotik:".id"` + "`" + `
+}
+
+var _ Resource = (*{{.ResourceName}})(nil)
+
+func (b *{{.ResourceName}}) ActionToCommand(a Action) string {
+	return map[Action]string{
+		Add:    "{{.CommandBasePath}}/add",
+		Find:   "{{.CommandBasePath}}/print",
+		Update: "{{.CommandBasePath}}/set",
+		Delete: "{{.CommandBasePath}}/remove",
+	}[a]
+}
+
+func (b *{{.ResourceName}}) IDField() string {
+	return ".id"
+}
+
+func (b *{{.ResourceName}}) ID() string {
+	return b.Id
+}
+
+func (b *{{.ResourceName}}) SetID(id string) {
+	b.Id = id
+}
+
+// Uncomment extra methods to satisfy more interfaces
+
+// Adder
+// func (b *{{.ResourceName}}) AfterAddHook(r *routeros.Reply) {
+// 	b.Id = r.Done.Map["ret"]
+// }
+
+// Finder
+// func (b *{{.ResourceName}}) FindField() string {
+// 	return "name"
+// }
+
+// func (b *{{.ResourceName}}) FindFieldValue() string {
+// 	return b.Name
+// }
+
+// Deleter
+// func (b *{{.ResourceName}}) DeleteField() string {
+// 	return "numbers"
+// }
+
+// func (b *{{.ResourceName}}) DeleteFieldValue() string {
+// 	return b.Id
+// }
+
+
+// Typed wrappers
+func (c Mikrotik) Add{{.ResourceName}}(r *{{.ResourceName}}) (*{{.ResourceName}}, error) {
+	res, err := c.Add(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*{{.ResourceName}}), nil
+}
+
+func (c Mikrotik) Update{{.ResourceName}}(r *{{.ResourceName}}) (*{{.ResourceName}}, error) {
+	res, err := c.Update(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*{{.ResourceName}}), nil
+}
+
+func (c Mikrotik) Find{{.ResourceName}}(id string) (*{{.ResourceName}}, error) {
+	res, err := c.Find(&{{.ResourceName}}{Id: id})
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*{{.ResourceName}}), nil
+}
+
+func (c Mikrotik) Delete{{.ResourceName}}(id string) error {
+	return c.Delete(&{{.ResourceName}}{Id: id})
+}
+
+`
 )

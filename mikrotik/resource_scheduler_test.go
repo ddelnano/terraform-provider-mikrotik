@@ -156,8 +156,7 @@ func testAccCheckMikrotikSchedulerDestroy(s *terraform.State) error {
 
 		scheduler, err := c.FindScheduler(rs.Primary.ID)
 
-		_, ok := err.(*client.NotFound)
-		if !ok && err != nil {
+		if !client.IsNotFoundError(err) && err != nil {
 			return err
 		}
 
@@ -183,8 +182,7 @@ func testAccSchedulerExists(resourceName string) resource.TestCheckFunc {
 
 		scheduler, err := c.FindScheduler(rs.Primary.Attributes["name"])
 
-		_, ok = err.(*client.NotFound)
-		if !ok && err != nil {
+		if !client.IsNotFoundError(err) && err != nil {
 			return fmt.Errorf("Unable to get the scheduler with error: %v", err)
 		}
 
