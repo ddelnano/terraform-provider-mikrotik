@@ -2,9 +2,9 @@ package client
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"testing"
+	"time"
 )
 
 func getRouterOSMajorVersion(systemResources SystemResources) (majorVersion int, err error) {
@@ -17,7 +17,6 @@ func getRouterOSMajorVersion(systemResources SystemResources) (majorVersion int,
 
 func SkipIfRouterOSV6OrEarlier(t *testing.T, systemResources SystemResources) {
 	majorVersion, err := getRouterOSMajorVersion(systemResources)
-	fmt.Printf("Deciding to skip: %v", systemResources)
 	if err != nil {
 		t.Errorf("failed to get the system resource major version: %v", err)
 	}
@@ -34,4 +33,10 @@ func SkipIfRouterOSV7OrLater(t *testing.T, systemResources SystemResources) {
 	if majorVersion >= 7 {
 		t.Skip()
 	}
+}
+
+// RandomString returns a random string
+func RandomString() string {
+	// a naive implementation with all-digits for now
+	return strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 }
