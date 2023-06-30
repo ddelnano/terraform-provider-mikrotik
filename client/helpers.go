@@ -2,7 +2,9 @@ package client
 
 import (
 	"os"
+	"strconv"
 	"testing"
+	"time"
 )
 
 func SkipLegacyBgpIfUnsupported(t *testing.T) {
@@ -12,10 +14,7 @@ func SkipLegacyBgpIfUnsupported(t *testing.T) {
 }
 
 func IsLegacyBgpSupported() bool {
-	if os.Getenv("LEGACY_BGP_SUPPORT") == "true" {
-		return true
-	}
-	return false
+	return os.Getenv("LEGACY_BGP_SUPPORT") == "true"
 }
 
 func SkipInterfaceWireguardIfUnsupported(t *testing.T) {
@@ -25,8 +24,11 @@ func SkipInterfaceWireguardIfUnsupported(t *testing.T) {
 }
 
 func IsInterfaceWireguardSupported() bool {
-	if os.Getenv("INTERFACE_WIREGUARD_SUPPORT") == "true" {
-		return true
-	}
-	return false
+	return os.Getenv("INTERFACE_WIREGUARD_SUPPORT") == "true"
+}
+
+// RandomString returns a random string
+func RandomString() string {
+	// a naive implementation with all-digits for now
+	return strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 }

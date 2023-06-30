@@ -54,37 +54,41 @@ func (b *Scheduler) DeleteField() string {
 }
 
 func (b *Scheduler) DeleteFieldValue() string {
-	return b.Name
+	return b.Id
 }
 
-// Typed wrappers
-func (c Mikrotik) AddScheduler(r *Scheduler) (*Scheduler, error) {
-	res, err := c.Add(r)
+// typed wrappers
+func (client Mikrotik) AddScheduler(s *Scheduler) (*Scheduler, error) {
+	return client.CreateScheduler(s)
+}
+
+func (client Mikrotik) CreateScheduler(s *Scheduler) (*Scheduler, error) {
+	r, err := client.Add(s)
 	if err != nil {
 		return nil, err
 	}
 
-	return res.(*Scheduler), nil
+	return r.(*Scheduler), nil
 }
 
-func (c Mikrotik) UpdateScheduler(r *Scheduler) (*Scheduler, error) {
-	res, err := c.Update(r)
+func (client Mikrotik) UpdateScheduler(s *Scheduler) (*Scheduler, error) {
+	r, err := client.Update(s)
 	if err != nil {
 		return nil, err
 	}
 
-	return res.(*Scheduler), nil
+	return r.(*Scheduler), nil
 }
 
-func (c Mikrotik) FindScheduler(name string) (*Scheduler, error) {
-	res, err := c.Find(&Scheduler{Name: name})
+func (client Mikrotik) FindScheduler(name string) (*Scheduler, error) {
+	r, err := client.Find(&Scheduler{Name: name})
 	if err != nil {
 		return nil, err
 	}
 
-	return res.(*Scheduler), nil
+	return r.(*Scheduler), nil
 }
 
-func (c Mikrotik) DeleteScheduler(name string) error {
-	return c.Delete(&Scheduler{Name: name})
+func (client Mikrotik) DeleteScheduler(name string) error {
+	return client.Delete(&Scheduler{Name: name})
 }
