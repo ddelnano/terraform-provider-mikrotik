@@ -84,7 +84,6 @@ func Marshal(c string, s interface{}) []string {
 			// https://help.mikrotik.com/docs/display/ROS/WireGuard#WireGuard-Read-onlyproperties
 			if contains(mikrotikTags, "readonly") {
 
-
 				// if a struct field contains the tag value of 'readonly', do not marshal it
 				continue
 			}

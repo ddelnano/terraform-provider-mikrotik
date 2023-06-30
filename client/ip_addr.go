@@ -1,8 +1,7 @@
 package client
 
 import (
-	"fmt"
-	"log"
+	"github.com/go-routeros/routeros"
 )
 
 type IpAddress struct {
@@ -14,112 +13,74 @@ type IpAddress struct {
 	Network   string `mikrotik:"network"`
 }
 
-func (client Mikrotik) AddIpAddress(addr *IpAddress) (*IpAddress, error) {
-	c, err := client.getMikrotikClient()
+var _ Resource = (*IpAddress)(nil)
 
+func (b *IpAddress) ActionToCommand(a Action) string {
+	return map[Action]string{
+		Add:    "/ip/address/add",
+		Find:   "/ip/address/print",
+		Update: "/ip/address/set",
+		Delete: "/ip/address/remove",
+	}[a]
+}
+
+func (b *IpAddress) IDField() string {
+	return ".id"
+}
+
+func (b *IpAddress) ID() string {
+	return b.Id
+}
+
+func (b *IpAddress) SetID(id string) {
+	b.Id = id
+}
+
+func (b *IpAddress) AfterAddHook(r *routeros.Reply) {
+	b.Id = r.Done.Map["ret"]
+}
+
+// Typed wrappers
+func (c Mikrotik) AddIpAddress(r *IpAddress) (*IpAddress, error) {
+	res, err := c.Add(r)
 	if err != nil {
 		return nil, err
 	}
 
-	cmd := Marshal("/ip/address/add", addr)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
+	return res.(*IpAddress), nil
+}
 
-	log.Printf("[DEBUG] ip address creation response: `%v`", r)
-
+func (c Mikrotik) UpdateIpAddress(r *IpAddress) (*IpAddress, error) {
+	res, err := c.Update(r)
 	if err != nil {
 		return nil, err
 	}
 
-	id := r.Done.Map["ret"]
+	return res.(*IpAddress), nil
+}
 
-	return client.FindIpAddress(id)
+func (c Mikrotik) FindIpAddress(id string) (*IpAddress, error) {
+	res, err := c.Find(&IpAddress{Id: id})
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*IpAddress), nil
 }
 
 func (client Mikrotik) ListIpAddress() ([]IpAddress, error) {
-	c, err := client.getMikrotikClient()
-
+	res, err := client.List(&IpAddress{})
 	if err != nil {
 		return nil, err
 	}
-	cmd := []string{"/ip/address/print"}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("[DEBUG] found ip address: %v", r)
-
-	ipaddr := []IpAddress{}
-
-	err = Unmarshal(*r, &ipaddr)
-
-	if err != nil {
-		return nil, err
+	returnSlice := make([]IpAddress, len(res))
+	for i, v := range res {
+		returnSlice[i] = *(v.(*IpAddress))
 	}
 
-	return ipaddr, nil
+	return returnSlice, nil
 }
 
-func (client Mikrotik) FindIpAddress(id string) (*IpAddress, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-
-	cmd := []string{"/ip/address/print", "?.id=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-
-	log.Printf("[DEBUG] ip address response: %v", r)
-
-	if err != nil {
-		return nil, err
-	}
-
-	ipaddr := IpAddress{}
-	err = Unmarshal(*r, &ipaddr)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if ipaddr.Id == "" {
-		return nil, NewNotFound(fmt.Sprintf("ip address `%s` not found", id))
-	}
-
-	return &ipaddr, nil
-}
-
-func (client Mikrotik) UpdateIpAddress(addr *IpAddress) (*IpAddress, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-
-	cmd := Marshal("/ip/address/set", addr)
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return client.FindIpAddress(addr.Id)
-}
-
-func (client Mikrotik) DeleteIpAddress(id string) error {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return err
-	}
-
-	cmd := []string{"/ip/address/remove", "=.id=" + id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
-	return err
+func (c Mikrotik) DeleteIpAddress(id string) error {
+	return c.Delete(&IpAddress{Id: id})
 }
