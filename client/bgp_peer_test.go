@@ -18,7 +18,7 @@ var holdTime string = "3m"
 var nextHopChoice string = "default"
 
 func TestAddBgpPeerAndDeleteBgpPeer(t *testing.T) {
-	SkipLegacyBgpIfUnsupported(t)
+	SkipIfRouterOSV7OrLater(t, sysResources)
 	c := NewClient(GetConfigFromEnv())
 
 	instanceName := "peer-test"
@@ -62,7 +62,7 @@ func TestAddBgpPeerAndDeleteBgpPeer(t *testing.T) {
 }
 
 func TestAddAndUpdateBgpPeerWithOptionalFieldsAndDeleteBgpPeer(t *testing.T) {
-	SkipLegacyBgpIfUnsupported(t)
+	SkipIfRouterOSV7OrLater(t, sysResources)
 	c := NewClient(GetConfigFromEnv())
 
 	instanceName := "peer-update-test"
@@ -125,7 +125,7 @@ func TestAddAndUpdateBgpPeerWithOptionalFieldsAndDeleteBgpPeer(t *testing.T) {
 }
 
 func TestFindBgpPeer_onNonExistantBgpPeer(t *testing.T) {
-	SkipLegacyBgpIfUnsupported(t)
+	SkipIfRouterOSV7OrLater(t, sysResources)
 	c := NewClient(GetConfigFromEnv())
 
 	name := "bgp peer does not exist"

@@ -17,7 +17,7 @@ var origMTU int = 1420
 var updatedComment string = "new_comment"
 
 func TestAccMikrotikInterfaceWireguard_create(t *testing.T) {
-	client.SkipInterfaceWireguardIfUnsupported(t)
+	client.SkipIfRouterOSV6OrEarlier(t, sysResources)
 	name := acctest.RandomWithPrefix("tf-acc-create")
 
 	resourceName := "mikrotik_interface_wireguard.bar"
@@ -41,7 +41,7 @@ func TestAccMikrotikInterfaceWireguard_create(t *testing.T) {
 }
 
 func TestAccMikrotikInterfaceWireguard_updatedComment(t *testing.T) {
-	client.SkipInterfaceWireguardIfUnsupported(t)
+	client.SkipIfRouterOSV6OrEarlier(t, sysResources)
 	name := acctest.RandomWithPrefix("tf-acc-update-comment")
 
 	resourceName := "mikrotik_interface_wireguard.bar"
@@ -69,7 +69,7 @@ func TestAccMikrotikInterfaceWireguard_updatedComment(t *testing.T) {
 }
 
 func TestAccMikrotikInterfaceWireguard_import(t *testing.T) {
-	client.SkipInterfaceWireguardIfUnsupported(t)
+	client.SkipIfRouterOSV6OrEarlier(t, sysResources)
 	name := acctest.RandomWithPrefix("tf-acc-import")
 
 	resourceName := "mikrotik_interface_wireguard.bar"

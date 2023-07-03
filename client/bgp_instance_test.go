@@ -29,7 +29,7 @@ var routerID string = "172.21.16.2"
 var routingTable string = ""
 
 func TestAddBgpInstanceAndDeleteBgpInstance(t *testing.T) {
-	SkipLegacyBgpIfUnsupported(t)
+	SkipIfRouterOSV7OrLater(t, sysResources)
 	c := NewClient(GetConfigFromEnv())
 
 	expectedBgpInstance := &BgpInstance{
@@ -65,7 +65,7 @@ func TestAddBgpInstanceAndDeleteBgpInstance(t *testing.T) {
 }
 
 func TestAddAndUpdateBgpInstanceWithOptionalFieldsAndDeleteBgpInstance(t *testing.T) {
-	SkipLegacyBgpIfUnsupported(t)
+	SkipIfRouterOSV7OrLater(t, sysResources)
 	c := NewClient(GetConfigFromEnv())
 
 	expectedBgpInstance := &BgpInstance{
@@ -116,7 +116,7 @@ func TestAddAndUpdateBgpInstanceWithOptionalFieldsAndDeleteBgpInstance(t *testin
 }
 
 func TestFindBgpInstance_onNonExistantBgpInstance(t *testing.T) {
-	SkipLegacyBgpIfUnsupported(t)
+	SkipIfRouterOSV7OrLater(t, sysResources)
 	c := NewClient(GetConfigFromEnv())
 
 	name := "bgp instance does not exist"
