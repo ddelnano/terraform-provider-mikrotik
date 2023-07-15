@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -12,7 +13,6 @@ var as int = 65533
 var updatedAs int = 65534
 var clientToClientReflection bool = true
 var clusterID string = "172.21.16.1"
-var noClusterID string = ""
 var bgpComment string = "test comment with spaces"
 var confederation int = 8
 var updatedConfederation int = 5
@@ -51,7 +51,7 @@ func TestAddBgpInstanceAndDeleteBgpInstance(t *testing.T) {
 		t.Fatalf("Error creating a bpg instance with: %v", err)
 	}
 
-	expectedBgpInstance.ID = bgpInstance.ID
+	expectedBgpInstance.Id = bgpInstance.Id
 
 	if !reflect.DeepEqual(bgpInstance, expectedBgpInstance) {
 		t.Errorf("The bgp instance does not match what we expected. actual: %v expected: %v", bgpInstance, expectedBgpInstance)
@@ -88,31 +88,22 @@ func TestAddAndUpdateBgpInstanceWithOptionalFieldsAndDeleteBgpInstance(t *testin
 		Confederation:            confederation,
 	}
 	bgpInstance, err := c.AddBgpInstance(expectedBgpInstance)
-	if err != nil {
-		t.Fatalf("Error creating a bpg instance with: %v", err)
-	}
+	require.NoError(t, err)
 
-	expectedBgpInstance.ID = bgpInstance.ID
-
-	if !reflect.DeepEqual(bgpInstance, expectedBgpInstance) {
-		t.Errorf("The bgp instance does not match what we expected. actual: %v expected: %v", bgpInstance, expectedBgpInstance)
-	}
+	expectedBgpInstance.Id = bgpInstance.Id
+	assert.Equal(t, expectedBgpInstance, bgpInstance)
 
 	// update fields
 	expectedBgpInstance.Confederation = updatedConfederation
 	expectedBgpInstance.As = updatedAs
 
 	bgpInstance, err = c.UpdateBgpInstance(expectedBgpInstance)
+	require.NoError(t, err)
 
-	if !reflect.DeepEqual(bgpInstance, expectedBgpInstance) {
-		t.Errorf("The bgp instance does not match what we expected. actual: %v expected: %v", bgpInstance, expectedBgpInstance)
-	}
+	assert.Equal(t, expectedBgpInstance, bgpInstance)
 
 	err = c.DeleteBgpInstance(bgpInstance.Name)
-
-	if err != nil {
-		t.Errorf("Error deleting bgp instance with: %v", err)
-	}
+	require.NoError(t, err)
 }
 
 func TestFindBgpInstance_onNonExistantBgpInstance(t *testing.T) {

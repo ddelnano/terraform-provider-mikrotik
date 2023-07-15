@@ -212,19 +212,12 @@ func testAccBgpInstanceExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("mikrotik_bgp_instance does not exist in the statefile")
 		}
 
-		bgpInstance, err := apiClient.FindBgpInstance(rs.Primary.ID)
+		_, err := apiClient.FindBgpInstance(rs.Primary.ID)
 
 		if err != nil {
 			return fmt.Errorf("Unable to get the bgp instance with error: %v", err)
 		}
 
-		if bgpInstance == nil {
-			return fmt.Errorf("Unable to get the bgp instance")
-		}
-
-		if bgpInstance.Name == rs.Primary.ID {
-			return nil
-		}
 		return nil
 	}
 }

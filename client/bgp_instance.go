@@ -1,9 +1,9 @@
 package client
 
 import (
-	"fmt"
-	"log"
 	"strings"
+
+	"github.com/go-routeros/routeros"
 )
 
 type LegacyBgpUnsupported struct{}
@@ -23,7 +23,7 @@ func legacyBgpUnsupported(err error) bool {
 
 // BgpInstance Mikrotik resource
 type BgpInstance struct {
-	ID                       string `mikrotik:".id"`
+	Id                       string `mikrotik:".id"`
 	Name                     string `mikrotik:"name"`
 	As                       int    `mikrotik:"as"`
 	ClientToClientReflection bool   `mikrotik:"client-to-client-reflection"`
@@ -43,103 +43,92 @@ type BgpInstance struct {
 	Confederation            int    `mikrotik:"confederation"`
 }
 
-// AddBgpInstance Mikrotik resource
-func (client Mikrotik) AddBgpInstance(b *BgpInstance) (*BgpInstance, error) {
-	c, err := client.getMikrotikClient()
+var _ Resource = (*BgpInstance)(nil)
 
-	if err != nil {
-		return nil, err
-	}
-	cmd := Marshal("/routing/bgp/instance/add", b)
-
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	log.Printf("[DEBUG] /routing/bgp/instance/add returned %v", r)
-
-	if err != nil {
-		if legacyBgpUnsupported(err) {
-			return nil, LegacyBgpUnsupported{}
-		}
-		return nil, err
-	}
-
-	return client.FindBgpInstance(b.Name)
+func (b *BgpInstance) ActionToCommand(a Action) string {
+	return map[Action]string{
+		Add:    "/routing/bgp/instance/add",
+		Find:   "/routing/bgp/instance/print",
+		Update: "/routing/bgp/instance/set",
+		Delete: "/routing/bgp/instance/remove",
+	}[a]
 }
 
-// FindBgpInstance Mikrotik resource
-func (client Mikrotik) FindBgpInstance(name string) (*BgpInstance, error) {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return nil, err
-	}
-
-	cmd := []string{"/routing/bgp/instance/print", "?name=" + name}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	if err != nil {
-		if legacyBgpUnsupported(err) {
-			return nil, LegacyBgpUnsupported{}
-		}
-		return nil, err
-	}
-
-	log.Printf("[DEBUG] Find bgp instance: `%v`", cmd)
-
-	bgpInstance := BgpInstance{}
-
-	err = Unmarshal(*r, &bgpInstance)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if bgpInstance.Name == "" {
-		return nil, NewNotFound(fmt.Sprintf("bgp instance `%s` not found", name))
-	}
-
-	return &bgpInstance, nil
+func (b *BgpInstance) IDField() string {
+	return ".id"
 }
 
-// UpdateBgpInstance Mikrotik resource
-func (client Mikrotik) UpdateBgpInstance(b *BgpInstance) (*BgpInstance, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-
-	// compose mikrotik command
-	cmd := Marshal("/routing/bgp/instance/set", b)
-
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
-
-	if err != nil {
-		if legacyBgpUnsupported(err) {
-			return nil, LegacyBgpUnsupported{}
-		}
-		return nil, err
-	}
-
-	return client.FindBgpInstance(b.Name)
+func (b *BgpInstance) ID() string {
+	return b.Id
 }
 
-// DeleteBgpInstance Mikrotik resource
-func (client Mikrotik) DeleteBgpInstance(name string) error {
-	c, err := client.getMikrotikClient()
+func (b *BgpInstance) SetID(id string) {
+	b.Id = id
+}
+
+func (b *BgpInstance) AfterAddHook(r *routeros.Reply) {
+	b.Id = r.Done.Map["ret"]
+}
+
+func (b *BgpInstance) FindField() string {
+	return "name"
+}
+
+func (b *BgpInstance) FindFieldValue() string {
+	return b.Name
+}
+
+func (b *BgpInstance) DeleteField() string {
+	return "numbers"
+}
+
+func (b *BgpInstance) DeleteFieldValue() string {
+	return b.Name
+}
+
+// Typed wrappers
+func (c Mikrotik) AddBgpInstance(r *BgpInstance) (*BgpInstance, error) {
+	res, err := c.Add(r)
+	if legacyBgpUnsupported(err) {
+		return nil, LegacyBgpUnsupported{}
+	}
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	bgpInstance, err := client.FindBgpInstance(name)
+	return res.(*BgpInstance), nil
+}
+
+func (c Mikrotik) UpdateBgpInstance(r *BgpInstance) (*BgpInstance, error) {
+	res, err := c.Update(r)
+	if legacyBgpUnsupported(err) {
+		return nil, LegacyBgpUnsupported{}
+	}
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	cmd := []string{"/routing/bgp/instance/remove", "=numbers=" + bgpInstance.Name}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	log.Printf("[DEBUG] Remove bgp instance via mikrotik api: %v", r)
+	return res.(*BgpInstance), nil
+}
+
+func (c Mikrotik) FindBgpInstance(name string) (*BgpInstance, error) {
+	res, err := c.Find(&BgpInstance{Name: name})
+	if legacyBgpUnsupported(err) {
+		return nil, LegacyBgpUnsupported{}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return res.(*BgpInstance), nil
+}
+
+func (c Mikrotik) DeleteBgpInstance(name string) error {
+	err := c.Delete(&BgpInstance{Name: name})
+	if legacyBgpUnsupported(err) {
+		return LegacyBgpUnsupported{}
+	}
 
 	return err
 }
