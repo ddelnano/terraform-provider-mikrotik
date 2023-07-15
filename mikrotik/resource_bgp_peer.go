@@ -205,7 +205,7 @@ func resourceBgpPeerUpdate(ctx context.Context, d *schema.ResourceData, m interf
 	currentBgpPeer, err := c.FindBgpPeer(d.Get("name").(string))
 
 	peer := prepareBgpPeer(d)
-	peer.ID = currentBgpPeer.ID
+	peer.Id = currentBgpPeer.Id
 
 	bgpPeer, err := c.UpdateBgpPeer(peer)
 	if err != nil {
