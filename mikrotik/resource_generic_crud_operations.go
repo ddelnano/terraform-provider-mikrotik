@@ -50,7 +50,7 @@ func GenericCreateResource(terraformModel interface{}, mikrotikModel client.Reso
 }
 
 // GenericReadResource refreshes the Terraform state with the latest data.
-func GenericReadResource(terraformModel interface{}, mikrotikModel client.Resource, client *client.Mikrotik) ReadFunc {
+func GenericReadResource(terraformModel interface{}, mikrotikModel client.Resource, mikrotikClient *client.Mikrotik) ReadFunc {
 	return func(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 		resp.Diagnostics.Append(req.State.Get(ctx, terraformModel)...)
 		if resp.Diagnostics.HasError() {
@@ -61,7 +61,11 @@ func GenericReadResource(terraformModel interface{}, mikrotikModel client.Resour
 			return
 		}
 
-		resource, err := client.Find(mikrotikModel)
+		resource, err := mikrotikClient.Find(mikrotikModel)
+		if client.IsNotFoundError(err) {
+			resp.State.RemoveResource(ctx)
+			return
+		}
 		if err != nil {
 			resp.Diagnostics.AddError(
 				"Error reading remote resource",

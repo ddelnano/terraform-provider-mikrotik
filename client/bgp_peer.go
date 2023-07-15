@@ -6,34 +6,34 @@ import (
 
 // BgpPeer Mikrotik resource
 type BgpPeer struct {
-	Id                   string `mikrotik:".id"`
-	Name                 string `mikrotik:"name"`
-	AddressFamilies      string `mikrotik:"address-families"`
-	AllowAsIn            int    `mikrotik:"allow-as-in"`
-	AsOverride           bool   `mikrotik:"as-override"`
-	CiscoVplsNlriLenFmt  string `mikrotik:"cisco-vpls-nlri-len-fmt"`
-	Comment              string `mikrotik:"comment"`
-	DefaultOriginate     string `mikrotik:"default-originate"`
-	Disabled             bool   `mikrotik:"disabled"`
-	HoldTime             string `mikrotik:"hold-time"`
-	InFilter             string `mikrotik:"in-filter"`
-	Instance             string `mikrotik:"instance"`
-	KeepAliveTime        string `mikrotik:"keepalive-time"`
-	MaxPrefixLimit       int    `mikrotik:"max-prefix-limit"`
-	MaxPrefixRestartTime string `mikrotik:"max-prefix-restart-time"`
-	Multihop             bool   `mikrotik:"multihop"`
-	NexthopChoice        string `mikrotik:"nexthop-choice"`
-	OutFilter            string `mikrotik:"out-filter"`
-	Passive              bool   `mikrotik:"passive"`
-	RemoteAddress        string `mikrotik:"remote-address"`
-	RemoteAs             int    `mikrotik:"remote-as"`
-	RemotePort           int    `mikrotik:"remote-port"`
-	RemovePrivateAs      bool   `mikrotik:"remove-private-as"`
-	RouteReflect         bool   `mikrotik:"route-reflect"`
-	TCPMd5Key            string `mikrotik:"tcp-md5-key"`
-	TTL                  string `mikrotik:"ttl"`
-	UpdateSource         string `mikrotik:"update-source"`
-	UseBfd               bool   `mikrotik:"use-bfd"`
+	Id                   string `mikrotik:".id" codegen:"id,mikrotikID"`
+	Name                 string `mikrotik:"name" codegen:"name,required,terraformID"`
+	AddressFamilies      string `mikrotik:"address-families" codegen:"address_families,optional,computed"`
+	AllowAsIn            int    `mikrotik:"allow-as-in" codegen:"allow_as_in"`
+	AsOverride           bool   `mikrotik:"as-override" codegen:"as_override"`
+	CiscoVplsNlriLenFmt  string `mikrotik:"cisco-vpls-nlri-len-fmt" codegen:"cisco_vpls_nlri_len_fmt"`
+	Comment              string `mikrotik:"comment" codegen:"comment"`
+	DefaultOriginate     string `mikrotik:"default-originate" codegen:"default_originate,optional,computed"`
+	Disabled             bool   `mikrotik:"disabled" codegen:"disabled"`
+	HoldTime             string `mikrotik:"hold-time" codegen:"hold_time,optional,computed"`
+	InFilter             string `mikrotik:"in-filter" codegen:"in_filter"`
+	Instance             string `mikrotik:"instance" codegen:"instance"`
+	KeepAliveTime        string `mikrotik:"keepalive-time" codegen:"keepalive_time"`
+	MaxPrefixLimit       int    `mikrotik:"max-prefix-limit" codegen:"max_prefix_limit"`
+	MaxPrefixRestartTime string `mikrotik:"max-prefix-restart-time" codegen:"max_prefix_restart_time"`
+	Multihop             bool   `mikrotik:"multihop" codegen:"multihop"`
+	NexthopChoice        string `mikrotik:"nexthop-choice" codegen:"nexthop_choice,optional,computed"`
+	OutFilter            string `mikrotik:"out-filter" codegen:"out_filter"`
+	Passive              bool   `mikrotik:"passive" codegen:"passive"`
+	RemoteAddress        string `mikrotik:"remote-address" codegen:"remote_address,required"`
+	RemoteAs             int    `mikrotik:"remote-as" codegen:"remote_as,required"`
+	RemotePort           int    `mikrotik:"remote-port" codegen:"remote_port"`
+	RemovePrivateAs      bool   `mikrotik:"remove-private-as" codegen:"remove_private_as"`
+	RouteReflect         bool   `mikrotik:"route-reflect" codegen:"route_reflect"`
+	TCPMd5Key            string `mikrotik:"tcp-md5-key" codegen:"tcp_md5_key"`
+	TTL                  string `mikrotik:"ttl" codegen:"ttl,optional,computed"`
+	UpdateSource         string `mikrotik:"update-source" codegen:"update_source"`
+	UseBfd               bool   `mikrotik:"use-bfd" codegen:"use_bfd"`
 }
 
 var _ Resource = (*BgpPeer)(nil)
