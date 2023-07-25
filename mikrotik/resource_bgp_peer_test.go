@@ -185,6 +185,7 @@ func TestAccMikrotikBgpPeer_import(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateId:     name,
 			},
 		},
 	})
@@ -239,7 +240,7 @@ func testAccBgpPeerExists(resourceName string) resource.TestCheckFunc {
 
 		c := client.NewClient(client.GetConfigFromEnv())
 
-		bgpPeer, err := c.FindBgpPeer(rs.Primary.ID)
+		bgpPeer, err := c.FindBgpPeer(rs.Primary.Attributes["name"])
 
 		if err != nil {
 			return fmt.Errorf("Unable to get the bgp peer with error: %v", err)
@@ -249,9 +250,6 @@ func testAccBgpPeerExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Unable to get the bgp peer")
 		}
 
-		if bgpPeer.Name == rs.Primary.ID {
-			return nil
-		}
 		return nil
 	}
 }
@@ -263,7 +261,7 @@ func testAccCheckMikrotikBgpPeerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		bgpPeer, err := c.FindBgpPeer(rs.Primary.ID)
+		bgpPeer, err := c.FindBgpPeer(rs.Primary.Attributes["name"])
 
 		if !client.IsNotFoundError(err) && err != nil {
 			return err
