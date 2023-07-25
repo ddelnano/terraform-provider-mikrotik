@@ -13,7 +13,6 @@ var (
 	defaultImports = []string{
 		"context",
 		"github.com/ddelnano/terraform-provider-mikrotik/client",
-		"github.com/hashicorp/terraform-plugin-framework/diag",
 		"github.com/hashicorp/terraform-plugin-framework/path",
 		"github.com/hashicorp/terraform-plugin-framework/resource",
 		"github.com/hashicorp/terraform-plugin-framework/resource/schema",
