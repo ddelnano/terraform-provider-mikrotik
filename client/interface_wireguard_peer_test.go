@@ -8,7 +8,7 @@ import (
 )
 
 func TestFindInterfaceWireguardPeer_onNonExistantInterfacePeer(t *testing.T) {
-	SkipInterfaceWireguardIfUnsupported(t)
+	SkipIfRouterOSV6OrEarlier(t, sysResources)
 	c := NewClient(GetConfigFromEnv())
 
 	interfaceName := "Interface peer does not exist"
@@ -19,7 +19,7 @@ func TestFindInterfaceWireguardPeer_onNonExistantInterfacePeer(t *testing.T) {
 }
 
 func TestInterfaceWireguardPeer_Crud(t *testing.T) {
-	SkipInterfaceWireguardIfUnsupported(t)
+	SkipIfRouterOSV6OrEarlier(t, sysResources)
 	c := NewClient(GetConfigFromEnv())
 
 	name := "new_interface_wireguard"
