@@ -4,304 +4,262 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func resourceBgpPeer() *schema.Resource {
-	return &schema.Resource{
+type bgpPeer struct {
+	client *client.Mikrotik
+}
+
+// Ensure the implementation satisfies the expected interfaces.
+var (
+	_ resource.Resource                = &bgpPeer{}
+	_ resource.ResourceWithConfigure   = &bgpPeer{}
+	_ resource.ResourceWithImportState = &bgpPeer{}
+)
+
+// NewBgpPeerResource is a helper function to simplify the provider implementation.
+func NewBgpPeerResource() resource.Resource {
+	return &bgpPeer{}
+}
+
+func (r *bgpPeer) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	r.client = req.ProviderData.(*client.Mikrotik)
+}
+
+// Metadata returns the resource type name.
+func (r *bgpPeer) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_bgp_peer"
+}
+
+// Schema defines the schema for the resource.
+func (s *bgpPeer) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: "Creates a MikroTik BGP Peer.",
-
-		CreateContext: resourceBgpPeerCreate,
-		ReadContext:   resourceBgpPeerRead,
-		UpdateContext: resourceBgpPeerUpdate,
-		DeleteContext: resourceBgpPeerDelete,
-		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
-		},
-
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:        schema.TypeString,
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description: "Unique MikroTik identifier.",
+			},
+			"name": schema.StringAttribute{
 				Required:    true,
 				Description: "The name of the BGP peer.",
 			},
-			"remote_as": {
-				Type:        schema.TypeInt,
-				Required:    true,
-				Description: "The 32-bit AS number of the remote peer.",
+			"address_families": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Default:     stringdefault.StaticString("ip"),
+				Description: "The list of address families about which this peer will exchange routing information.",
 			},
-			"remote_address": {
-				Type:        schema.TypeString,
+			"allow_as_in": schema.Int64Attribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "How many times to allow own AS number in AS-PATH, before discarding a prefix.",
+			},
+			"as_override": schema.BoolAttribute{
+				Computed:    true,
+				Optional:    true,
+				Default:     booldefault.StaticBool(false),
+				Description: "If set, then all instances of remote peer's AS number in BGP AS PATH attribute are replaced with local AS number before sending route update to that peer.",
+			},
+			"cisco_vpls_nlri_len_fmt": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "VPLS NLRI length format type.",
+			},
+			"comment": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "The comment of the BGP peer to be created.",
+			},
+			"default_originate": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString("never"),
+				Description: "The comment of the BGP peer to be created.",
+			},
+			"disabled": schema.BoolAttribute{
+				Computed:    true,
+				Optional:    true,
+				Default:     booldefault.StaticBool(false),
+				Description: "Whether peer is disabled.",
+			},
+			"hold_time": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString("3m"),
+				Description: "Specifies the BGP Hold Time value to use when negotiating with peer",
+			},
+			"in_filter": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "The name of the routing filter chain that is applied to the incoming routing information.",
+			},
+			"instance": schema.StringAttribute{
+				Optional:    true,
+				Description: "The name of the instance this peer belongs to. See Mikrotik bgp instance resource.",
+			},
+			"keepalive_time": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+			},
+			"max_prefix_limit": schema.Int64Attribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "Maximum number of prefixes to accept from a specific peer.",
+			},
+			"max_prefix_restart_time": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "Minimum time interval after which peers can reestablish BGP session.",
+			},
+			"multihop": schema.BoolAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "Specifies whether the remote peer is more than one hop away.",
+			},
+			"nexthop_choice": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString("default"),
+				Description: "Affects the outgoing NEXT_HOP attribute selection, either: 'default', 'force-self', or 'propagate'",
+			},
+			"out_filter": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "The name of the routing filter chain that is applied to the outgoing routing information. ",
+			},
+			"passive": schema.BoolAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
+				Description: "Name of the routing filter chain that is applied to the outgoing routing information.",
+			},
+			"remote_address": schema.StringAttribute{
 				Required:    true,
 				Description: "The address of the remote peer",
 			},
-			"instance": {
-				Type:        schema.TypeString,
+			"remote_as": schema.Int64Attribute{
 				Required:    true,
-				Description: "The name of the instance this peer belongs to. See Mikrotik bgp instance resource.",
+				Description: "The 32-bit AS number of the remote peer.",
 			},
-			"address_families": {
-				Type:        schema.TypeString,
+			"remote_port": schema.Int64Attribute{
 				Optional:    true,
-				Default:     "ip",
-				Description: "The list of address families about which this peer will exchange routing information.",
-			},
-			"ttl": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "default",
-				Description: "Time To Live, the hop limit for TCP connection. This is a `string` field that can be 'default' or '0'-'255'.",
-			},
-			"default_originate": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "never",
-				Description: "The comment of the BGP peer to be created.",
-			},
-			"hold_time": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "3m",
-				Description: "Specifies the BGP Hold Time value to use when negotiating with peer",
-			},
-			"nexthop_choice": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "default",
-				Description: "Affects the outgoing NEXT_HOP attribute selection, either: 'default', 'force-self', or 'propagate'",
-			},
-			"out_filter": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The name of the routing filter chain that is applied to the outgoing routing information. ",
-			},
-			"in_filter": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The name of the routing filter chain that is applied to the incoming routing information.",
-			},
-			"allow_as_in": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: "How many times to allow own AS number in AS-PATH, before discarding a prefix.",
-			},
-			"as_override": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "If set, then all instances of remote peer's AS number in BGP AS PATH attribute are replaced with local AS number before sending route update to that peer.",
-			},
-			"cisco_vpls_nlri_len_fmt": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "VPLS NLRI length format type.",
-			},
-			"comment": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The comment of the BGP peer to be created.",
-			},
-			"disabled": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Whether peer is disabled.",
-			},
-			"keepalive_time": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"max_prefix_limit": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Description: "Maximum number of prefixes to accept from a specific peer.",
-			},
-			"max_prefix_restart_time": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Minimum time interval after which peers can reestablish BGP session.",
-			},
-			"multihop": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Specifies whether the remote peer is more than one hop away.",
-			},
-			"passive": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Name of the routing filter chain that is applied to the outgoing routing information.",
-			},
-			"remote_port": {
-				Type:        schema.TypeInt,
-				Optional:    true,
+				Computed:    true,
 				Description: "Remote peers port to establish tcp session.",
 			},
-			"remove_private_as": {
-				Type:        schema.TypeBool,
+			"remove_private_as": schema.BoolAttribute{
 				Optional:    true,
-				Default:     false,
+				Computed:    true,
 				Description: "If set, then BGP AS-PATH attribute is removed before sending out route update if attribute contains only private AS numbers.",
 			},
-			"route_reflect": {
-				Type:        schema.TypeBool,
+			"route_reflect": schema.BoolAttribute{
 				Optional:    true,
-				Default:     false,
+				Computed:    true,
 				Description: "Specifies whether this peer is route reflection client.",
 			},
-			"tcp_md5_key": {
-				Type:        schema.TypeString,
+			"tcp_md5_key": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Key used to authenticate the connection with TCP MD5 signature as described in RFC 2385.",
 			},
-			"update_source": {
-				Type:        schema.TypeString,
+			"ttl": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString("default"),
+				Description: "Time To Live, the hop limit for TCP connection. This is a `string` field that can be 'default' or '0'-'255'.",
+			},
+			"update_source": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
 				Description: "If address is specified, this address is used as the source address of the outgoing TCP connection.",
 			},
-			"use_bfd": {
-				Type:        schema.TypeBool,
+			"use_bfd": schema.BoolAttribute{
 				Optional:    true,
-				Default:     false,
+				Computed:    true,
 				Description: "Whether to use BFD protocol for fast state detection.",
 			},
 		},
 	}
 }
 
-func resourceBgpPeerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	peer := prepareBgpPeer(d)
-
-	c := m.(*client.Mikrotik)
-
-	bgpPeer, err := c.AddBgpPeer(peer)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return bgpPeerToData(bgpPeer, d)
+// Create creates the resource and sets the initial Terraform state.
+func (r *bgpPeer) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var terraformModel bgpPeerModel
+	var mikrotikModel client.BgpPeer
+	GenericCreateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceBgpPeerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	bgpPeer, err := c.FindBgpPeer(d.Id())
-	if client.IsNotFoundError(err) {
-		d.SetId("")
-		return nil
-	}
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return bgpPeerToData(bgpPeer, d)
+// Read refreshes the Terraform state with the latest data.
+func (r *bgpPeer) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var terraformModel bgpPeerModel
+	var mikrotikModel client.BgpPeer
+	GenericReadResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceBgpPeerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	currentBgpPeer, err := c.FindBgpPeer(d.Get("name").(string))
-
-	peer := prepareBgpPeer(d)
-	peer.ID = currentBgpPeer.ID
-
-	bgpPeer, err := c.UpdateBgpPeer(peer)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return bgpPeerToData(bgpPeer, d)
+// Update updates the resource and sets the updated Terraform state on success.
+func (r *bgpPeer) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var terraformModel bgpPeerModel
+	var mikrotikModel client.BgpPeer
+	GenericUpdateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceBgpPeerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	err := c.DeleteBgpPeer(d.Get("name").(string))
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	d.SetId("")
-	return nil
+// Delete deletes the resource and removes the Terraform state on success.
+func (r *bgpPeer) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var terraformModel bgpPeerModel
+	var mikrotikModel client.BgpPeer
+	GenericDeleteResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func bgpPeerToData(b *client.BgpPeer, d *schema.ResourceData) diag.Diagnostics {
-	values := map[string]interface{}{
-		"name":                    b.Name,
-		"address_families":        b.AddressFamilies,
-		"allow_as_in":             b.AllowAsIn,
-		"as_override":             b.AsOverride,
-		"cisco_vpls_nlri_len_fmt": b.CiscoVplsNlriLenFmt,
-		"comment":                 b.Comment,
-		"default_originate":       b.DefaultOriginate,
-		"disabled":                b.Disabled,
-		"hold_time":               b.HoldTime,
-		"in_filter":               b.InFilter,
-		"instance":                b.Instance,
-		"keepalive_time":          b.KeepAliveTime,
-		"max_prefix_limit":        b.MaxPrefixLimit,
-		"max_prefix_restart_time": b.MaxPrefixRestartTime,
-		"multihop":                b.Multihop,
-		"nexthop_choice":          b.NexthopChoice,
-		"out_filter":              b.OutFilter,
-		"passive":                 b.Passive,
-		"remote_address":          b.RemoteAddress,
-		"remote_as":               b.RemoteAs,
-		"remote_port":             b.RemotePort,
-		"remove_private_as":       b.RemovePrivateAs,
-		"route_reflect":           b.RouteReflect,
-		"tcp_md5_key":             b.TCPMd5Key,
-		"ttl":                     b.TTL,
-		"update_source":           b.UpdateSource,
-		"use_bfd":                 b.UseBfd,
-	}
-
-	d.SetId(b.Name)
-
-	var diags diag.Diagnostics
-
-	for key, value := range values {
-		if err := d.Set(key, value); err != nil {
-			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
-		}
-	}
-
-	return diags
+func (r *bgpPeer) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Retrieve import ID and save to id attribute
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
 
-func prepareBgpPeer(d *schema.ResourceData) *client.BgpPeer {
-	bgpPeer := new(client.BgpPeer)
-
-	bgpPeer.Name = d.Get("name").(string)
-	bgpPeer.AddressFamilies = d.Get("address_families").(string)
-	bgpPeer.AllowAsIn = d.Get("allow_as_in").(int)
-	bgpPeer.AsOverride = d.Get("as_override").(bool)
-	bgpPeer.CiscoVplsNlriLenFmt = d.Get("cisco_vpls_nlri_len_fmt").(string)
-	bgpPeer.Comment = d.Get("comment").(string)
-	bgpPeer.DefaultOriginate = d.Get("default_originate").(string)
-	bgpPeer.Disabled = d.Get("disabled").(bool)
-	bgpPeer.HoldTime = d.Get("hold_time").(string)
-	bgpPeer.InFilter = d.Get("in_filter").(string)
-	bgpPeer.Instance = d.Get("instance").(string)
-	bgpPeer.KeepAliveTime = d.Get("keepalive_time").(string)
-	bgpPeer.MaxPrefixLimit = d.Get("max_prefix_limit").(int)
-	bgpPeer.MaxPrefixRestartTime = d.Get("max_prefix_restart_time").(string)
-	bgpPeer.Multihop = d.Get("multihop").(bool)
-	bgpPeer.NexthopChoice = d.Get("nexthop_choice").(string)
-	bgpPeer.OutFilter = d.Get("out_filter").(string)
-	bgpPeer.Passive = d.Get("passive").(bool)
-	bgpPeer.RemoteAddress = d.Get("remote_address").(string)
-	bgpPeer.RemoteAs = d.Get("remote_as").(int)
-	bgpPeer.RemotePort = d.Get("remote_port").(int)
-	bgpPeer.RemovePrivateAs = d.Get("remove_private_as").(bool)
-	bgpPeer.RouteReflect = d.Get("route_reflect").(bool)
-	bgpPeer.TCPMd5Key = d.Get("tcp_md5_key").(string)
-	bgpPeer.TTL = d.Get("ttl").(string)
-	bgpPeer.UpdateSource = d.Get("update_source").(string)
-	bgpPeer.UseBfd = d.Get("use_bfd").(bool)
-
-	return bgpPeer
+type bgpPeerModel struct {
+	Id                   tftypes.String `tfsdk:"id"`
+	Name                 tftypes.String `tfsdk:"name"`
+	AddressFamilies      tftypes.String `tfsdk:"address_families"`
+	AllowAsIn            tftypes.Int64  `tfsdk:"allow_as_in"`
+	AsOverride           tftypes.Bool   `tfsdk:"as_override"`
+	CiscoVplsNlriLenFmt  tftypes.String `tfsdk:"cisco_vpls_nlri_len_fmt"`
+	Comment              tftypes.String `tfsdk:"comment"`
+	DefaultOriginate     tftypes.String `tfsdk:"default_originate"`
+	Disabled             tftypes.Bool   `tfsdk:"disabled"`
+	HoldTime             tftypes.String `tfsdk:"hold_time"`
+	InFilter             tftypes.String `tfsdk:"in_filter"`
+	Instance             tftypes.String `tfsdk:"instance"`
+	KeepAliveTime        tftypes.String `tfsdk:"keepalive_time"`
+	MaxPrefixLimit       tftypes.Int64  `tfsdk:"max_prefix_limit"`
+	MaxPrefixRestartTime tftypes.String `tfsdk:"max_prefix_restart_time"`
+	Multihop             tftypes.Bool   `tfsdk:"multihop"`
+	NexthopChoice        tftypes.String `tfsdk:"nexthop_choice"`
+	OutFilter            tftypes.String `tfsdk:"out_filter"`
+	Passive              tftypes.Bool   `tfsdk:"passive"`
+	RemoteAddress        tftypes.String `tfsdk:"remote_address"`
+	RemoteAs             tftypes.Int64  `tfsdk:"remote_as"`
+	RemotePort           tftypes.Int64  `tfsdk:"remote_port"`
+	RemovePrivateAs      tftypes.Bool   `tfsdk:"remove_private_as"`
+	RouteReflect         tftypes.Bool   `tfsdk:"route_reflect"`
+	TCPMd5Key            tftypes.String `tfsdk:"tcp_md5_key"`
+	TTL                  tftypes.String `tfsdk:"ttl"`
+	UpdateSource         tftypes.String `tfsdk:"update_source"`
+	UseBfd               tftypes.Bool   `tfsdk:"use_bfd"`
 }

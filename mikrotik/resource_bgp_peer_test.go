@@ -24,7 +24,7 @@ var updatedTTL string = "255"
 var updatedUseBfd string = "true"
 
 func TestAccMikrotikBgpPeer_create(t *testing.T) {
-	client.SkipLegacyBgpIfUnsupported(t)
+	client.SkipIfRouterOSV7OrLater(t, sysResources)
 	name := acctest.RandomWithPrefix("tf-acc-create")
 	remoteAs := acctest.RandIntRange(1, 65535)
 	remoteAddress, _ := acctest.RandIpAddress("192.168.0.0/24")
@@ -62,7 +62,7 @@ func TestAccMikrotikBgpPeer_create(t *testing.T) {
 }
 
 func TestAccMikrotikBgpPeer_createAndPlanWithNonExistantBgpPeer(t *testing.T) {
-	client.SkipLegacyBgpIfUnsupported(t)
+	client.SkipIfRouterOSV7OrLater(t, sysResources)
 	name := acctest.RandomWithPrefix("tf-acc-create_with_plan")
 	remoteAs := acctest.RandIntRange(1, 65535)
 	remoteAddress, _ := acctest.RandIpAddress("192.168.1.0/24")
@@ -101,7 +101,7 @@ func TestAccMikrotikBgpPeer_createAndPlanWithNonExistantBgpPeer(t *testing.T) {
 }
 
 func TestAccMikrotikBgpPeer_updateBgpPeer(t *testing.T) {
-	client.SkipLegacyBgpIfUnsupported(t)
+	client.SkipIfRouterOSV7OrLater(t, sysResources)
 	name := acctest.RandomWithPrefix("tf-acc-update")
 	remoteAs := acctest.RandIntRange(1, 65535)
 	remoteAddress, _ := acctest.RandIpAddress("192.168.3.0/24")
@@ -163,7 +163,7 @@ func TestAccMikrotikBgpPeer_updateBgpPeer(t *testing.T) {
 }
 
 func TestAccMikrotikBgpPeer_import(t *testing.T) {
-	client.SkipLegacyBgpIfUnsupported(t)
+	client.SkipIfRouterOSV7OrLater(t, sysResources)
 	name := acctest.RandomWithPrefix("tf-acc-import")
 	remoteAs := acctest.RandIntRange(1, 65535)
 	remoteAddress, _ := acctest.RandIpAddress("192.168.4.0/24")
@@ -185,6 +185,7 @@ func TestAccMikrotikBgpPeer_import(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateId:     name,
 			},
 		},
 	})
@@ -239,7 +240,7 @@ func testAccBgpPeerExists(resourceName string) resource.TestCheckFunc {
 
 		c := client.NewClient(client.GetConfigFromEnv())
 
-		bgpPeer, err := c.FindBgpPeer(rs.Primary.ID)
+		bgpPeer, err := c.FindBgpPeer(rs.Primary.Attributes["name"])
 
 		if err != nil {
 			return fmt.Errorf("Unable to get the bgp peer with error: %v", err)
@@ -249,9 +250,6 @@ func testAccBgpPeerExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Unable to get the bgp peer")
 		}
 
-		if bgpPeer.Name == rs.Primary.ID {
-			return nil
-		}
 		return nil
 	}
 }
@@ -263,7 +261,7 @@ func testAccCheckMikrotikBgpPeerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		bgpPeer, err := c.FindBgpPeer(rs.Primary.ID)
+		bgpPeer, err := c.FindBgpPeer(rs.Primary.Attributes["name"])
 
 		if !client.IsNotFoundError(err) && err != nil {
 			return err

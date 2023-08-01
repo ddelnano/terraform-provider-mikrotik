@@ -161,7 +161,7 @@ func resourceBgpInstanceUpdate(ctx context.Context, d *schema.ResourceData, m in
 	}
 
 	instance := prepareBgpInstance(d)
-	instance.ID = currentBgpInstance.ID
+	instance.Id = currentBgpInstance.Id
 
 	bgpInstance, err := c.UpdateBgpInstance(instance)
 

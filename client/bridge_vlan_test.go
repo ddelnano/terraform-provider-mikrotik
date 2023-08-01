@@ -10,7 +10,7 @@ import (
 func TestBridgeVlanBasic(t *testing.T) {
 	c := NewClient(GetConfigFromEnv())
 
-	bridge1Name := "test_bridge1"
+	bridge1Name := "test_bridge1_" + RandomString()
 	bridge1 := &Bridge{
 		Name:          bridge1Name,
 		FastForward:   false,
@@ -27,7 +27,7 @@ func TestBridgeVlanBasic(t *testing.T) {
 		}
 	}()
 
-	bridge2Name := "test_bridge2"
+	bridge2Name := "test_bridge2_" + RandomString()
 	bridge2 := &Bridge{
 		Name:          bridge2Name,
 		FastForward:   false,

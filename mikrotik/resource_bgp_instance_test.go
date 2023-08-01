@@ -14,7 +14,7 @@ import (
 )
 
 func TestAccMikrotikBgpInstance_create(t *testing.T) {
-	client.SkipLegacyBgpIfUnsupported(t)
+	client.SkipIfRouterOSV7OrLater(t, sysResources)
 	name := acctest.RandomWithPrefix("tf-acc-create")
 	routerId := internal.GetNewIpAddr()
 	as := acctest.RandIntRange(1, 65535)
@@ -41,9 +41,7 @@ func TestAccMikrotikBgpInstance_create(t *testing.T) {
 }
 
 func TestAccMikrotikBgpInstance_createFailsOnRouterOSv7(t *testing.T) {
-	if client.IsLegacyBgpSupported() {
-		t.Skip()
-	}
+	client.SkipIfRouterOSV6OrEarlier(t, sysResources)
 
 	name := acctest.RandomWithPrefix("tf-acc-create")
 	routerId := internal.GetNewIpAddr()
@@ -63,7 +61,7 @@ func TestAccMikrotikBgpInstance_createFailsOnRouterOSv7(t *testing.T) {
 }
 
 func TestAccMikrotikBgpInstance_createAndPlanWithNonExistantBgpInstance(t *testing.T) {
-	client.SkipLegacyBgpIfUnsupported(t)
+	client.SkipIfRouterOSV7OrLater(t, sysResources)
 	name := acctest.RandomWithPrefix("tf-acc-create_with_plan")
 	routerId := internal.GetNewIpAddr()
 	as := acctest.RandIntRange(1, 65535)
@@ -89,7 +87,7 @@ func TestAccMikrotikBgpInstance_createAndPlanWithNonExistantBgpInstance(t *testi
 }
 
 func TestAccMikrotikBgpInstance_updateBgpInstance(t *testing.T) {
-	client.SkipLegacyBgpIfUnsupported(t)
+	client.SkipIfRouterOSV7OrLater(t, sysResources)
 	name := acctest.RandomWithPrefix("tf-acc-update")
 	routerId := internal.GetNewIpAddr()
 	updatedRouterId := internal.GetNewIpAddr()
@@ -142,7 +140,7 @@ func TestAccMikrotikBgpInstance_updateBgpInstance(t *testing.T) {
 }
 
 func TestAccMikrotikBgpInstance_import(t *testing.T) {
-	client.SkipLegacyBgpIfUnsupported(t)
+	client.SkipIfRouterOSV7OrLater(t, sysResources)
 	name := acctest.RandomWithPrefix("tf-acc-import")
 	routerId := internal.GetNewIpAddr()
 	as := acctest.RandIntRange(1, 65535)
@@ -214,19 +212,12 @@ func testAccBgpInstanceExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("mikrotik_bgp_instance does not exist in the statefile")
 		}
 
-		bgpInstance, err := apiClient.FindBgpInstance(rs.Primary.ID)
+		_, err := apiClient.FindBgpInstance(rs.Primary.ID)
 
 		if err != nil {
 			return fmt.Errorf("Unable to get the bgp instance with error: %v", err)
 		}
 
-		if bgpInstance == nil {
-			return fmt.Errorf("Unable to get the bgp instance")
-		}
-
-		if bgpInstance.Name == rs.Primary.ID {
-			return nil
-		}
 		return nil
 	}
 }

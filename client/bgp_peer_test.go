@@ -18,7 +18,7 @@ var holdTime string = "3m"
 var nextHopChoice string = "default"
 
 func TestAddBgpPeerAndDeleteBgpPeer(t *testing.T) {
-	SkipLegacyBgpIfUnsupported(t)
+	SkipIfRouterOSV7OrLater(t, sysResources)
 	c := NewClient(GetConfigFromEnv())
 
 	instanceName := "peer-test"
@@ -48,7 +48,7 @@ func TestAddBgpPeerAndDeleteBgpPeer(t *testing.T) {
 		t.Fatalf("Error creating a bpg peer with: %v", err)
 	}
 
-	expectedBgpPeer.ID = bgpPeer.ID
+	expectedBgpPeer.Id = bgpPeer.Id
 
 	if !reflect.DeepEqual(bgpPeer, expectedBgpPeer) {
 		t.Errorf("The bgp peer does not match what we expected. actual: %v expected: %v", bgpPeer, expectedBgpPeer)
@@ -62,7 +62,7 @@ func TestAddBgpPeerAndDeleteBgpPeer(t *testing.T) {
 }
 
 func TestAddAndUpdateBgpPeerWithOptionalFieldsAndDeleteBgpPeer(t *testing.T) {
-	SkipLegacyBgpIfUnsupported(t)
+	SkipIfRouterOSV7OrLater(t, sysResources)
 	c := NewClient(GetConfigFromEnv())
 
 	instanceName := "peer-update-test"
@@ -92,7 +92,7 @@ func TestAddAndUpdateBgpPeerWithOptionalFieldsAndDeleteBgpPeer(t *testing.T) {
 		t.Fatalf("Error creating a bpg peer with: %v", err)
 	}
 
-	expectedBgpPeer.ID = bgpPeer.ID
+	expectedBgpPeer.Id = bgpPeer.Id
 
 	if !reflect.DeepEqual(bgpPeer, expectedBgpPeer) {
 		t.Errorf("The bgp peer does not match what we expected. actual: %v expected: %v", bgpPeer, expectedBgpPeer)
@@ -125,7 +125,7 @@ func TestAddAndUpdateBgpPeerWithOptionalFieldsAndDeleteBgpPeer(t *testing.T) {
 }
 
 func TestFindBgpPeer_onNonExistantBgpPeer(t *testing.T) {
-	SkipLegacyBgpIfUnsupported(t)
+	SkipIfRouterOSV7OrLater(t, sysResources)
 	c := NewClient(GetConfigFromEnv())
 
 	name := "bgp peer does not exist"

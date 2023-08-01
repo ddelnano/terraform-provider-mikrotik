@@ -1,131 +1,90 @@
 package client
 
 import (
-	"fmt"
-	"log"
-	"strings"
+	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
+	"github.com/go-routeros/routeros"
 )
 
 type Script struct {
-	Id                     string `mikrotik:".id"`
-	Name                   string `mikrotik:"name"`
-	Owner                  string `mikrotik:"owner"`
-	PolicyString           string `mikrotik:"policy"`
-	DontRequirePermissions bool   `mikrotik:"dont-require-permissions"`
-	Source                 string `source:"source"`
+	Id                     string             `mikrotik:".id" codegen:"id,deleteID"`
+	Name                   string             `mikrotik:"name" codegen:"name,required,mikrotikID"`
+	Owner                  string             `mikrotik:"owner" codegen:"owner,required"`
+	Policy                 types.MikrotikList `mikrotik:"policy" codegen:"policy,required"`
+	DontRequirePermissions bool               `mikrotik:"dont-require-permissions" codegen:"dont_require_permissions"`
+	Source                 string             `mikrotik:"source" codegen:"source,required"`
 }
 
-func (s *Script) Policy() []string {
-	return strings.Split(s.PolicyString, ",")
+var _ Resource = (*Script)(nil)
+
+func (b *Script) ActionToCommand(a Action) string {
+	return map[Action]string{
+		Add:    "/system/script/add",
+		Find:   "/system/script/print",
+		Update: "/system/script/set",
+		Delete: "/system/script/remove",
+	}[a]
 }
 
-func (client Mikrotik) CreateScript(name, owner, source string, policies []string, dontReqPerms bool) (*Script, error) {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return nil, err
-	}
-
-	policiesString := strings.Join(policies, ",")
-	nameArg := fmt.Sprintf("=name=%s", name)
-	ownerArg := fmt.Sprintf("=owner=%s", owner)
-	sourceArg := fmt.Sprintf("=source=%s", source)
-	policyArg := fmt.Sprintf("=policy=%s", policiesString)
-	dontReqPermsArg := fmt.Sprintf("=dont-require-permissions=%s", boolToMikrotikBool(dontReqPerms))
-	cmd := []string{
-		"/system/script/add",
-		nameArg,
-		ownerArg,
-		sourceArg,
-		policyArg,
-		dontReqPermsArg,
-	}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	log.Printf("[DEBUG] /system/script/add returned %v", r)
-
-	if err != nil {
-		return nil, err
-	}
-	return client.FindScript(name)
+func (b *Script) IDField() string {
+	return ".id"
 }
 
-func (client Mikrotik) UpdateScript(name, owner, source string, policy []string, dontReqPerms bool) (*Script, error) {
-	c, err := client.getMikrotikClient()
-
-	if err != nil {
-		return nil, err
-	}
-
-	script, err := client.FindScript(name)
-
-	if err != nil {
-		return nil, err
-	}
-
-	policiesString := strings.Join(policy, ",")
-	nameArg := fmt.Sprintf("=numbers=%s", script.Id)
-	ownerArg := fmt.Sprintf("=owner=%s", owner)
-	sourceArg := fmt.Sprintf("=source=%s", source)
-	policyArg := fmt.Sprintf("=policy=%s", policiesString)
-	dontReqPermsArg := fmt.Sprintf("=dont-require-permissions=%s", boolToMikrotikBool(dontReqPerms))
-	cmd := []string{
-		"/system/script/set",
-		nameArg,
-		ownerArg,
-		sourceArg,
-		policyArg,
-		dontReqPermsArg,
-	}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	_, err = c.RunArgs(cmd)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return client.FindScript(name)
+func (b *Script) ID() string {
+	return b.Id
 }
 
-func (client Mikrotik) DeleteScript(name string) error {
-	c, err := client.getMikrotikClient()
-	if err != nil {
-		return err
-	}
-
-	script, err := client.FindScript(name)
-
-	if err != nil {
-		return err
-	}
-	cmd := []string{"/system/script/remove", "=numbers=" + script.Id}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
-	log.Printf("[DEBUG] Remove script from mikrotik api %v", r)
-
-	return err
+func (b *Script) SetID(id string) {
+	b.Id = id
 }
 
-func (client Mikrotik) FindScript(name string) (*Script, error) {
-	c, err := client.getMikrotikClient()
+func (b *Script) AfterAddHook(r *routeros.Reply) {
+	b.Id = r.Done.Map["ret"]
+}
 
+func (b *Script) FindField() string {
+	return "name"
+}
+
+func (b *Script) FindFieldValue() string {
+	return b.Name
+}
+
+func (b *Script) DeleteField() string {
+	return "numbers"
+}
+
+func (b *Script) DeleteFieldValue() string {
+	return b.Id
+}
+
+// Typed wrappers
+func (c Mikrotik) AddScript(r *Script) (*Script, error) {
+	res, err := c.Add(r)
 	if err != nil {
 		return nil, err
 	}
-	cmd := []string{"/system/script/print", "?name=" + name}
-	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
-	r, err := c.RunArgs(cmd)
 
-	log.Printf("[DEBUG] Found script from mikrotik api %v", r)
-	script := &Script{}
-	err = Unmarshal(*r, script)
+	return res.(*Script), nil
+}
 
+func (c Mikrotik) UpdateScript(r *Script) (*Script, error) {
+	res, err := c.Update(r)
 	if err != nil {
-		return script, err
+		return nil, err
 	}
 
-	if script.Name == "" {
-		return nil, NewNotFound(fmt.Sprintf("script `%s` not found", name))
+	return res.(*Script), nil
+}
+
+func (c Mikrotik) FindScript(name string) (*Script, error) {
+	res, err := c.Find(&Script{Name: name})
+	if err != nil {
+		return nil, err
 	}
 
-	return script, err
+	return res.(*Script), nil
+}
+
+func (c Mikrotik) DeleteScript(id string) error {
+	return c.Delete(&Script{Id: id})
 }

@@ -65,7 +65,6 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"mikrotik_bgp_instance":          resourceBgpInstance(),
-			"mikrotik_bgp_peer":              resourceBgpPeer(),
 			"mikrotik_bridge":                resourceBridge(),
 			"mikrotik_bridge_port":           resourceBridgePort(),
 			"mikrotik_bridge_vlan":           resourceBridgeVlan(),
@@ -79,7 +78,6 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 			"mikrotik_ipv6_address":          resourceIpv6Address(),
 			"mikrotik_firewall_filter_rule":  resourceFirewallFilterRule(),
 			"mikrotik_pool":                  resourcePool(),
-			"mikrotik_script":                resourceScript(),
 			"mikrotik_vlan_interface":        resourceVlanInterface(),
 		},
 	}

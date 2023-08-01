@@ -12,9 +12,7 @@ import (
 )
 
 func TestAccMikrotikResourceIpv6Address_create(t *testing.T) {
-	if client.IsLegacyBgpSupported() {
-		t.Skip()
-	}
+	client.SkipIfRouterOSV6OrEarlier(t, sysResources)
 
 	ipv6Addr := internal.GetNewIpv6Addr() + "/64"
 	ifName := "ether1"
@@ -41,9 +39,7 @@ func TestAccMikrotikResourceIpv6Address_create(t *testing.T) {
 }
 
 func TestAccMikrotikResourceIpv6Address_updateAddr(t *testing.T) {
-	if client.IsLegacyBgpSupported() {
-		t.Skip()
-	}
+	client.SkipIfRouterOSV6OrEarlier(t, sysResources)
 
 	ipAddr := internal.GetNewIpv6Addr() + "/64"
 	updatedIpv6Addr := internal.GetNewIpv6Addr() + "/64"

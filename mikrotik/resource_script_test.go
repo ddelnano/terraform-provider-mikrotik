@@ -160,6 +160,7 @@ func TestAccMikrotikScript_import(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateId:     name,
 			},
 		},
 	})
@@ -221,9 +222,8 @@ func testAccScriptExists(resourceName string) resource.TestCheckFunc {
 
 		c := client.NewClient(client.GetConfigFromEnv())
 
-		script, err := c.FindScript(rs.Primary.ID)
-
-		if !client.IsNotFoundError(err) && err != nil {
+		script, err := c.FindScript(rs.Primary.Attributes["name"])
+		if err != nil {
 			return fmt.Errorf("Unable to get the script with error: %v", err)
 		}
 
