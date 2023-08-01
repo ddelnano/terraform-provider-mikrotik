@@ -184,9 +184,9 @@ func (p *ProviderFramework) Resources(ctx context.Context) []func() resource.Res
 	return []func() resource.Resource{
 		NewBgpPeerResource,
 		NewInterfaceWireguardResource,
-		NewInterfaceWireguardPeerResource,
 		NewSchedulerResource,
 		NewScriptResource,
+		NewInterfaceWireguardPeerResource,
 	}
 }
 

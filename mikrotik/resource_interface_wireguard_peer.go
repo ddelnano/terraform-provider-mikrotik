@@ -63,11 +63,13 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 			},
 			"allowed_address": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Default:     stringdefault.StaticString(""),
 				Description: "List of IP (v4 or v6) addresses with CIDR masks from which incoming traffic for this peer is allowed and to which outgoing traffic for this peer is directed. The catch-all 0.0.0.0/0 may be specified for matching all IPv4 addresses, and ::/0 may be specified for matching all IPv6 addresses.",
 			},
 			"comment": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Default:     stringdefault.StaticString(""),
 				Description: "Short description of the peer.",
 			},
@@ -79,11 +81,13 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 			},
 			"endpoint_address": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Default:     stringdefault.StaticString(""),
 				Description: "An endpoint IP or hostname can be left blank to allow remote connection from any address.",
 			},
 			"endpoint_port": schema.Int64Attribute{
 				Optional: true,
+				Computed: true,
 				Default:  int64default.StaticInt64(0),
 				Validators: []validator.Int64{
 					int64validator.Between(0, 65535),
@@ -105,12 +109,13 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 			},
 			"preshared_key": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Default:     stringdefault.StaticString(""),
 				Description: "A base64 preshared key. Optional, and may be omitted. This option adds an additional layer of symmetric-key cryptography to be mixed into the already existing public-key cryptography, for post-quantum resistance.",
 			},
 			"public_key": schema.StringAttribute{
 				Optional:    true,
-				Default:     stringdefault.StaticString(""),
+				Computed:    true,
 				Description: "The remote peer's calculated public key.",
 			},
 		},
@@ -211,18 +216,16 @@ func (i *interfaceWireguardPeer) ImportState(ctx context.Context, req resource.I
 }
 
 type interfaceWireguardPeerModel struct {
-	ID                     tftypes.String `tfsdk:"id"`
-	AllowedAddress         tftypes.String `tfsdk:"allowed_address"`
-	Comment                tftypes.String `tfsdk:"comment"`
-	Disabled               tftypes.Bool   `tfsdk:"disabled"`
-	EndpointAddress        tftypes.String `tfsdk:"endpoint_address"`
-	EndpointPort           tftypes.Int64  `tfsdk:"endpoint_port"`
-	Interface              tftypes.String `tfsdk:"interface"`
-	PersistentKeepalive    tftypes.Int64  `tfsdk:"persistent_keepalive"`
-	PresharedKey           tftypes.String `tfsdk:"preshared_key"`
-	PublicKey              tftypes.String `tfsdk:"public_key"`
-	CurrentEndpointAddress tftypes.String `tfsdk:"current_endpoint_address"`
-	CurrentEndpointPort    tftypes.Int64  `tfsdk:"current_endpoint_port"`
+	ID                  tftypes.String `tfsdk:"id"`
+	AllowedAddress      tftypes.String `tfsdk:"allowed_address"`
+	Comment             tftypes.String `tfsdk:"comment"`
+	Disabled            tftypes.Bool   `tfsdk:"disabled"`
+	EndpointAddress     tftypes.String `tfsdk:"endpoint_address"`
+	EndpointPort        tftypes.Int64  `tfsdk:"endpoint_port"`
+	Interface           tftypes.String `tfsdk:"interface"`
+	PersistentKeepalive tftypes.Int64  `tfsdk:"persistent_keepalive"`
+	PresharedKey        tftypes.String `tfsdk:"preshared_key"`
+	PublicKey           tftypes.String `tfsdk:"public_key"`
 }
 
 func interfaceWireguardPeerToModel(i *client.InterfaceWireguardPeer, m *interfaceWireguardPeerModel) diag.Diagnostics {
