@@ -124,27 +124,30 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 
 // Create creates the resource and sets the initial Terraform state.
 func (i *interfaceWireguardPeer) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan interfaceWireguardPeerModel
-	diags := req.Plan.Get(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	created, err := i.client.AddInterfaceWireguardPeer(modelToInterfaceWireguardPeer(&plan))
-	if err != nil {
-		resp.Diagnostics.AddError("creation failed", err.Error())
-		return
-	}
+	var terraformModel interfaceWireguardPeer
+	var mikrotikModel client.InterfaceWireguardPeer
+	GenericCreateResource(&terraformModel, &mikrotikModel, i.client)(ctx, req, resp)
+	// var plan interfaceWireguardPeerModel
+	// diags := req.Plan.Get(ctx, &plan)
+	// resp.Diagnostics.Append(diags...)
+	// if resp.Diagnostics.HasError() {
+	// 	return
+	// }
+	// created, err := i.client.AddInterfaceWireguardPeer(modelToInterfaceWireguardPeer(&plan))
+	// if err != nil {
+	// 	resp.Diagnostics.AddError("creation failed", err.Error())
+	// 	return
+	// }
 
-	resp.Diagnostics.Append(interfaceWireguardPeerToModel(created, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	// resp.Diagnostics.Append(interfaceWireguardPeerToModel(created, &plan)...)
+	// if resp.Diagnostics.HasError() {
+	// 	return
+	// }
 
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	// resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+	// if resp.Diagnostics.HasError() {
+	// 	return
+	// }
 }
 
 // Read refreshes the Terraform state with the latest data.
