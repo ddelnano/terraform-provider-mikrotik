@@ -164,9 +164,6 @@ func testAccInterfaceWireguardPeerExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Unable to get the interface wireguard peer with interface: %s", rs.Primary.Attributes["interface"])
 		}
 
-		if interfaceWireguardPeer.Id == rs.Primary.Attributes[".id"] {
-			return nil
-		}
 		return nil
 	}
 }

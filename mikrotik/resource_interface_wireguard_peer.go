@@ -5,7 +5,6 @@ import (
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -165,39 +164,4 @@ type interfaceWireguardPeerModel struct {
 	PersistentKeepalive tftypes.Int64  `tfsdk:"persistent_keepalive"`
 	PresharedKey        tftypes.String `tfsdk:"preshared_key"`
 	PublicKey           tftypes.String `tfsdk:"public_key"`
-}
-
-func interfaceWireguardPeerToModel(i *client.InterfaceWireguardPeer, m *interfaceWireguardPeerModel) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if i == nil {
-		diags.AddError("Interface Wireguard Peer cannot be nil", "Cannot build model from nil object")
-		return diags
-	}
-	m.ID = tftypes.StringValue(i.Id)
-	m.AllowedAddress = tftypes.StringValue(i.AllowedAddress)
-	m.Comment = tftypes.StringValue(i.Comment)
-	m.Disabled = tftypes.BoolValue(i.Disabled)
-	m.EndpointAddress = tftypes.StringValue(i.EndpointAddress)
-	m.EndpointPort = tftypes.Int64Value(i.EndpointPort)
-	m.Interface = tftypes.StringValue(i.Interface)
-	m.PersistentKeepalive = tftypes.Int64Value(i.PersistentKeepalive)
-	m.PresharedKey = tftypes.StringValue(i.PresharedKey)
-	m.PublicKey = tftypes.StringValue(i.PublicKey)
-
-	return diags
-}
-
-func modelToInterfaceWireguardPeer(m *interfaceWireguardPeerModel) *client.InterfaceWireguardPeer {
-	return &client.InterfaceWireguardPeer{
-		Id:                  m.ID.ValueString(),
-		AllowedAddress:      m.AllowedAddress.ValueString(),
-		Comment:             m.Comment.ValueString(),
-		Disabled:            m.Disabled.ValueBool(),
-		EndpointAddress:     m.EndpointAddress.ValueString(),
-		EndpointPort:        m.EndpointPort.ValueInt64(),
-		Interface:           m.Interface.ValueString(),
-		PersistentKeepalive: m.PersistentKeepalive.ValueInt64(),
-		PresharedKey:        m.PresharedKey.ValueString(),
-		PublicKey:           m.PublicKey.ValueString(),
-	}
 }
