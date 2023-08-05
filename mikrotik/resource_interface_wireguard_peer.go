@@ -2,7 +2,6 @@ package mikrotik
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -123,91 +122,31 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 }
 
 // Create creates the resource and sets the initial Terraform state.
-func (i *interfaceWireguardPeer) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan interfaceWireguardPeerModel
-	diags := req.Plan.Get(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	created, err := i.client.AddInterfaceWireguardPeer(modelToInterfaceWireguardPeer(&plan))
-	if err != nil {
-		resp.Diagnostics.AddError("creation failed", err.Error())
-		return
-	}
-
-	resp.Diagnostics.Append(interfaceWireguardPeerToModel(created, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+func (r *interfaceWireguardPeer) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var terraformModel interfaceWireguardPeerModel
+	var mikrotikModel client.InterfaceWireguardPeer
+	GenericCreateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
 // Read refreshes the Terraform state with the latest data.
-func (i *interfaceWireguardPeer) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state interfaceWireguardPeerModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resource, err := i.client.FindInterfaceWireguardPeer(state.Interface.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading remote resource",
-			fmt.Sprintf("Could not read interfaceWireguardPeer with interface name %q", state.Interface.ValueString()),
-		)
-		return
-	}
-
-	resp.Diagnostics.Append(interfaceWireguardPeerToModel(resource, &state)...)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+func (r *interfaceWireguardPeer) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var terraformModel interfaceWireguardPeerModel
+	var mikrotikModel client.InterfaceWireguardPeer
+	GenericReadResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
-func (i *interfaceWireguardPeer) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan interfaceWireguardPeerModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	updated, err := i.client.UpdateInterfaceWireguardPeer(modelToInterfaceWireguardPeer(&plan))
-	if err != nil {
-		resp.Diagnostics.AddError("update failed", err.Error())
-		return
-	}
-
-	resp.Diagnostics.Append(interfaceWireguardPeerToModel(updated, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+func (r *interfaceWireguardPeer) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var terraformModel interfaceWireguardPeerModel
+	var mikrotikModel client.InterfaceWireguardPeer
+	GenericUpdateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
-func (i *interfaceWireguardPeer) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state interfaceWireguardPeerModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if err := i.client.DeleteInterfaceWireguardPeer(state.ID.ValueString()); err != nil {
-		resp.Diagnostics.AddError("Could not delete interfaceWireguardPeer", err.Error())
-		return
-	}
+func (r *interfaceWireguardPeer) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var terraformModel interfaceWireguardPeerModel
+	var mikrotikModel client.InterfaceWireguardPeer
+	GenericDeleteResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
 func (i *interfaceWireguardPeer) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
