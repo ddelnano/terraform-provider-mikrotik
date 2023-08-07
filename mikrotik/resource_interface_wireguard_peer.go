@@ -122,6 +122,7 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 	}
 }
 
+// TODO: This should be migrated to the newer generic crud interface
 // Create creates the resource and sets the initial Terraform state.
 func (i *interfaceWireguardPeer) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var plan interfaceWireguardPeerModel
