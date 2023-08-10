@@ -50,6 +50,7 @@ func (i *interfaceWireguardPeer) Metadata(_ context.Context, req resource.Metada
 }
 
 // Schema defines the schema for the resource.
+// TODO: Reevaluate the Computed schema attributes and determine if that is correct
 func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Creates a Mikrotik Interface Wireguard Peer only supported by RouterOS v7+.",
