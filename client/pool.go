@@ -5,11 +5,11 @@ import (
 )
 
 type Pool struct {
-	Id       string `mikrotik:".id"`
-	Name     string `mikrotik:"name"`
-	Ranges   string `mikrotik:"ranges"`
-	NextPool string `mikrotik:"next-pool"`
-	Comment  string `mikrotik:"comment"`
+	Id       string `mikrotik:".id" codegen:"id,mikrotikID,terraformID"`
+	Name     string `mikrotik:"name" codegen:"name,required"`
+	Ranges   string `mikrotik:"ranges" codegen:"ranges,required"`
+	NextPool string `mikrotik:"next-pool" codegen:"next_pool,optiona,computed"`
+	Comment  string `mikrotik:"comment" codegen:"comment,optional,computed"`
 }
 
 var _ Resource = (*Pool)(nil)

@@ -4,144 +4,125 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func resourcePool() *schema.Resource {
-	return &schema.Resource{
+type pool struct {
+	client *client.Mikrotik
+}
+
+// Ensure the implementation satisfies the expected interfaces.
+var (
+	_ resource.Resource                = &pool{}
+	_ resource.ResourceWithConfigure   = &pool{}
+	_ resource.ResourceWithImportState = &pool{}
+)
+
+// NewPoolResource is a helper function to simplify the provider implementation.
+func NewPoolResource() resource.Resource {
+	return &pool{}
+}
+
+func (r *pool) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	r.client = req.ProviderData.(*client.Mikrotik)
+}
+
+// Metadata returns the resource type name.
+func (r *pool) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_pool"
+}
+
+// Schema defines the schema for the resource.
+func (s *pool) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: "Creates a Mikrotik IP Pool.",
 
-		CreateContext: resourcePoolCreate,
-		ReadContext:   resourcePoolRead,
-		UpdateContext: resourcePoolUpdate,
-		DeleteContext: resourcePoolDelete,
-		Importer: &schema.ResourceImporter{
-			StateContext: utils.ImportStateContextUppercaseWrapper(schema.ImportStatePassthroughContext),
-		},
-
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:        schema.TypeString,
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description: "ID of this resource.",
+			},
+			"name": schema.StringAttribute{
 				Required:    true,
 				Description: "The name of IP pool.",
 			},
-			"ranges": {
-				Type:        schema.TypeString,
+			"ranges": schema.StringAttribute{
 				Required:    true,
 				Description: "The IP range(s) of the pool. Multiple ranges can be specified, separated by commas: `172.16.0.6-172.16.0.12,172.16.0.50-172.16.0.60`.",
 			},
-			"next_pool": {
-				Type:     schema.TypeString,
+			"next_pool": schema.StringAttribute{
+				// CustomType: noneStringType{},
+				// todo(maksym): handle special case of  "none"
+				// which equals to an empty string
+				// to supress diff on "" != "none"
 				Optional: true,
-				StateFunc: func(i interface{}) string {
-					v := i.(string)
-					// handle special case for 'none' string:
-					// it behaves the same as an empty string - unsets the value
-					// and MikroTik API will return an empty string, but we don't wont diff on '' != 'none'
-					if v == "none" {
-						return ""
-					}
-
-					return v
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
 				},
 				Description: "The IP pool to pick next address from if current is exhausted.",
 			},
-			"comment": {
-				Type:        schema.TypeString,
+			"comment": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "The comment of the IP Pool to be created.",
 			},
 		},
 	}
 }
 
-func resourcePoolCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	p := preparePool(d)
+// Create creates the resource and sets the initial Terraform state.
+func (r *pool) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var terraformModel poolModel
+	var mikrotikModel client.Pool
 
-	c := m.(*client.Mikrotik)
-
-	pool, err := c.AddPool(p)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return poolToData(pool, d)
+	GenericCreateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourcePoolRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
+// Read refreshes the Terraform state with the latest data.
+func (r *pool) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var terraformModel poolModel
+	var mikrotikModel client.Pool
 
-	pool, err := c.FindPool(d.Id())
-
-	if client.IsNotFoundError(err) {
-		d.SetId("")
-		return nil
-	}
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return poolToData(pool, d)
+	GenericReadResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourcePoolUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
+// Update updates the resource and sets the updated Terraform state on success.
+func (r *pool) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var terraformModel poolModel
+	var mikrotikModel client.Pool
 
-	p := preparePool(d)
-	p.Id = d.Id()
-
-	pool, err := c.UpdatePool(p)
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return poolToData(pool, d)
+	GenericUpdateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourcePoolDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	err := c.DeletePool(d.Id())
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	d.SetId("")
-	return nil
+// Delete deletes the resource and removes the Terraform state on success.
+func (r *pool) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var terraformModel poolModel
+	var mikrotikModel client.Pool
+	GenericDeleteResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func poolToData(pool *client.Pool, d *schema.ResourceData) diag.Diagnostics {
-	values := map[string]interface{}{
-		"name":      pool.Name,
-		"ranges":    pool.Ranges,
-		"next_pool": pool.NextPool,
-		"comment":   pool.Comment,
-	}
-
-	d.SetId(pool.Id)
-
-	var diags diag.Diagnostics
-
-	for key, value := range values {
-		if err := d.Set(key, value); err != nil {
-			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
-		}
-	}
-
-	return diags
+func (r *pool) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Retrieve import ID and save to id attribute
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func preparePool(d *schema.ResourceData) *client.Pool {
-	pool := new(client.Pool)
-
-	pool.Name = d.Get("name").(string)
-	pool.NextPool = d.Get("next_pool").(string)
-	pool.Ranges = d.Get("ranges").(string)
-	pool.Comment = d.Get("comment").(string)
-
-	return pool
+type poolModel struct {
+	Id       tftypes.String `tfsdk:"id"`
+	Name     tftypes.String `tfsdk:"name"`
+	Ranges   tftypes.String `tfsdk:"ranges"`
+	NextPool tftypes.String `tfsdk:"next_pool"`
+	Comment  tftypes.String `tfsdk:"comment"`
 }

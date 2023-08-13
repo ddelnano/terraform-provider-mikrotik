@@ -89,6 +89,7 @@ func copyStruct(src, dest interface{}) error {
 }
 
 func coreTypeToTerraformType(src, dest reflect.Value) error {
+
 	var tfValue attr.Value
 	switch src.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
