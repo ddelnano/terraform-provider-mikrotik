@@ -64,10 +64,6 @@ func (s *pool) Schema(_ context.Context, _ resource.SchemaRequest, resp *resourc
 				Description: "The IP range(s) of the pool. Multiple ranges can be specified, separated by commas: `172.16.0.6-172.16.0.12,172.16.0.50-172.16.0.60`.",
 			},
 			"next_pool": schema.StringAttribute{
-				// CustomType: noneStringType{},
-				// todo(maksym): handle special case of  "none"
-				// which equals to an empty string
-				// to supress diff on "" != "none"
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
