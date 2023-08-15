@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -100,11 +101,46 @@ func (r *pool) Read(ctx context.Context, req resource.ReadRequest, resp *resourc
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
+//
+// The body is a copy-paste code from `GenericUpdateResource()` functions.
+// It's done to support special case of 'unsetting' the 'next_pool' field.
+// Since RouterOS API does not support empty value `""` for this field,
+// a 'magic' value of 'none' is used.
+// In that case, Terraform argues that planned value was `none` but actual (after Read() method) is `""`
+// The only difference from `GenericUpdateResource()` in this implementation is checking of
+// transition from some value to `""` for `next_pool` field. In that case, we simply change value to `none`,
+// so API client can unset this value and subsequent `Read()` method will see `""` which is the same as config value.
+//
+// Be aware, that this hack prevents using `none` value explicitly in the configuration.
 func (r *pool) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var terraformModel poolModel
+	var terraformModel, state poolModel
 	var mikrotikModel client.Pool
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &terraformModel)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	// if practitioner sets this value to `""` to unset field in remote system,
+	// implicitly send `"none"` via API
+	if !terraformModel.NextPool.Equal(state.NextPool) && terraformModel.NextPool.ValueString() == "" {
+		terraformModel.NextPool = tftypes.StringValue("none")
+	}
 
-	GenericUpdateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
+	if err := utils.TerraformModelToMikrotikStruct(&terraformModel, &mikrotikModel); err != nil {
+		resp.Diagnostics.AddError("Cannot copy model: Terraform -> MikroTik", err.Error())
+		return
+	}
+	updated, err := r.client.Update(&mikrotikModel)
+	if err != nil {
+		resp.Diagnostics.AddError("Update failed", err.Error())
+		return
+	}
+	if err := utils.MikrotikStructToTerraformModel(updated, &terraformModel); err != nil {
+		resp.Diagnostics.AddError("Cannot copy model: MikroTik -> Terraform", err.Error())
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, terraformModel)...)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.

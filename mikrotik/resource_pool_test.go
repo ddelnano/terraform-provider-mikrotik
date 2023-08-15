@@ -87,9 +87,18 @@ func TestAccMikrotikPool_emptyNextPool(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "ranges", ranges),
 					resource.TestCheckResourceAttr(resourceName, "next_pool", ""),
 				),
+			}, {
+				Config: testAccPoolWithNextPool(name, ranges, "next_ip_pool", "next_ip_pool"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccPoolExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "ranges", ranges),
+					resource.TestCheckResourceAttr(resourceName, "next_pool", "next_ip_pool"),
+				),
 			},
 			{
-				Config: testAccPoolWithNextPool(name, ranges, "none", "next_ip_pool"),
+				Config: testAccPoolWithNextPool(name, ranges, "", "next_ip_pool"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccPoolExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
@@ -98,16 +107,6 @@ func TestAccMikrotikPool_emptyNextPool(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "next_pool", ""),
 				),
 			},
-			// {
-			// 	Config: testAccPoolWithNextPool(name, ranges, "", "next_ip_pool"),
-			// 	Check: resource.ComposeAggregateTestCheckFunc(
-			// 		testAccPoolExists(resourceName),
-			// 		resource.TestCheckResourceAttrSet(resourceName, "id"),
-			// 		resource.TestCheckResourceAttr(resourceName, "name", name),
-			// 		resource.TestCheckResourceAttr(resourceName, "ranges", ranges),
-			// 		resource.TestCheckResourceAttr(resourceName, "next_pool", "none"),
-			// 	),
-			// },
 		},
 	})
 }
