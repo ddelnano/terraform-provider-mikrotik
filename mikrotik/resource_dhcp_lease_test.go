@@ -127,28 +127,6 @@ func TestAccMikrotikDhcpLease_import(t *testing.T) {
 	})
 }
 
-func TestAccMikrotikDhcpLease_createDynamicDiff(t *testing.T) {
-	ipAddr := internal.GetNewIpAddr()
-	macAddr := internal.GetNewMacAddr()
-	comment := acctest.RandomWithPrefix("tf-acc-comment")
-
-	resourceName := "mikrotik_dhcp_lease.bar"
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
-		CheckDestroy:             testAccCheckMikrotikDhcpLeaseDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDhcpLeaseDynamic(ipAddr, macAddr, comment),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccDhcpLeaseExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "id")),
-				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
 func testAccDhcpLease(ipAddr, macAddr, comment string) string {
 	return fmt.Sprintf(`
 resource "mikrotik_dhcp_lease" "bar" {
@@ -165,7 +143,6 @@ resource "mikrotik_dhcp_lease" "bar" {
     address = "%s"
     macaddress = "%s"
     comment = "%s"
-    dynamic = true
 }
 `, ipAddr, macAddr, comment)
 }

@@ -7,13 +7,13 @@ import (
 )
 
 type DhcpLease struct {
-	Id          string `mikrotik:".id"`
-	Address     string `mikrotik:"address"`
-	MacAddress  string `mikrotik:"mac-address"`
-	Comment     string `mikrotik:"comment"`
-	BlockAccess bool   `mikrotik:"block-access"`
-	Dynamic     bool   `mikrotik:"dynamic,readonly"` // TODO:  don't see this listed as a param https://wiki.mikrotik.com/wiki/Manual:IP/DHCP_Server, but our docs list it as one
-	Hostname    string `mikrotik:"host-name,readonly"`
+	Id          string `mikrotik:".id" codegen:"id,mikrotikID,terraformID"`
+	Address     string `mikrotik:"address" codegen:"address,required"`
+	MacAddress  string `mikrotik:"mac-address" codegen:"macaddress,required"`
+	Comment     string `mikrotik:"comment" codegen:"comment"`
+	BlockAccess bool   `mikrotik:"block-access" codegen:"blocked"`
+	Dynamic     bool   `mikrotik:"dynamic,readonly" codegen:"dynamic,computed"` // TODO:  don't see this listed as a param https://wiki.mikrotik.com/wiki/Manual:IP/DHCP_Server, but our docs list it as one
+	Hostname    string `mikrotik:"host-name,readonly" codegen:"hostname,computed"`
 }
 
 func (client Mikrotik) ListDhcpLeases() ([]DhcpLease, error) {
