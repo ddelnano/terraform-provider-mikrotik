@@ -6,15 +6,15 @@ import (
 
 // Ipv6Address defines resource
 type Ipv6Address struct {
-	Id        string `mikrotik:".id"`
-	Address   string `mikrotik:"address"`
-	Advertise bool   `mikrotik:"advertise"`
-	Comment   string `mikrotik:"comment"`
-	Disabled  bool   `mikrotik:"disabled"`
-	Eui64     bool   `mikrotik:"eui-64"`
-	FromPool  string `mikrotik:"from-pool"`
-	Interface string `mikrotik:"interface"`
-	NoDad     bool   `mikrotik:"no-dad"`
+	Id        string `mikrotik:".id" codegen:"id,mikrotikID,terraformID"`
+	Address   string `mikrotik:"address" codegen:"address,required"`
+	Advertise bool   `mikrotik:"advertise" codegen:"advertise"`
+	Comment   string `mikrotik:"comment" codegen:"comment"`
+	Disabled  bool   `mikrotik:"disabled" codegen:"disabled"`
+	Eui64     bool   `mikrotik:"eui-64" codegen:"eui_64"`
+	FromPool  string `mikrotik:"from-pool" codegen:"from_pool"`
+	Interface string `mikrotik:"interface" codegen:"interface,required"`
+	NoDad     bool   `mikrotik:"no-dad" codegen:"no_dad"`
 }
 
 var _ Resource = (*Ipv6Address)(nil)
