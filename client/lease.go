@@ -12,8 +12,8 @@ type DhcpLease struct {
 	MacAddress  string `mikrotik:"mac-address"`
 	Comment     string `mikrotik:"comment"`
 	BlockAccess bool   `mikrotik:"block-access"`
-	Dynamic     bool   // TODO:  don't see this listed as a param https://wiki.mikrotik.com/wiki/Manual:IP/DHCP_Server, but our docs list it as one
-	Hostname    string
+	Dynamic     bool   `mikrotik:"dynamic,readonly"` // TODO:  don't see this listed as a param https://wiki.mikrotik.com/wiki/Manual:IP/DHCP_Server, but our docs list it as one
+	Hostname    string `mikrotik:"host-name,readonly"`
 }
 
 func (client Mikrotik) ListDhcpLeases() ([]DhcpLease, error) {
