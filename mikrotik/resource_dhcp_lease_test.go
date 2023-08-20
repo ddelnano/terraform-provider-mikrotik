@@ -137,16 +137,6 @@ resource "mikrotik_dhcp_lease" "bar" {
 `, ipAddr, macAddr, comment)
 }
 
-func testAccDhcpLeaseDynamic(ipAddr, macAddr, comment string) string {
-	return fmt.Sprintf(`
-resource "mikrotik_dhcp_lease" "bar" {
-    address = "%s"
-    macaddress = "%s"
-    comment = "%s"
-}
-`, ipAddr, macAddr, comment)
-}
-
 func testAccDhcpLeaseUpdatedBlockAccess(ipAddr, macAddr, comment string, blocked bool) string {
 	return fmt.Sprintf(`
 resource "mikrotik_dhcp_lease" "bar" {
