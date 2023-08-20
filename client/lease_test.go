@@ -1,9 +1,10 @@
 package client
 
 import (
-	"fmt"
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAddLeaseAndDeleteLease(t *testing.T) {
@@ -23,43 +24,24 @@ func TestAddLeaseAndDeleteLease(t *testing.T) {
 		BlockAccess: blocked,
 	}
 	lease, err := c.AddDhcpLease(expectedLease)
-
-	if err != nil {
-		t.Errorf("Error creating a lease with: %v", err)
-	}
+	require.NoError(t, err)
 
 	expectedLease.Id = lease.Id
-
-	if !reflect.DeepEqual(lease, expectedLease) {
-		t.Errorf("The dhcp lease does not match what we expected. actual: %v expected: %v", lease, expectedLease)
-	}
+	assert.Equal(t, expectedLease, lease)
 
 	expectedLease.Comment = updatedComment
 	expectedLease.MacAddress = updatedMacaddress
-	lease, err = c.UpdateDhcpLease(expectedLease)
 
-	if err != nil {
-		t.Errorf("Error updating a lease with: %v", err)
-	}
-	if !reflect.DeepEqual(lease, expectedLease) {
-		t.Errorf("The dhcp lease does not match what we expected. actual: %v expected: %v", lease, expectedLease)
-	}
+	lease, err = c.UpdateDhcpLease(expectedLease)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedLease, lease)
 
 	foundLease, err := c.FindDhcpLease(lease.Id)
-
-	if err != nil {
-		t.Errorf("Error getting lease with: %v", err)
-	}
-
-	if !reflect.DeepEqual(lease, foundLease) {
-		t.Errorf("Created lease and found lease do not match. actual: %v expected: %v", foundLease, lease)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, lease, foundLease)
 
 	err = c.DeleteDhcpLease(lease.Id)
-
-	if err != nil {
-		t.Errorf("Error deleting lease with: %v", err)
-	}
+	assert.NoError(t, err)
 }
 
 func TestFindDhcpLease_forNonExistantLease(t *testing.T) {
@@ -68,8 +50,6 @@ func TestFindDhcpLease_forNonExistantLease(t *testing.T) {
 	leaseId := "Invalid id"
 	_, err := c.FindDhcpLease(leaseId)
 
-	expectedErrStr := fmt.Sprintf("dhcp lease `%s` not found", leaseId)
-	if err == nil || err.Error() != expectedErrStr {
-		t.Errorf("client should have received error indicating the following dns record `%s` was not found. Instead error was nil", leaseId)
-	}
+	assert.Error(t, err)
+	assert.True(t, IsNotFoundError(err), "expected error to be of NotFound type")
 }
