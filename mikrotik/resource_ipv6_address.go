@@ -4,166 +4,148 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func resourceIpv6Address() *schema.Resource {
-	return &schema.Resource{
-		Description: "Assigns an IPv6 address to an interface.",
+type ipv6Address struct {
+	client *client.Mikrotik
+}
 
-		CreateContext: resourceIpv6AddressCreate,
-		ReadContext:   resourceIpv6AddressRead,
-		UpdateContext: resourceIpv6AddressUpdate,
-		DeleteContext: resourceIpv6AddressDelete,
-		Importer: &schema.ResourceImporter{
-			StateContext: utils.ImportStateContextUppercaseWrapper(schema.ImportStatePassthroughContext),
-		},
+// Ensure the implementation satisfies the expected interfaces.
+var (
+	_ resource.Resource                = &ipv6Address{}
+	_ resource.ResourceWithConfigure   = &ipv6Address{}
+	_ resource.ResourceWithImportState = &ipv6Address{}
+)
 
-		Schema: map[string]*schema.Schema{
-			"address": {
-				Type:        schema.TypeString,
+// NewIpv6AddressResource is a helper function to simplify the provider implementation.
+func NewIpv6AddressResource() resource.Resource {
+	return &ipv6Address{}
+}
+
+func (r *ipv6Address) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	r.client = req.ProviderData.(*client.Mikrotik)
+}
+
+// Metadata returns the resource type name.
+func (r *ipv6Address) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_ipv6_address"
+}
+
+// Schema defines the schema for the resource.
+func (s *ipv6Address) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Description: "Creates a MikroTik Ipv6Address.",
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description: "Unique identifier for this resource.",
+			},
+			"address": schema.StringAttribute{
 				Required:    true,
 				Description: "The IPv6 address and prefix length of the interface using slash notation.",
 			},
-			"advertise": {
-				Type:        schema.TypeBool,
-				Optional:    true,
+			"advertise": schema.BoolAttribute{
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
+
 				Description: "Whether to enable stateless address configuration. The prefix of that address is automatically advertised to hosts using ICMPv6 protocol. The option is set by default for addresses with prefix length 64.",
 			},
-			"comment": {
-				Type:        schema.TypeString,
+			"comment": schema.StringAttribute{
 				Optional:    true,
 				Description: "The comment for the IPv6 address assignment.",
 			},
-			"disabled": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
+			"disabled": schema.BoolAttribute{
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
+
 				Description: "Whether to disable IPv6 address.",
 			},
-			"eui_64": {
-				Type:        schema.TypeBool,
-				Optional:    true,
+			"eui_64": schema.BoolAttribute{
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
+
 				Description: "Whether to calculate EUI-64 address and use it as last 64 bits of the IPv6 address.",
 			},
-			"from_pool": {
-				Type:        schema.TypeString,
+			"from_pool": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString(""),
 				Description: "Name of the pool from which prefix will be taken to construct IPv6 address taking last part of the address from address property.",
 			},
-			"interface": {
-				Type:        schema.TypeString,
+			"interface": schema.StringAttribute{
 				Required:    true,
 				Description: "The interface on which the IPv6 address is assigned.",
 			},
-			"no_dad": {
-				Type:        schema.TypeBool,
-				Optional:    true,
+			"no_dad": schema.BoolAttribute{
+				Optional: true,
+				Computed: true,
+				Default:  booldefault.StaticBool(false),
+
 				Description: "If set indicates that address is anycast address and Duplicate Address Detection should not be performed.",
 			},
 		},
 	}
 }
 
-func resourceIpv6AddressCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	ipv6Address := prepareIpv6Address(d)
-
-	c := m.(*client.Mikrotik)
-
-	ipv6addr, err := c.AddIpv6Address(ipv6Address)
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return v6addrToData(ipv6addr, d)
+// Create creates the resource and sets the initial Terraform state.
+func (r *ipv6Address) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var terraformModel ipv6AddressModel
+	var mikrotikModel client.Ipv6Address
+	GenericCreateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceIpv6AddressRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	ipv6addr, err := c.FindIpv6Address(d.Id())
-
-	// Clear the state if the error represents that the resource no longer exists
-	if client.IsNotFoundError(err) {
-		d.SetId("")
-		return nil
-	}
-
-	// Make sure all other errors are propagated
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return v6addrToData(ipv6addr, d)
+// Read refreshes the Terraform state with the latest data.
+func (r *ipv6Address) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var terraformModel ipv6AddressModel
+	var mikrotikModel client.Ipv6Address
+	GenericReadResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceIpv6AddressUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	ipv6Address := prepareIpv6Address(d)
-	ipv6Address.Id = d.Id()
-
-	ipv6addr, err := c.UpdateIpv6Address(ipv6Address)
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return v6addrToData(ipv6addr, d)
+// Update updates the resource and sets the updated Terraform state on success.
+func (r *ipv6Address) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var terraformModel ipv6AddressModel
+	var mikrotikModel client.Ipv6Address
+	GenericUpdateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceIpv6AddressDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	err := c.DeleteIpv6Address(d.Id())
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	d.SetId("")
-	return nil
+// Delete deletes the resource and removes the Terraform state on success.
+func (r *ipv6Address) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var terraformModel ipv6AddressModel
+	var mikrotikModel client.Ipv6Address
+	GenericDeleteResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func v6addrToData(ipv6addr *client.Ipv6Address, d *schema.ResourceData) diag.Diagnostics {
-	values := map[string]interface{}{
-		"address":   ipv6addr.Address,
-		"advertise": ipv6addr.Advertise,
-		"comment":   ipv6addr.Comment,
-		"disabled":  ipv6addr.Disabled,
-		"eui_64":    ipv6addr.Eui64,
-		"from_pool": ipv6addr.FromPool,
-		"interface": ipv6addr.Interface,
-		"no_dad":    ipv6addr.NoDad,
-	}
-
-	d.SetId(ipv6addr.Id)
-
-	var diags diag.Diagnostics
-
-	for key, value := range values {
-		if err := d.Set(key, value); err != nil {
-			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
-		}
-	}
-
-	return diags
+func (r *ipv6Address) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Retrieve import ID and save to id attribute
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func prepareIpv6Address(d *schema.ResourceData) *client.Ipv6Address {
-	ipv6addr := new(client.Ipv6Address)
-
-	ipv6addr.Address = d.Get("address").(string)
-	ipv6addr.Advertise = d.Get("advertise").(bool)
-	ipv6addr.Comment = d.Get("comment").(string)
-	ipv6addr.Disabled = d.Get("disabled").(bool)
-	ipv6addr.Eui64 = d.Get("eui_64").(bool)
-	ipv6addr.FromPool = d.Get("from_pool").(string)
-	ipv6addr.Interface = d.Get("interface").(string)
-	ipv6addr.NoDad = d.Get("no_dad").(bool)
-
-	return ipv6addr
+type ipv6AddressModel struct {
+	Id        tftypes.String `tfsdk:"id"`
+	Address   tftypes.String `tfsdk:"address"`
+	Advertise tftypes.Bool   `tfsdk:"advertise"`
+	Comment   tftypes.String `tfsdk:"comment"`
+	Disabled  tftypes.Bool   `tfsdk:"disabled"`
+	Eui64     tftypes.Bool   `tfsdk:"eui_64"`
+	FromPool  tftypes.String `tfsdk:"from_pool"`
+	Interface tftypes.String `tfsdk:"interface"`
+	NoDad     tftypes.Bool   `tfsdk:"no_dad"`
 }

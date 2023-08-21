@@ -1,8 +1,10 @@
 package client
 
 import (
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAddIpv6AddressAndDeleteIpv6Address(t *testing.T) {
@@ -23,40 +25,20 @@ func TestAddIpv6AddressAndDeleteIpv6Address(t *testing.T) {
 	}
 
 	ipv6addr, err := c.AddIpv6Address(expectedIpv6Address)
-
-	if err != nil {
-		t.Errorf("Error creating an ipv6 address with: %v", err)
-	}
+	require.NoError(t, err)
 
 	expectedIpv6Address.Id = ipv6addr.Id
-
-	if !reflect.DeepEqual(ipv6addr, expectedIpv6Address) {
-		t.Errorf("The ipv6 address does not match what we expected. actual: %v expected: %v", ipv6addr, expectedIpv6Address)
-	}
+	assert.Equal(t, expectedIpv6Address, ipv6addr)
 
 	expectedIpv6Address.Comment = updatedComment
 	ipv6addr, err = c.UpdateIpv6Address(expectedIpv6Address)
-
-	if err != nil {
-		t.Errorf("Error updating an ipv6 address with: %v", err)
-	}
-	if !reflect.DeepEqual(ipv6addr, expectedIpv6Address) {
-		t.Errorf("The ipv6 address does not match what we expected. actual: %v expected: %v", ipv6addr, expectedIpv6Address)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, expectedIpv6Address, ipv6addr)
 
 	foundIpv6Address, err := c.FindIpv6Address(ipv6addr.Id)
-
-	if err != nil {
-		t.Errorf("Error getting ipv6 address with: %v", err)
-	}
-
-	if !reflect.DeepEqual(ipv6addr, foundIpv6Address) {
-		t.Errorf("Created ipv6 address and found ipv6 address do not match. actual: %v expected: %v", foundIpv6Address, ipv6addr)
-	}
+	require.NoError(t, err)
+	assert.Equal(t, ipv6addr, foundIpv6Address)
 
 	err = c.DeleteIpv6Address(ipv6addr.Id)
-
-	if err != nil {
-		t.Errorf("Error deleting ipv6 address with: %v", err)
-	}
+	assert.NoError(t, err)
 }
