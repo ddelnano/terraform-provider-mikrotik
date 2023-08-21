@@ -1,5 +1,5 @@
 # mikrotik_dhcp_lease (Resource)
-Creates a DHCP lease on the mikrotik device.
+Creates a DHCP lease on the MikroTik device.
 
 ## Example Usage
 ```terraform
@@ -21,14 +21,14 @@ resource "mikrotik_dhcp_lease" "file_server" {
 
 ### Optional
 
-- `blocked` (String) Whether to block access for this DHCP client (true|false). Default: `false`.
+- `blocked` (Boolean) Whether to block access for this DHCP client (true|false).
 - `comment` (String) The comment of the DHCP lease to be created.
-- `dynamic` (Boolean) Whether the dhcp lease is static or dynamic. Dynamic leases are not guaranteed to continue to be assigned to that specific device. Defaults to false. Default: `false`.
-- `hostname` (String) The hostname of the device
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `dynamic` (Boolean) Whether the dhcp lease is static or dynamic. Dynamic leases are not guaranteed to continue to be assigned to that specific device. Defaults to false.
+- `hostname` (String) The hostname of the device
+- `id` (String) Unique resource identifier.
 
 ## Import
 Import is supported using the following syntax:
