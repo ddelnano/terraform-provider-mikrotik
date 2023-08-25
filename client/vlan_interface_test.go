@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAddVlanInterfaceUpdateAndDelete(t *testing.T) {
@@ -24,34 +25,23 @@ func TestAddVlanInterfaceUpdateAndDelete(t *testing.T) {
 		VlanId:    expectedIface.VlanId,
 		Mtu:       expectedIface.Mtu,
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	expectedIface.Id = iface.Id
 
 	foundInterface, err := c.FindVlanInterface(expectedIface.Name)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	require.NoError(t, err)
 	assert.Equal(t, expectedIface, foundInterface)
 
 	expectedIface.Name = expectedIface.Name + "updated"
 	expectedIface.Mtu = expectedIface.Mtu - 100
 	updatedIface, err := c.UpdateVlanInterface(expectedIface)
-	if err != nil {
-		t.Error(err)
-	}
-
+	require.NoError(t, err)
 	assert.Equal(t, expectedIface, updatedIface)
 	// cleanup
-	if err := c.DeleteVlanInterface(iface.Name); err != nil {
-		t.Error(err)
-	}
+	err = c.DeleteVlanInterface(iface.Name)
+	assert.NoError(t, err)
 
 	_, err = c.FindVlanInterface(expectedIface.Name)
-	if err == nil {
-		t.Error("expected error, got nil")
-	}
+	assert.Error(t, err)
 }
