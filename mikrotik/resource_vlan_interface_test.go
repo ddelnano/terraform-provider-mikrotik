@@ -11,7 +11,6 @@ import (
 )
 
 func TestVlanInterface_basic(t *testing.T) {
-
 	resourceName := "mikrotik_vlan_interface.testacc"
 	iface := "ether1"
 	mtu := 1500
@@ -59,7 +58,7 @@ func testAccVlanInterfaceExists(resourceName string) resource.TestCheckFunc {
 		}
 
 		c := client.NewClient(client.GetConfigFromEnv())
-		record, err := c.FindVlanInterface(rs.Primary.ID)
+		record, err := c.FindVlanInterface(rs.Primary.Attributes["name"])
 		if err != nil {
 			return fmt.Errorf("Unable to get remote record for %s: %v", resourceName, err)
 		}
@@ -79,7 +78,7 @@ func testAccCheckVlanInterfaceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		remoteRecord, err := c.FindVlanInterface(rs.Primary.ID)
+		remoteRecord, err := c.FindVlanInterface(rs.Primary.Attributes["name"])
 
 		if !client.IsNotFoundError(err) && err != nil {
 			return err

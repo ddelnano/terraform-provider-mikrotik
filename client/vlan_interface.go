@@ -6,13 +6,13 @@ import (
 
 // VlanInterface represents vlan interface resource
 type VlanInterface struct {
-	Id            string `mikrotik:".id"`
-	Interface     string `mikrotik:"interface"`
-	Mtu           int    `mikrotik:"mtu"`
-	Name          string `mikrotik:"name"`
-	Disabled      bool   `mikrotik:"disabled"`
-	UseServiceTag bool   `mikrotik:"use-service-tag"`
-	VlanId        int    `mikrotik:"vlan-id"`
+	Id            string `mikrotik:".id" codegen:".id,mikrotikID"`
+	Interface     string `mikrotik:"interface" codegen:"interface"`
+	Mtu           int    `mikrotik:"mtu" codegen:"mtu"`
+	Name          string `mikrotik:"name" codegen:"name,required,terraformID"`
+	Disabled      bool   `mikrotik:"disabled" codegen:"disabled"`
+	UseServiceTag bool   `mikrotik:"use-service-tag" codegen:"use_service_tag"`
+	VlanId        int    `mikrotik:"vlan-id" codegen:"vlan_id"`
 }
 
 var _ Resource = (*VlanInterface)(nil)

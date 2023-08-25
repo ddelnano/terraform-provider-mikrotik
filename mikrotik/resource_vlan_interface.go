@@ -4,53 +4,89 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+
+	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func resourceVlanInterface() *schema.Resource {
-	return &schema.Resource{
+type vlanInterface struct {
+	client *client.Mikrotik
+}
+
+// Ensure the implementation satisfies the expected interfaces.
+var (
+	_ resource.Resource                = &vlanInterface{}
+	_ resource.ResourceWithConfigure   = &vlanInterface{}
+	_ resource.ResourceWithImportState = &vlanInterface{}
+)
+
+// NewVlanInterfaceResource is a helper function to simplify the provider implementation.
+func NewVlanInterfaceResource() resource.Resource {
+	return &vlanInterface{}
+}
+
+func (r *vlanInterface) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	r.client = req.ProviderData.(*client.Mikrotik)
+}
+
+// Metadata returns the resource type name.
+func (r *vlanInterface) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_vlan_interface"
+}
+
+// Schema defines the schema for the resource.
+func (s *vlanInterface) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: "Manages Virtual Local Area Network (VLAN) interfaces.",
 
-		CreateContext: resourceVlanInterfaceCreate,
-		ReadContext:   resourceVlanInterfaceRead,
-		UpdateContext: resourceVlanInterfaceUpdate,
-		DeleteContext: resourceVlanInterfaceDelete,
-
-		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
-		},
-
-		Schema: map[string]*schema.Schema{
-			"interface": {
-				Type:        schema.TypeString,
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description: "ID of the resource.",
+			},
+			"interface": schema.StringAttribute{
 				Optional:    true,
-				Default:     "*0",
+				Computed:    true,
+				Default:     stringdefault.StaticString("*0"),
 				Description: "Name of physical interface on top of which VLAN will work.",
 			},
-			"mtu": {
-				Type:        schema.TypeInt,
+			"mtu": schema.Int64Attribute{
 				Optional:    true,
-				Default:     1500,
+				Computed:    true,
+				Default:     int64default.StaticInt64(1500),
 				Description: "Layer3 Maximum transmission unit.",
 			},
-			"name": {
-				Type:        schema.TypeString,
+			"name": schema.StringAttribute{
 				Required:    true,
 				Description: "Interface name.",
 			},
-			"disabled": {
-				Type:        schema.TypeBool,
+			"disabled": schema.BoolAttribute{
 				Optional:    true,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 				Description: "Whether to create the interface in disabled state.",
 			},
-			"use_service_tag": {
-				Type:        schema.TypeBool,
+			"use_service_tag": schema.BoolAttribute{
 				Optional:    true,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 				Description: "802.1ad compatible Service Tag.",
 			},
-			"vlan_id": {
-				Type:        schema.TypeInt,
+			"vlan_id": schema.Int64Attribute{
 				Optional:    true,
 				Description: "Virtual LAN identifier or tag that is used to distinguish VLANs. Must be equal for all computers that belong to the same VLAN.",
 			},
@@ -58,95 +94,45 @@ func resourceVlanInterface() *schema.Resource {
 	}
 }
 
-func resourceVlanInterfaceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-	r := dataToVlanInterface(d)
-	record, err := c.AddVlanInterface(r)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	d.SetId(record.Name)
-
-	return resourceVlanInterfaceRead(ctx, d, m)
+// Create creates the resource and sets the initial Terraform state.
+func (r *vlanInterface) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var terraformModel vlanInterfaceModel
+	var mikrotikModel client.VlanInterface
+	GenericCreateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceVlanInterfaceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-	record, err := c.FindVlanInterface(d.Id())
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return recordVlanInterfaceToData(record, d)
+// Read refreshes the Terraform state with the latest data.
+func (r *vlanInterface) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var terraformModel vlanInterfaceModel
+	var mikrotikModel client.VlanInterface
+	GenericReadResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceVlanInterfaceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	existingRecord, err := c.FindVlanInterface(d.Id())
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	record := dataToVlanInterface(d)
-	record.Id = existingRecord.Id
-	_, err = c.UpdateVlanInterface(record)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	d.SetId(record.Name)
-
-	return nil
+// Update updates the resource and sets the updated Terraform state on success.
+func (r *vlanInterface) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var terraformModel vlanInterfaceModel
+	var mikrotikModel client.VlanInterface
+	GenericUpdateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceVlanInterfaceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-	err := c.DeleteVlanInterface(d.Id())
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+// Delete deletes the resource and removes the Terraform state on success.
+func (r *vlanInterface) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var terraformModel vlanInterfaceModel
+	var mikrotikModel client.VlanInterface
+	GenericDeleteResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func dataToVlanInterface(d *schema.ResourceData) *client.VlanInterface {
-	return &client.VlanInterface{
-		Interface:     d.Get("interface").(string),
-		Mtu:           d.Get("mtu").(int),
-		Name:          d.Get("name").(string),
-		Disabled:      d.Get("disabled").(bool),
-		UseServiceTag: d.Get("use_service_tag").(bool),
-		VlanId:        d.Get("vlan_id").(int),
-	}
+func (r *vlanInterface) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Retrieve import ID and save to id attribute
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
 
-func recordVlanInterfaceToData(r *client.VlanInterface, d *schema.ResourceData) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	if err := d.Set("disabled", r.Disabled); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("interface", r.Interface); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("mtu", r.Mtu); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("name", r.Name); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("use_service_tag", r.UseServiceTag); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("vlan_id", r.VlanId); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	d.SetId(r.Name)
-
-	return diags
+type vlanInterfaceModel struct {
+	Id            tftypes.String `tfsdk:"id"`
+	Interface     tftypes.String `tfsdk:"interface"`
+	Mtu           tftypes.Int64  `tfsdk:"mtu"`
+	Name          tftypes.String `tfsdk:"name"`
+	Disabled      tftypes.Bool   `tfsdk:"disabled"`
+	UseServiceTag tftypes.Bool   `tfsdk:"use_service_tag"`
+	VlanId        tftypes.Int64  `tfsdk:"vlan_id"`
 }
