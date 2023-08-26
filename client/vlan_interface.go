@@ -6,7 +6,7 @@ import (
 
 // VlanInterface represents vlan interface resource
 type VlanInterface struct {
-	Id            string `mikrotik:".id" codegen:".id,mikrotikID"`
+	Id            string `mikrotik:".id" codegen:"id,mikrotikID"`
 	Interface     string `mikrotik:"interface" codegen:"interface"`
 	Mtu           int    `mikrotik:"mtu" codegen:"mtu"`
 	Name          string `mikrotik:"name" codegen:"name,required,terraformID"`
