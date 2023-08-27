@@ -168,6 +168,7 @@ func TestAccMikrotikBgpInstance_import(t *testing.T) {
 			},
 			{
 				ResourceName:      resourceName,
+				ImportStateId:     name,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
