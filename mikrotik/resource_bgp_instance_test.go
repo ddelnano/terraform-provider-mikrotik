@@ -72,14 +72,22 @@ func TestAccMikrotikBgpInstance_createAndPlanWithNonExistantBgpInstance(t *testi
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikBgpInstanceDestroy,
+
 		Steps: []resource.TestStep{
 			{
 				Config: testAccBgpInstance(name, as, routerId),
 				Check: resource.ComposeTestCheckFunc(
 					testAccBgpInstanceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
-					testAccCheckResourceDisappears(testAccProvider, resourceBgpInstance(), resourceName),
 				),
+			},
+			{
+				Config:  testAccBgpInstance(name, as, routerId),
+				Destroy: true,
+			},
+			{
+				Config:             testAccBgpInstance(name, as, routerId),
+				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 			},
 		},
@@ -212,7 +220,7 @@ func testAccBgpInstanceExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("mikrotik_bgp_instance does not exist in the statefile")
 		}
 
-		_, err := apiClient.FindBgpInstance(rs.Primary.ID)
+		_, err := apiClient.FindBgpInstance(rs.Primary.Attributes["name"])
 
 		if err != nil {
 			return fmt.Errorf("Unable to get the bgp instance with error: %v", err)
@@ -228,7 +236,7 @@ func testAccCheckMikrotikBgpInstanceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		bgpInstance, err := apiClient.FindBgpInstance(rs.Primary.ID)
+		bgpInstance, err := apiClient.FindBgpInstance(rs.Primary.Attributes["name"])
 
 		if !client.IsNotFoundError(err) && err != nil {
 			return err
