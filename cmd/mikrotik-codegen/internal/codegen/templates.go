@@ -195,6 +195,20 @@ func (c Mikrotik) Find{{.ResourceName}}(id string) (*{{.ResourceName}}, error) {
 	return res.(*{{.ResourceName}}), nil
 }
 
+func (c Mikrotik) List{{.ResourceName}}() ([]{{.ResourceName}}, error) {
+	res, err := c.List(&{{.ResourceName}}{})
+	if err != nil {
+		return nil, err
+	}
+	returnSlice := make([]{{.ResourceName}}, len(res))
+	for i, v := range res {
+		returnSlice[i] = *(v.(*{{.ResourceName}}))
+	}
+
+	return returnSlice, nil
+}
+
+
 func (c Mikrotik) Delete{{.ResourceName}}(id string) error {
 	return c.Delete(&{{.ResourceName}}{Id: id})
 }

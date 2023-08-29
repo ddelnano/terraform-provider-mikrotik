@@ -2,157 +2,135 @@ package mikrotik
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+
+	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func resourceLease() *schema.Resource {
-	return &schema.Resource{
-		Description: "Creates a DHCP lease on the mikrotik device.",
+type dhcpLease struct {
+	client *client.Mikrotik
+}
 
-		CreateContext: resourceLeaseCreate,
-		ReadContext:   resourceLeaseRead,
-		UpdateContext: resourceLeaseUpdate,
-		DeleteContext: resourceLeaseDelete,
-		Importer: &schema.ResourceImporter{
-			StateContext: utils.ImportStateContextUppercaseWrapper(schema.ImportStatePassthroughContext),
-		},
+// Ensure the implementation satisfies the expected interfaces.
+var (
+	_ resource.Resource                = &dhcpLease{}
+	_ resource.ResourceWithConfigure   = &dhcpLease{}
+	_ resource.ResourceWithImportState = &dhcpLease{}
+)
 
-		Schema: map[string]*schema.Schema{
-			"address": {
-				Type:        schema.TypeString,
+// NewDhcpLeaseResource is a helper function to simplify the provider implementation.
+func NewDhcpLeaseResource() resource.Resource {
+	return &dhcpLease{}
+}
+
+func (r *dhcpLease) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	r.client = req.ProviderData.(*client.Mikrotik)
+}
+
+// Metadata returns the resource type name.
+func (r *dhcpLease) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_dhcp_lease"
+}
+
+// Schema defines the schema for the resource.
+func (s *dhcpLease) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Description: "Creates a DHCP lease on the MikroTik device.",
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description: "Unique resource identifier.",
+			},
+			"address": schema.StringAttribute{
 				Required:    true,
 				Description: "The IP address of the DHCP lease to be created.",
 			},
-			"macaddress": {
-				Type:        schema.TypeString,
+			"macaddress": schema.StringAttribute{
 				Required:    true,
 				Description: "The MAC addreess of the DHCP lease to be created.",
 			},
-			"comment": {
-				Type:        schema.TypeString,
+			"comment": schema.StringAttribute{
 				Optional:    true,
 				Description: "The comment of the DHCP lease to be created.",
 			},
-			"hostname": {
-				Type:        schema.TypeString,
+			"blocked": schema.BoolAttribute{
 				Optional:    true,
-				Description: "The hostname of the device",
-			},
-			"blocked": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Default:     "false",
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 				Description: "Whether to block access for this DHCP client (true|false).",
 			},
-			"dynamic": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
+			"dynamic": schema.BoolAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.UseStateForUnknown(),
+				},
 				Description: "Whether the dhcp lease is static or dynamic. Dynamic leases are not guaranteed to continue to be assigned to that specific device. Defaults to false.",
+			},
+			"hostname": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description: "The hostname of the device",
 			},
 		},
 	}
 }
 
-func resourceLeaseCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	dhcpLease := prepareDhcpLease(d)
-
-	c := m.(*client.Mikrotik)
-
-	lease, err := c.AddDhcpLease(dhcpLease)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return leaseToData(lease, d)
+// Create creates the resource and sets the initial Terraform state.
+func (r *dhcpLease) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var terraformModel dhcpLeaseModel
+	var mikrotikModel client.DhcpLease
+	GenericCreateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceLeaseRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	lease, err := c.FindDhcpLease(d.Id())
-
-	if client.IsNotFoundError(err) {
-		d.SetId("")
-		return nil
-	}
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	if lease == nil {
-		d.SetId("")
-		return nil
-	}
-
-	return leaseToData(lease, d)
+// Read refreshes the Terraform state with the latest data.
+func (r *dhcpLease) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var terraformModel dhcpLeaseModel
+	var mikrotikModel client.DhcpLease
+	GenericReadResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceLeaseUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	dhcpLease := prepareDhcpLease(d)
-	dhcpLease.Id = d.Id()
-
-	lease, err := c.UpdateDhcpLease(dhcpLease)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	lease.Dynamic = dhcpLease.Dynamic
-
-	return leaseToData(lease, d)
+// Update updates the resource and sets the updated Terraform state on success.
+func (r *dhcpLease) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var terraformModel dhcpLeaseModel
+	var mikrotikModel client.DhcpLease
+	GenericUpdateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceLeaseDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	err := c.DeleteDhcpLease(d.Id())
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	d.SetId("")
-	return nil
+// Delete deletes the resource and removes the Terraform state on success.
+func (r *dhcpLease) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var terraformModel dhcpLeaseModel
+	var mikrotikModel client.DhcpLease
+	GenericDeleteResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func leaseToData(lease *client.DhcpLease, d *schema.ResourceData) diag.Diagnostics {
-	values := map[string]interface{}{
-		"blocked":    strconv.FormatBool(lease.BlockAccess),
-		"comment":    lease.Comment,
-		"address":    lease.Address,
-		"macaddress": lease.MacAddress,
-		"hostname":   lease.Hostname,
-		"dynamic":    lease.Dynamic,
-	}
-
-	d.SetId(lease.Id)
-
-	var diags diag.Diagnostics
-
-	for key, value := range values {
-		if err := d.Set(key, value); err != nil {
-			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
-		}
-	}
-
-	return diags
+func (r *dhcpLease) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Retrieve import ID and save to id attribute
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func prepareDhcpLease(d *schema.ResourceData) *client.DhcpLease {
-	lease := new(client.DhcpLease)
-
-	lease.BlockAccess, _ = strconv.ParseBool(d.Get("blocked").(string))
-	lease.Comment = d.Get("comment").(string)
-	lease.Address = d.Get("address").(string)
-	lease.MacAddress = d.Get("macaddress").(string)
-	lease.Hostname = d.Get("hostname").(string)
-	lease.Dynamic = d.Get("dynamic").(bool)
-
-	return lease
+type dhcpLeaseModel struct {
+	Id          tftypes.String `tfsdk:"id"`
+	Address     tftypes.String `tfsdk:"address"`
+	MacAddress  tftypes.String `tfsdk:"macaddress"`
+	Comment     tftypes.String `tfsdk:"comment"`
+	BlockAccess tftypes.Bool   `tfsdk:"blocked"`
+	Dynamic     tftypes.Bool   `tfsdk:"dynamic"`
+	Hostname    tftypes.String `tfsdk:"hostname"`
 }

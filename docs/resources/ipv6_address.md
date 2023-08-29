@@ -1,5 +1,5 @@
 # mikrotik_ipv6_address (Resource)
-Assigns an IPv6 address to an interface.
+Creates a MikroTik Ipv6Address.
 
 ## Example Usage
 ```terraform
@@ -22,14 +22,14 @@ resource "mikrotik_ipv6_address" "lan" {
 
 - `advertise` (Boolean) Whether to enable stateless address configuration. The prefix of that address is automatically advertised to hosts using ICMPv6 protocol. The option is set by default for addresses with prefix length 64.
 - `comment` (String) The comment for the IPv6 address assignment.
-- `disabled` (Boolean) Whether to disable IPv6 address. Default: `false`.
+- `disabled` (Boolean) Whether to disable IPv6 address.
 - `eui_64` (Boolean) Whether to calculate EUI-64 address and use it as last 64 bits of the IPv6 address.
 - `from_pool` (String) Name of the pool from which prefix will be taken to construct IPv6 address taking last part of the address from address property.
 - `no_dad` (Boolean) If set indicates that address is anycast address and Duplicate Address Detection should not be performed.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) Unique identifier for this resource.
 
 ## Import
 Import is supported using the following syntax:
