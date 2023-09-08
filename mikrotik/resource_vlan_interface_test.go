@@ -46,6 +46,31 @@ func TestVlanInterface_basic(t *testing.T) {
 	})
 }
 
+func TestVlanInterface_noVlanID(t *testing.T) {
+	resourceName := "mikrotik_vlan_interface.testacc"
+	iface := "ether1"
+	mtu := 1500
+	name := "test-vlan"
+	useServiceTag := false
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckVlanInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccVlanInterfaceNoVLANID(iface, mtu, name, useServiceTag),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccVlanInterfaceExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "mtu", strconv.Itoa(mtu)),
+					resource.TestCheckResourceAttr(resourceName, "vlan_id", "1"),
+				),
+			},
+		},
+	})
+}
+
 func testAccVlanInterfaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -102,4 +127,15 @@ func testAccVlanInterface(iface string, mtu int, name string, useServiceTag bool
 			vlan_id = %d
 		}
 	`, iface, mtu, name, useServiceTag, vlanID)
+}
+
+func testAccVlanInterfaceNoVLANID(iface string, mtu int, name string, useServiceTag bool) string {
+	return fmt.Sprintf(`
+		resource "mikrotik_vlan_interface" "testacc" {
+			interface = %q
+			mtu = %d
+			name = %q
+			use_service_tag = %t
+		}
+	`, iface, mtu, name, useServiceTag)
 }
