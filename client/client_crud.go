@@ -17,48 +17,54 @@ const (
 )
 
 type (
-	// Action represents possible action on resource
+	// Action represents possible action on resource.
 	Action string
 
-	// Resource interface defines a contract for abstract RouterOS resource
+	// Resource interface defines a contract for abstract RouterOS resource.
 	Resource interface {
-		// ActionToCommand translates CRUD action to RouterOS command path
+		// ActionToCommand translates CRUD action to RouterOS command path.
 		ActionToCommand(Action) string
 
-		// IDField reveals name of ID field to use in requests to MikroTik router
-		// It is used in operations like Find
+		// IDField reveals name of ID field to use in requests to MikroTik router.
+		// It is used in operations like Find.
 		IDField() string
 
-		// ID returns value of the ID field
+		// ID returns value of the ID field.
 		ID() string
 
-		// SetID updates a value of the ID field
+		// SetID updates a value of the ID field.
 		SetID(string)
 	}
 
-	// Adder defines contract for resources which require custom behaviour during resource creation
+	// Adder defines contract for resources which require custom behaviour during resource creation.
 	Adder interface {
-		// AfterAddHook is called right after the resource successfully added
-		// This hook is mainly used to set resource's ID field based on reply from RouterOS
+		// AfterAddHook is called right after the resource successfully added.
+		// This hook is mainly used to set resource's ID field based on reply from RouterOS.
 		AfterAddHook(r *routeros.Reply)
 	}
 
-	// Finder defines contract for resources which provide custom behaviour during resource retrieval
+	// Finder defines contract for resources which provide custom behaviour during resource retrieval.
 	Finder interface {
-		// FindField retrieves a name of a field to use as key for resource retrieval
+		// FindField retrieves a name of a field to use as key for resource retrieval.
 		FindField() string
 
-		// FindFieldValue retrieves a value to use for resource retrieval
+		// FindFieldValue retrieves a value to use for resource retrieval.
 		FindFieldValue() string
 	}
 
-	// Deleter defines contract for resources which require custom behaviour during resource deletion
+	// Deleter defines contract for resources which require custom behaviour during resource deletion.
 	Deleter interface {
-		// DeleteField retrieves a name of a field which is used for resource deletion
+		// DeleteField retrieves a name of a field which is used for resource deletion.
 		DeleteField() string
 
-		// DeleteFieldValue retrieves a value for DeleteField field
+		// DeleteFieldValue retrieves a value for DeleteField field.
 		DeleteFieldValue() string
+	}
+
+	// ErrorHandler Defines contract to handle errors returned by RouterOS.
+	// It can either return another error, or supress original error by returning nil.
+	ErrorHandler interface {
+		HandleError(error) error
 	}
 )
 
@@ -72,6 +78,9 @@ func (client Mikrotik) Add(d Resource) (Resource, error) {
 	cmd := Marshal(d.ActionToCommand(Add), d)
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	r, err := c.RunArgs(cmd)
+	if eh, ok := d.(ErrorHandler); ok {
+		err = eh.HandleError(err)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -93,6 +102,9 @@ func (client Mikrotik) List(d Resource) ([]Resource, error) {
 		return nil, err
 	}
 	r, err := c.RunArgs(cmd)
+	if eh, ok := d.(ErrorHandler); ok {
+		err = eh.HandleError(err)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +147,9 @@ func (client Mikrotik) Update(resource Resource) (Resource, error) {
 	cmd := Marshal(resource.ActionToCommand(Update), resource)
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	_, err = c.RunArgs(cmd)
-
+	if eh, ok := resource.(ErrorHandler); ok {
+		err = eh.HandleError(err)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -159,6 +173,9 @@ func (client Mikrotik) Delete(d Resource) error {
 	cmd := []string{d.ActionToCommand(Delete), "=" + deleteField + "=" + deleteFieldValue}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	_, err = c.RunArgs(cmd)
+	if eh, ok := d.(ErrorHandler); ok {
+		err = eh.HandleError(err)
+	}
 
 	return err
 }
@@ -172,6 +189,9 @@ func (client Mikrotik) findByField(d Resource, field, value string) (Resource, e
 		return nil, err
 	}
 	r, err := c.RunArgs(cmd)
+	if eh, ok := d.(ErrorHandler); ok {
+		err = eh.HandleError(err)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -180,6 +200,9 @@ func (client Mikrotik) findByField(d Resource, field, value string) (Resource, e
 	targetStruct := client.newTargetStruct(d)
 	targetStructInterface := targetStruct.Interface()
 	err = Unmarshal(*r, targetStructInterface)
+	if eh, ok := d.(ErrorHandler); ok {
+		err = eh.HandleError(err)
+	}
 	if err != nil {
 		return nil, err
 	}
