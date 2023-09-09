@@ -38,6 +38,36 @@ func TestAccMikrotikResourceIpv6Address_create(t *testing.T) {
 	})
 }
 
+func TestAccMikrotikResourceIpv6Address_create_onlyRequiredFields(t *testing.T) {
+	client.SkipIfRouterOSV6OrEarlier(t, sysResources)
+
+	ipv6Addr := internal.GetNewIpv6Addr() + "/64"
+	ifName := "ether1"
+
+	resourceName := "mikrotik_ipv6_address.test_required_fields"
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikIpv6AddressDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`resource "mikrotik_ipv6_address" "test_required_fields" {
+							address = "%s"
+							interface = "%s"
+						}`, ipv6Addr, ifName,
+				),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccIpv6AddressExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "address", ipv6Addr),
+					resource.TestCheckResourceAttr(resourceName, "interface", ifName),
+					resource.TestCheckResourceAttr(resourceName, "comment", ""),
+				),
+			},
+		},
+	})
+}
+
 func TestAccMikrotikResourceIpv6Address_updateAddr(t *testing.T) {
 	client.SkipIfRouterOSV6OrEarlier(t, sysResources)
 

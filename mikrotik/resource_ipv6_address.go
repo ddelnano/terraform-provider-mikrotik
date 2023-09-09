@@ -68,6 +68,7 @@ func (s *ipv6Address) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 			},
 			"comment": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "The comment for the IPv6 address assignment.",
 			},
 			"disabled": schema.BoolAttribute{
