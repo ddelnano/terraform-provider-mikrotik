@@ -86,12 +86,19 @@ func (b *BgpInstance) DeleteFieldValue() string {
 	return b.Name
 }
 
+// HandleError intercepts errors during CRUD operations.
+// It is used to catch "no such command prefix" on RouterOS >= v7.0
+func (b *BgpInstance) HandleError(err error) error {
+	if legacyBgpUnsupported(err) {
+		return LegacyBgpUnsupported{}
+	}
+
+	return err
+}
+
 // Typed wrappers
 func (c Mikrotik) AddBgpInstance(r *BgpInstance) (*BgpInstance, error) {
 	res, err := c.Add(r)
-	if legacyBgpUnsupported(err) {
-		return nil, LegacyBgpUnsupported{}
-	}
 	if err != nil {
 		return nil, err
 	}
@@ -101,9 +108,6 @@ func (c Mikrotik) AddBgpInstance(r *BgpInstance) (*BgpInstance, error) {
 
 func (c Mikrotik) UpdateBgpInstance(r *BgpInstance) (*BgpInstance, error) {
 	res, err := c.Update(r)
-	if legacyBgpUnsupported(err) {
-		return nil, LegacyBgpUnsupported{}
-	}
 	if err != nil {
 		return nil, err
 	}
@@ -113,10 +117,6 @@ func (c Mikrotik) UpdateBgpInstance(r *BgpInstance) (*BgpInstance, error) {
 
 func (c Mikrotik) FindBgpInstance(name string) (*BgpInstance, error) {
 	res, err := c.Find(&BgpInstance{Name: name})
-	if legacyBgpUnsupported(err) {
-		return nil, LegacyBgpUnsupported{}
-	}
-
 	if err != nil {
 		return nil, err
 	}
@@ -126,9 +126,5 @@ func (c Mikrotik) FindBgpInstance(name string) (*BgpInstance, error) {
 
 func (c Mikrotik) DeleteBgpInstance(name string) error {
 	err := c.Delete(&BgpInstance{Name: name})
-	if legacyBgpUnsupported(err) {
-		return LegacyBgpUnsupported{}
-	}
-
 	return err
 }
