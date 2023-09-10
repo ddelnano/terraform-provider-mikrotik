@@ -66,6 +66,7 @@ func (s *dhcpLease) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 			},
 			"comment": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "The comment of the DHCP lease to be created.",
 			},
 			"blocked": schema.BoolAttribute{

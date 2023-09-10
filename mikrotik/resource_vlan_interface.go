@@ -88,6 +88,8 @@ func (s *vlanInterface) Schema(_ context.Context, _ resource.SchemaRequest, resp
 			},
 			"vlan_id": schema.Int64Attribute{
 				Optional:    true,
+				Computed:    true,
+				Default:     int64default.StaticInt64(1),
 				Description: "Virtual LAN identifier or tag that is used to distinguish VLANs. Must be equal for all computers that belong to the same VLAN.",
 			},
 		},
