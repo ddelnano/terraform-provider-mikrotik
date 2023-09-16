@@ -7,11 +7,11 @@ import (
 
 // BridgeVlan defines vlan filtering in bridge resource
 type BridgeVlan struct {
-	Id       string                `mikrotik:".id"`
-	Bridge   string                `mikrotik:"bridge"`
-	Tagged   types.MikrotikList    `mikrotik:"tagged"`
-	Untagged types.MikrotikList    `mikrotik:"untagged"`
-	VlanIds  types.MikrotikIntList `mikrotik:"vlan-ids"`
+	Id       string                `mikrotik:".id" codegen:"id,mikrotikID"`
+	Bridge   string                `mikrotik:"bridge" codegen:"bridge,required"`
+	Tagged   types.MikrotikList    `mikrotik:"tagged" codegen:"tagged,elemType=String"`
+	Untagged types.MikrotikList    `mikrotik:"untagged" codegen:"untagged,elemType=String"`
+	VlanIds  types.MikrotikIntList `mikrotik:"vlan-ids" codegen:"vlan_ids,elemType=Int64"`
 }
 
 var _ Resource = (*BridgeVlan)(nil)
