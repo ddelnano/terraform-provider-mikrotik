@@ -25,12 +25,12 @@ resource mikrotik_bridge_port "eth2port" {
 
 - `bridge` (String) The bridge interface the respective interface is grouped in.
 - `comment` (String) Short description for this association.
-- `interface` (String) Name of the interface. Default: `*0`.
-- `pvid` (Number) Port VLAN ID (pvid) specifies which VLAN the untagged ingress traffic is assigned to. This property only has effect when vlan-filtering is set to yes. Default: `1`.
+- `interface` (String) Name of the interface.
+- `pvid` (Number) Port VLAN ID (pvid) specifies which VLAN the untagged ingress traffic is assigned to. This property only has effect when vlan-filtering is set to yes.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) Unique ID for the instance.
 
 ## Import
 Import is supported using the following syntax:
