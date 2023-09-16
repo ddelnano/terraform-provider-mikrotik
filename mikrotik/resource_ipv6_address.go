@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -136,7 +137,7 @@ func (r *ipv6Address) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 func (r *ipv6Address) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportUppercaseWrapper(resource.ImportStatePassthroughID)(ctx, path.Root("id"), req, resp)
 }
 
 type ipv6AddressModel struct {
