@@ -21,12 +21,12 @@ resource "mikrotik_bridge" "bridge" {
 ### Optional
 
 - `comment` (String) Short description of the interface.
-- `fast_forward` (Boolean) Special and faster case of FastPath which works only on bridges with 2 interfaces (enabled by default only for new bridges). Default: `true`.
+- `fast_forward` (Boolean) Special and faster case of FastPath which works only on bridges with 2 interfaces (enabled by default only for new bridges).
 - `vlan_filtering` (Boolean) Globally enables or disables VLAN functionality for bridge.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) Unique ID for the instance.
 
 ## Import
 Import is supported using the following syntax:
