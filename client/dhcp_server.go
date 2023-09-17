@@ -6,14 +6,14 @@ import (
 
 // DhcpServer represents DHCP server resource
 type DhcpServer struct {
-	Id            string `mikrotik:".id"`
-	Name          string `mikrotik:"name"`
-	Disabled      bool   `mikrotik:"disabled"`
-	AddArp        bool   `mikrotik:"add-arp"`
-	AddressPool   string `mikrotik:"address-pool"`
-	Authoritative string `mikrotik:"authoritative"`
-	Interface     string `mikrotik:"interface"`
-	LeaseScript   string `mikrotik:"lease-script"`
+	Id            string `mikrotik:".id" codegen:"id,mikrotikID"`
+	Name          string `mikrotik:"name" codegen:"name,terraformID,required"`
+	Disabled      bool   `mikrotik:"disabled" codegen:"disabled"`
+	AddArp        bool   `mikrotik:"add-arp" codegen:"add_arp"`
+	AddressPool   string `mikrotik:"address-pool" codegen:"address_pool"`
+	Authoritative string `mikrotik:"authoritative" codegen:"authoritative"`
+	Interface     string `mikrotik:"interface" codegen:"interface"`
+	LeaseScript   string `mikrotik:"lease-script" codegen:"lease_script"`
 }
 
 var _ Resource = (*DhcpServer)(nil)
