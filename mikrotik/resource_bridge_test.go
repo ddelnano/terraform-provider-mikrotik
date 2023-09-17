@@ -37,6 +37,12 @@ func TestAccBridge_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("mikrotik_bridge.testacc", "comment", "updated bridge"),
 				),
 			},
+			{
+				ImportState:       true,
+				ResourceName:      "mikrotik_bridge.testacc",
+				ImportStateId:     rName + "_updated",
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -51,7 +57,7 @@ func testAccBridgeExists(resource string, record *client.Bridge) resource.TestCh
 			return fmt.Errorf("resource %q has empty primary ID in state", resource)
 		}
 		c := client.NewClient(client.GetConfigFromEnv())
-		remoteRecord, err := c.FindBridge(r.Primary.ID)
+		remoteRecord, err := c.FindBridge(r.Primary.Attributes["name"])
 		if err != nil {
 			return err
 		}
@@ -68,7 +74,7 @@ func testAccBridgeDestroy(s *terraform.State) error {
 			continue
 		}
 
-		remoteRecord, err := c.FindBridge(rs.Primary.ID)
+		remoteRecord, err := c.FindBridge(rs.Primary.Attributes["name"])
 		if err != nil && !client.IsNotFoundError(err) {
 			return fmt.Errorf("expected not found error, got %+#v", err)
 		}
