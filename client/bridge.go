@@ -6,11 +6,11 @@ import (
 
 // Bridge defines /bridge resource
 type Bridge struct {
-	Id            string `mikrotik:".id"`
-	Name          string `mikrotik:"name"`
-	FastForward   bool   `mikrotik:"fast-forward"`
-	VlanFiltering bool   `mikrotik:"vlan-filtering"`
-	Comment       string `mikrotik:"comment"`
+	Id            string `mikrotik:".id" codegen:"id,mikrotikID"`
+	Name          string `mikrotik:"name" codegen:"name,required,terraformID"`
+	FastForward   bool   `mikrotik:"fast-forward" codegen:"fast_forward"`
+	VlanFiltering bool   `mikrotik:"vlan-filtering" codegen:"vlan_filtering"`
+	Comment       string `mikrotik:"comment" codegen:"comment"`
 }
 
 var _ Resource = (*Bridge)(nil)

@@ -4,116 +4,118 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+
+	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func resourceBridge() *schema.Resource {
-	return &schema.Resource{
+type bridge struct {
+	client *client.Mikrotik
+}
+
+// Ensure the implementation satisfies the expected interfaces.
+var (
+	_ resource.Resource                = &bridge{}
+	_ resource.ResourceWithConfigure   = &bridge{}
+	_ resource.ResourceWithImportState = &bridge{}
+)
+
+// NewBridgeResource is a helper function to simplify the provider implementation.
+func NewBridgeResource() resource.Resource {
+	return &bridge{}
+}
+
+func (r *bridge) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	r.client = req.ProviderData.(*client.Mikrotik)
+}
+
+// Metadata returns the resource type name.
+func (r *bridge) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_bridge"
+}
+
+// Schema defines the schema for the resource.
+func (s *bridge) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: "Manages a bridge resource on remote MikroTik device.",
-
-		CreateContext: resourceBridgeCreate,
-		ReadContext:   resourceBridgeRead,
-		UpdateContext: resourceBridgeUpdate,
-		DeleteContext: resourceBridgeDelete,
-
-		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
-		},
-
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:        schema.TypeString,
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description: "Unique ID for the instance.",
+			},
+			"name": schema.StringAttribute{
 				Required:    true,
 				Description: "Name of the bridge interface",
 			},
-			"fast_forward": {
-				Type:        schema.TypeBool,
+			"fast_forward": schema.BoolAttribute{
 				Optional:    true,
-				Default:     true,
+				Computed:    true,
+				Default:     booldefault.StaticBool(true),
 				Description: "Special and faster case of FastPath which works only on bridges with 2 interfaces (enabled by default only for new bridges).",
 			},
-			"vlan_filtering": {
-				Type:        schema.TypeBool,
+			"vlan_filtering": schema.BoolAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Globally enables or disables VLAN functionality for bridge.",
 			},
-			"comment": {
-				Type:        schema.TypeString,
+			"comment": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Short description of the interface.",
 			},
 		},
 	}
 }
 
-func resourceBridgeCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-	bridge, err := c.AddBridge(dataToBridge(d))
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	recordBridgeToData(bridge, d)
-	d.SetId(bridge.Name)
-
-	return resourceBridgeRead(ctx, d, m)
+// Create creates the resource and sets the initial Terraform state.
+func (r *bridge) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var terraformModel bridgeModel
+	var mikrotikModel client.Bridge
+	GenericCreateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceBridgeRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	c := m.(*client.Mikrotik)
-	bridge, err := c.FindBridge(d.Id())
-	if client.IsNotFoundError(err) {
-		d.SetId("")
-		return nil
-	}
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	recordBridgeToData(bridge, d)
-
-	return diags
+// Read refreshes the Terraform state with the latest data.
+func (r *bridge) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var terraformModel bridgeModel
+	var mikrotikModel client.Bridge
+	GenericReadResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceBridgeUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	c := m.(*client.Mikrotik)
-	bridge := dataToBridge(d)
-	updatedBridge, err := c.UpdateBridge(bridge)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	d.SetId(updatedBridge.Name)
-
-	return diags
+// Update updates the resource and sets the updated Terraform state on success.
+func (r *bridge) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var terraformModel bridgeModel
+	var mikrotikModel client.Bridge
+	GenericUpdateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceBridgeDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	c := m.(*client.Mikrotik)
-	err := c.DeleteBridge(d.Id())
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return diags
+// Delete deletes the resource and removes the Terraform state on success.
+func (r *bridge) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var terraformModel bridgeModel
+	var mikrotikModel client.Bridge
+	GenericDeleteResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func dataToBridge(d *schema.ResourceData) *client.Bridge {
-	return &client.Bridge{
-		Id:            d.Id(),
-		Name:          d.Get("name").(string),
-		FastForward:   d.Get("fast_forward").(bool),
-		VlanFiltering: d.Get("vlan_filtering").(bool),
-		Comment:       d.Get("comment").(string),
-	}
+func (r *bridge) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Retrieve import ID and save to id attribute
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
 
-func recordBridgeToData(r *client.Bridge, d *schema.ResourceData) {
-	d.Set("name", r.Name)
-	d.Set("fast_forward", r.FastForward)
-	d.Set("vlan_filtering", r.VlanFiltering)
-	d.Set("comment", r.Comment)
+type bridgeModel struct {
+	Id            tftypes.String `tfsdk:"id"`
+	Name          tftypes.String `tfsdk:"name"`
+	FastForward   tftypes.Bool   `tfsdk:"fast_forward"`
+	VlanFiltering tftypes.Bool   `tfsdk:"vlan_filtering"`
+	Comment       tftypes.String `tfsdk:"comment"`
 }
