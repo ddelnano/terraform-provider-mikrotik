@@ -4,12 +4,12 @@ import "github.com/go-routeros/routeros"
 
 // DhcpServerNetwork describes network configuration for DHCP server
 type DhcpServerNetwork struct {
-	Id        string `mikrotik:".id"`
-	Comment   string `mikrotik:"comment"`
-	Address   string `mikrotik:"address"`
-	Netmask   string `mikrotik:"netmask"`
-	Gateway   string `mikrotik:"gateway"`
-	DnsServer string `mikrotik:"dns-server"`
+	Id        string `mikrotik:".id" codegen:"id,mikrotikID"`
+	Comment   string `mikrotik:"comment" codegen:"comment"`
+	Address   string `mikrotik:"address" codegen:"address"`
+	Netmask   string `mikrotik:"netmask" codegen:"netmask"`
+	Gateway   string `mikrotik:"gateway" codegen:"gateway"`
+	DnsServer string `mikrotik:"dns-server" codegen:"dns_server"`
 }
 
 var _ Resource = (*DhcpServerNetwork)(nil)
