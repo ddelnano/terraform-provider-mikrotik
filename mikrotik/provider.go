@@ -71,7 +71,6 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 			"mikrotik_dns_record":            resourceRecord(),
 			"mikrotik_interface_list_member": resourceInterfaceListMember(),
 			"mikrotik_interface_list":        resourceInterfaceList(),
-			"mikrotik_ip_address":            resourceIpAddress(),
 			"mikrotik_firewall_filter_rule":  resourceFirewallFilterRule(),
 		},
 	}
