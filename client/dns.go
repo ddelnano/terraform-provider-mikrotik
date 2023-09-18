@@ -6,11 +6,11 @@ import (
 )
 
 type DnsRecord struct {
-	Id      string                 `mikrotik:".id"`
-	Name    string                 `mikrotik:"name"`
-	Ttl     types.MikrotikDuration `mikrotik:"ttl"`
-	Address string                 `mikrotik:"address"`
-	Comment string                 `mikrotik:"comment"`
+	Id      string                 `mikrotik:".id" codegen:"id,mikrotikID"`
+	Name    string                 `mikrotik:"name" codegen:"name,terraformID,required"`
+	Ttl     types.MikrotikDuration `mikrotik:"ttl" codegen:"ttl"`
+	Address string                 `mikrotik:"address" codegen:"address,required"`
+	Comment string                 `mikrotik:"comment" codegen:"comment"`
 }
 
 func (d *DnsRecord) ActionToCommand(action Action) string {
