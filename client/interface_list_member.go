@@ -6,9 +6,9 @@ import (
 
 // InterfaceListMember manages an interface list's members
 type InterfaceListMember struct {
-	Id        string `mikrotik:".id"`
-	Interface string `mikrotik:"interface"`
-	List      string `mikrotik:"list"`
+	Id        string `mikrotik:".id" codegen:"id,mikrotikID"`
+	Interface string `mikrotik:"interface" codegen:"interface,required"`
+	List      string `mikrotik:"list" codegen:"list,required"`
 }
 
 var _ Resource = (*InterfaceListMember)(nil)
