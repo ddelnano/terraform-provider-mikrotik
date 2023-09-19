@@ -7,16 +7,16 @@ import (
 
 // FirewallFilterRule defines /ip/firewall/filter rule
 type FirewallFilterRule struct {
-	Id               string             `mikrotik:".id"`
-	Action           string             `mikrotik:"action"`
-	Chain            string             `mikrotik:"chain"`
-	Comment          string             `mikrotik:"comment"`
-	ConnectionState  types.MikrotikList `mikrotik:"connection-state"`
-	DestPort         string             `mikrotik:"dst-port"`
-	InInterface      string             `mikrotik:"in-interface"`
-	InInterfaceList  string             `mikrotik:"in-interface-list"`
-	OutInterfaceList string             `mikrotik:"out-interface-list"`
-	Protocol         string             `mikrotik:"protocol"`
+	Id               string             `mikrotik:".id" codegen:"id,mikrotikID,terraformID"`
+	Action           string             `mikrotik:"action" codegen:"action"`
+	Chain            string             `mikrotik:"chain" codegen:"chain,required"`
+	Comment          string             `mikrotik:"comment" codegen:"comment"`
+	ConnectionState  types.MikrotikList `mikrotik:"connection-state" codegen:"connection_state"`
+	DestPort         string             `mikrotik:"dst-port" codegen:"dst_port"`
+	InInterface      string             `mikrotik:"in-interface" codegen:"in_interface"`
+	InInterfaceList  string             `mikrotik:"in-interface-list" codegen:"in_interface_list"`
+	OutInterfaceList string             `mikrotik:"out-interface-list" codegen:"out_interface_list"`
+	Protocol         string             `mikrotik:"protocol" codegen:"protocol"`
 }
 
 var _ Resource = (*FirewallFilterRule)(nil)
