@@ -4,145 +4,124 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+
+	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func resourceIpAddress() *schema.Resource {
-	return &schema.Resource{
+type ipAddress struct {
+	client *client.Mikrotik
+}
+
+// Ensure the implementation satisfies the expected interfaces.
+var (
+	_ resource.Resource                = &ipAddress{}
+	_ resource.ResourceWithConfigure   = &ipAddress{}
+	_ resource.ResourceWithImportState = &ipAddress{}
+)
+
+// NewIpAddressResource is a helper function to simplify the provider implementation.
+func NewIpAddressResource() resource.Resource {
+	return &ipAddress{}
+}
+
+func (r *ipAddress) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	r.client = req.ProviderData.(*client.Mikrotik)
+}
+
+// Metadata returns the resource type name.
+func (r *ipAddress) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_ip_address"
+}
+
+// Schema defines the schema for the resource.
+func (s *ipAddress) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: "Assigns an IP address to an interface.",
-
-		CreateContext: resourceIpAddressCreate,
-		ReadContext:   resourceIpAddressRead,
-		UpdateContext: resourceIpAddressUpdate,
-		DeleteContext: resourceIpAddressDelete,
-		Importer: &schema.ResourceImporter{
-			StateContext: utils.ImportStateContextUppercaseWrapper(schema.ImportStatePassthroughContext),
-		},
-
-		Schema: map[string]*schema.Schema{
-			"address": {
-				Type:        schema.TypeString,
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description: "Unique ID of this resource.",
+			},
+			"address": schema.StringAttribute{
 				Required:    true,
 				Description: "The IP address and netmask of the interface using slash notation.",
 			},
-			"comment": {
-				Type:        schema.TypeString,
+			"comment": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "The comment for the IP address assignment.",
 			},
-			"disabled": {
-				Type:        schema.TypeBool,
+			"disabled": schema.BoolAttribute{
 				Optional:    true,
-				Default:     false,
+				Computed:    true,
 				Description: "Whether to disable IP address.",
 			},
-			"interface": {
-				Type:        schema.TypeString,
+			"interface": schema.StringAttribute{
 				Required:    true,
 				Description: "The interface on which the IP address is assigned.",
 			},
-			"network": {
-				Type:        schema.TypeString,
-				Computed:    true,
+			"network": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 				Description: "IP address for the network.",
 			},
 		},
 	}
 }
 
-func resourceIpAddressCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	ipAddress := prepareIpAddress(d)
-
-	c := m.(*client.Mikrotik)
-
-	ipaddr, err := c.AddIpAddress(ipAddress)
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return addrToData(ipaddr, d)
+// Create creates the resource and sets the initial Terraform state.
+func (r *ipAddress) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var terraformModel ipAddressModel
+	var mikrotikModel client.IpAddress
+	GenericCreateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceIpAddressRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	ipaddr, err := c.FindIpAddress(d.Id())
-
-	// Clear the state if the error represents that the resource no longer exists
-	if client.IsNotFoundError(err) {
-		d.SetId("")
-		return nil
-	}
-
-	// Make sure all other errors are propagated
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return addrToData(ipaddr, d)
+// Read refreshes the Terraform state with the latest data.
+func (r *ipAddress) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var terraformModel ipAddressModel
+	var mikrotikModel client.IpAddress
+	GenericReadResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceIpAddressUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	ipAddress := prepareIpAddress(d)
-	ipAddress.Id = d.Id()
-
-	ipaddr, err := c.UpdateIpAddress(ipAddress)
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return addrToData(ipaddr, d)
+// Update updates the resource and sets the updated Terraform state on success.
+func (r *ipAddress) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var terraformModel ipAddressModel
+	var mikrotikModel client.IpAddress
+	GenericUpdateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceIpAddressDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	err := c.DeleteIpAddress(d.Id())
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	d.SetId("")
-	return nil
+// Delete deletes the resource and removes the Terraform state on success.
+func (r *ipAddress) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var terraformModel ipAddressModel
+	var mikrotikModel client.IpAddress
+	GenericDeleteResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func addrToData(ipaddr *client.IpAddress, d *schema.ResourceData) diag.Diagnostics {
-	values := map[string]interface{}{
-		"address":   ipaddr.Address,
-		"comment":   ipaddr.Comment,
-		"disabled":  ipaddr.Disabled,
-		"interface": ipaddr.Interface,
-		"network":   ipaddr.Network,
-	}
-
-	d.SetId(ipaddr.Id)
-
-	var diags diag.Diagnostics
-
-	for key, value := range values {
-		if err := d.Set(key, value); err != nil {
-			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
-		}
-	}
-
-	return diags
+func (r *ipAddress) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Retrieve import ID and save to id attribute
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func prepareIpAddress(d *schema.ResourceData) *client.IpAddress {
-	ipaddr := new(client.IpAddress)
-
-	ipaddr.Comment = d.Get("comment").(string)
-	ipaddr.Address = d.Get("address").(string)
-	ipaddr.Disabled = d.Get("disabled").(bool)
-	ipaddr.Interface = d.Get("interface").(string)
-	ipaddr.Network = d.Get("network").(string)
-
-	return ipaddr
+type ipAddressModel struct {
+	Id        tftypes.String `tfsdk:"id"`
+	Address   tftypes.String `tfsdk:"address"`
+	Comment   tftypes.String `tfsdk:"comment"`
+	Disabled  tftypes.Bool   `tfsdk:"disabled"`
+	Interface tftypes.String `tfsdk:"interface"`
+	Network   tftypes.String `tfsdk:"network"`
 }

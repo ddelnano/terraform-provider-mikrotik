@@ -4,107 +4,103 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+
+	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func resourceInterfaceListMember() *schema.Resource {
-	return &schema.Resource{
+type interfaceListMember struct {
+	client *client.Mikrotik
+}
+
+// Ensure the implementation satisfies the expected interfaces.
+var (
+	_ resource.Resource                = &interfaceListMember{}
+	_ resource.ResourceWithConfigure   = &interfaceListMember{}
+	_ resource.ResourceWithImportState = &interfaceListMember{}
+)
+
+// NewInterfaceListMemberResource is a helper function to simplify the provider implementation.
+func NewInterfaceListMemberResource() resource.Resource {
+	return &interfaceListMember{}
+}
+
+func (r *interfaceListMember) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	r.client = req.ProviderData.(*client.Mikrotik)
+}
+
+// Metadata returns the resource type name.
+func (r *interfaceListMember) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_interface_list_member"
+}
+
+// Schema defines the schema for the resource.
+func (s *interfaceListMember) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: "Allows to define set of interfaces for easier interface management.",
-
-		CreateContext: resourceInterfaceListMemberCreate,
-		ReadContext:   resourceInterfaceListMemberRead,
-		UpdateContext: resourceInterfaceListMemberUpdate,
-		DeleteContext: resourceInterfaceListMemberDelete,
-
-		Importer: &schema.ResourceImporter{
-			StateContext: utils.ImportStateContextUppercaseWrapper(schema.ImportStatePassthroughContext),
-		},
-
-		Schema: map[string]*schema.Schema{
-			"id": {
-				Type:     schema.TypeString,
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description: "Unique ID of this resource.",
 			},
-			"interface": {
-				Type:     schema.TypeString,
-				Required: true,
+			"interface": schema.StringAttribute{
+				Required:    true,
+				Description: "Name of the interface.",
 			},
-
-			"list": {
-				Type:     schema.TypeString,
-				Required: true,
+			"list": schema.StringAttribute{
+				Required:    true,
+				Description: " 	Name of the interface list",
 			},
 		},
 	}
 }
 
-func resourceInterfaceListMemberCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-	r := dataToInterfaceListMember(d)
-	record, err := c.AddInterfaceListMember(r)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	d.SetId(record.Id)
-
-	return resourceInterfaceListMemberRead(ctx, d, m)
+// Create creates the resource and sets the initial Terraform state.
+func (r *interfaceListMember) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var terraformModel interfaceListMemberModel
+	var mikrotikModel client.InterfaceListMember
+	GenericCreateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceInterfaceListMemberRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-	record, err := c.FindInterfaceListMember(d.Id())
-	if client.IsNotFoundError(err) {
-		d.SetId("")
-		return nil
-	}
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return recordInterfaceListMemberToData(record, d)
+// Read refreshes the Terraform state with the latest data.
+func (r *interfaceListMember) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var terraformModel interfaceListMemberModel
+	var mikrotikModel client.InterfaceListMember
+	GenericReadResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceInterfaceListMemberUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-	r := dataToInterfaceListMember(d)
-	_, err := c.UpdateInterfaceListMember(r)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+// Update updates the resource and sets the updated Terraform state on success.
+func (r *interfaceListMember) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var terraformModel interfaceListMemberModel
+	var mikrotikModel client.InterfaceListMember
+	GenericUpdateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceInterfaceListMemberDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-	err := c.DeleteInterfaceListMember(d.Id())
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	return nil
+// Delete deletes the resource and removes the Terraform state on success.
+func (r *interfaceListMember) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var terraformModel interfaceListMemberModel
+	var mikrotikModel client.InterfaceListMember
+	GenericDeleteResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func dataToInterfaceListMember(d *schema.ResourceData) *client.InterfaceListMember {
-	return &client.InterfaceListMember{
-		Id:        d.Id(),
-		Interface: d.Get("interface").(string),
-		List:      d.Get("list").(string),
-	}
+func (r *interfaceListMember) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Retrieve import ID and save to id attribute
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func recordInterfaceListMemberToData(r *client.InterfaceListMember, d *schema.ResourceData) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	if err := d.Set("interface", r.Interface); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	if err := d.Set("list", r.List); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	d.SetId(r.Id)
-
-	return diags
+type interfaceListMemberModel struct {
+	Id        tftypes.String `tfsdk:"id"`
+	Interface tftypes.String `tfsdk:"interface"`
+	List      tftypes.String `tfsdk:"list"`
 }

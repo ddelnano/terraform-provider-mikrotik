@@ -66,6 +66,7 @@ func (i *interfaceWireguard) Schema(_ context.Context, _ resource.SchemaRequest,
 			},
 			"comment": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "Comment associated with interface wireguard.",
 			},
 			"disabled": schema.BoolAttribute{

@@ -21,11 +21,11 @@ resource "mikrotik_ip_address" "lan" {
 ### Optional
 
 - `comment` (String) The comment for the IP address assignment.
-- `disabled` (Boolean) Whether to disable IP address. Default: `false`.
+- `disabled` (Boolean) Whether to disable IP address.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) Unique ID of this resource.
 - `network` (String) IP address for the network.
 
 ## Import

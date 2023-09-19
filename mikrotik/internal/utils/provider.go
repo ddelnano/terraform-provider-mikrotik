@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -28,3 +30,12 @@ func ImportStateContextUppercaseWrapper(wrappedFunc schema.StateContextFunc) sch
 		return wrappedFunc(ctx, rd, i)
 	}
 }
+
+// ImportUppercaseWrapper is ImportStateContextUppercaseWrapper equivalent for PluginFramework.
+func ImportUppercaseWrapper(wrappedFunc importStateFunc) importStateFunc {
+	return func(ctx context.Context, p path.Path, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+		wrappedFunc(ctx, p, resource.ImportStateRequest{ID: strings.ToUpper(req.ID)}, resp)
+	}
+}
+
+type importStateFunc = func(context.Context, path.Path, resource.ImportStateRequest, *resource.ImportStateResponse)

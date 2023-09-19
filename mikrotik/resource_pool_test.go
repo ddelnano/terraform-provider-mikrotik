@@ -36,6 +36,7 @@ func TestAccMikrotikPool_create(t *testing.T) {
 
 func TestAccMikrotikPool_createNextPool(t *testing.T) {
 	name := acctest.RandomWithPrefix("pool-create")
+	nextPoolName := acctest.RandomWithPrefix("next_ip_pool")
 	ranges := fmt.Sprintf("%s,%s", internal.GetNewIpAddrRange(10), internal.GetNewIpAddr())
 
 	resourceName := "mikrotik_pool.bar"
@@ -45,17 +46,26 @@ func TestAccMikrotikPool_createNextPool(t *testing.T) {
 		CheckDestroy:             testAccCheckMikrotikPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccPoolWithNextPool(name, ranges, "next_ip_pool", "next_ip_pool"),
+				Config: testAccPoolWithNextPool(name, ranges, "", nextPoolName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccPoolExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "ranges", ranges),
-					resource.TestCheckResourceAttr(resourceName, "next_pool", "next_ip_pool"),
+					resource.TestCheckResourceAttr(resourceName, "next_pool", ""),
+				),
+			}, {
+				Config: testAccPoolWithNextPool(name, ranges, nextPoolName, nextPoolName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccPoolExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr(resourceName, "name", name),
+					resource.TestCheckResourceAttr(resourceName, "ranges", ranges),
+					resource.TestCheckResourceAttr(resourceName, "next_pool", nextPoolName),
 				),
 			},
 			{
-				Config: testAccPoolWithNextPool(name, ranges, "none", "next_ip_pool"),
+				Config: testAccPoolWithNextPool(name, ranges, "", "next_ip_pool"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccPoolExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id"),

@@ -25,7 +25,7 @@ resource "mikrotik_pool" "pool" {
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) ID of this resource.
 
 ## Import
 Import is supported using the following syntax:

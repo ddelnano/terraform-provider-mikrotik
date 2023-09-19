@@ -100,24 +100,41 @@ func coreTypeToTerraformType(src, dest reflect.Value) error {
 	case reflect.Float32, reflect.Float64:
 		tfValue = tftypes.Float64Value(src.Float())
 	case reflect.Slice:
-		var diag diag.Diagnostics
+		var diags diag.Diagnostics
 		var elements []interface{}
 		for i := 0; i < src.Len(); i++ {
 			elements = append(elements, src.Index(i).Interface())
 		}
+		var tfType attr.Type
 		switch kind := src.Type().Elem().Kind(); kind {
 		case reflect.Bool:
-			tfValue, diag = tftypes.ListValueFrom(context.TODO(), tftypes.BoolType, elements)
+			tfType = tftypes.BoolType
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			tfValue, diag = tftypes.ListValueFrom(context.TODO(), tftypes.Int64Type, elements)
+			tfType = tftypes.Int64Type
 		case reflect.String:
-			tfValue, diag = tftypes.ListValueFrom(context.TODO(), tftypes.StringType, elements)
+			tfType = tftypes.StringType
 		default:
 			return fmt.Errorf("unsupported slice element type %q", kind)
 		}
+		var valueFromFunc func(t attr.Type, elements []interface{}) (attr.Value, diag.Diagnostics)
 
-		if diag.HasError() {
-			return fmt.Errorf("error creating Terraform type: %v", diag.Errors())
+		switch dest.Interface().(type) {
+		case tftypes.List:
+			valueFromFunc = func(t attr.Type, elements []interface{}) (attr.Value, diag.Diagnostics) {
+				return tftypes.ListValueFrom(context.TODO(), t, elements)
+			}
+		case tftypes.Set:
+			valueFromFunc = func(t attr.Type, elements []interface{}) (attr.Value, diag.Diagnostics) {
+				return tftypes.SetValueFrom(context.TODO(), t, elements)
+			}
+		default:
+			return fmt.Errorf("unsupported destination Terraform type %v", reflect.TypeOf(dest).Name())
+		}
+
+		tfValue, diags = valueFromFunc(tfType, elements)
+
+		if diags.HasError() {
+			return fmt.Errorf("error creating Terraform type: %v", diags.Errors())
 		}
 	}
 
@@ -158,6 +175,40 @@ func terraformTypeToCoreType(src, dest reflect.Value) error {
 		}
 		targetPtr := reflect.New(reflect.SliceOf(sliceType))
 		diag = f.ElementsAs(context.TODO(), targetPtr.Interface(), false)
+
+		if diag.HasError() {
+			return fmt.Errorf("%s", diag.Errors())
+		}
+
+		dest.Set(targetPtr.Elem())
+
+		return nil
+	case tftypes.Set:
+		var diag diag.Diagnostics
+		var sliceType reflect.Type
+
+		switch dest.Type().Elem().Kind() {
+		case reflect.Bool:
+			sliceType = reflect.TypeOf(true)
+		case reflect.Int:
+			sliceType = reflect.TypeOf(int(0))
+		case reflect.Int8:
+			sliceType = reflect.TypeOf(int8(0))
+		case reflect.Int16:
+			sliceType = reflect.TypeOf(int16(0))
+		case reflect.Int32:
+			sliceType = reflect.TypeOf(int32(0))
+		case reflect.Int64:
+			sliceType = reflect.TypeOf(int64(0))
+		case reflect.String:
+			sliceType = reflect.TypeOf("")
+		default:
+			return fmt.Errorf("unsupported list element types: %s -> []%s", src.Type().Name(), dest.Type().Elem().Kind())
+		}
+		targetPtr := reflect.New(reflect.SliceOf(sliceType))
+		if len(f.Elements()) > 0 {
+			diag = f.ElementsAs(context.TODO(), targetPtr.Interface(), false)
+		}
 
 		if diag.HasError() {
 			return fmt.Errorf("%s", diag.Errors())

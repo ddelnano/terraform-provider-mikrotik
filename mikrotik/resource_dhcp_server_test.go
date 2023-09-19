@@ -51,7 +51,7 @@ func testAccDhcpServerResourceExists(resource string, record *client.DhcpServer)
 			return fmt.Errorf("resource %q has empty primary ID in state", resource)
 		}
 		c := client.NewClient(client.GetConfigFromEnv())
-		dhcpServer, err := c.FindDhcpServer(r.Primary.ID)
+		dhcpServer, err := c.FindDhcpServer(r.Primary.Attributes["name"])
 		if err != nil {
 			return err
 		}
@@ -68,13 +68,13 @@ func testAccCheckDhcpServerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		dhcpServer, err := c.FindDhcpServer(rs.Primary.ID)
+		dhcpServer, err := c.FindDhcpServer(rs.Primary.Attributes["name"])
 		if err != nil && !client.IsNotFoundError(err) {
 			return fmt.Errorf("expected not found error, got %+#v", err)
 		}
 
 		if dhcpServer != nil {
-			return fmt.Errorf("dhcp-server %q (%s) still exists in remote system", dhcpServer.Name, dhcpServer.Id)
+			return fmt.Errorf("dhcp-server %q (%s) still exists in remote system", dhcpServer.Name, dhcpServer.Name)
 		}
 	}
 

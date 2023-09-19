@@ -114,6 +114,8 @@ func (s *bgpPeer) Schema(_ context.Context, _ resource.SchemaRequest, resp *reso
 			},
 			"instance": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString("default"),
 				Description: "The name of the instance this peer belongs to. See Mikrotik bgp instance resource.",
 			},
 			"keepalive_time": schema.StringAttribute{
