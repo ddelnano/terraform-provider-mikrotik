@@ -18,12 +18,12 @@ resource "mikrotik_interface_list_member" "lan" {
 
 ### Required
 
-- `interface` (String)
-- `list` (String)
+- `interface` (String) Name of the interface.
+- `list` (String) Name of the interface list
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) Unique ID of this resource.
 
 ## Import
 Import is supported using the following syntax:
