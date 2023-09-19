@@ -6,11 +6,11 @@ import (
 
 // BridgePort defines port-in-bridge association
 type BridgePort struct {
-	Id        string `mikrotik:".id"`
-	Bridge    string `mikrotik:"bridge"`
-	Interface string `mikrotik:"interface"`
-	PVId      int    `mikrotik:"pvid"`
-	Comment   string `mikrotik:"comment"`
+	Id        string `mikrotik:".id" codegen:"id,mikrotikID"`
+	Bridge    string `mikrotik:"bridge" codegen:"bridge"`
+	Interface string `mikrotik:"interface" codegen:"interface"`
+	PVId      int    `mikrotik:"pvid" codegen:"pvid"`
+	Comment   string `mikrotik:"comment" codegen:"comment"`
 }
 
 var _ Resource = (*BridgePort)(nil)
