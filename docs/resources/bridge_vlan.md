@@ -1,5 +1,5 @@
 # mikrotik_bridge_vlan (Resource)
-Adds VLAN aware Layer2 forwarding and VLAN tag modifications within the bridge.
+Creates a MikroTik BridgeVlan.
 
 ## Example Usage
 ```terraform
@@ -24,13 +24,13 @@ resource "mikrotik_bridge_vlan" "testacc" {
 
 ### Optional
 
-- `tagged` (List of String) Interface list with a VLAN tag adding action in egress.
-- `untagged` (List of String) Interface list with a VLAN tag removing action in egress.
-- `vlan_ids` (List of Number) The list of VLAN IDs for certain port configuration. Ranges are not supported yet.
+- `tagged` (Set of String) Interface list with a VLAN tag adding action in egress.
+- `untagged` (Set of String) Interface list with a VLAN tag removing action in egress.
+- `vlan_ids` (Set of Number) The list of VLAN IDs for certain port configuration. Ranges are not supported yet.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) A unique ID for this resource.
 
 ## Import
 Import is supported using the following syntax:
