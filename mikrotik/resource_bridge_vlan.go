@@ -5,150 +5,123 @@ import (
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+
+	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func resourceBridgeVlan() *schema.Resource {
-	return &schema.Resource{
-		Description: "Adds VLAN aware Layer2 forwarding and VLAN tag modifications within the bridge.",
+type bridgeVlan struct {
+	client *client.Mikrotik
+}
 
-		CreateContext: resourceBridgeVlanCreate,
-		ReadContext:   resourceBridgeVlanRead,
-		UpdateContext: resourceBridgeVlanUpdate,
-		DeleteContext: resourceBridgeVlanDelete,
+// Ensure the implementation satisfies the expected interfaces.
+var (
+	_ resource.Resource                = &bridgeVlan{}
+	_ resource.ResourceWithConfigure   = &bridgeVlan{}
+	_ resource.ResourceWithImportState = &bridgeVlan{}
+)
 
-		Importer: &schema.ResourceImporter{
-			StateContext: utils.ImportStateContextUppercaseWrapper(schema.ImportStatePassthroughContext),
-		},
+// NewBridgeVlanResource is a helper function to simplify the provider implementation.
+func NewBridgeVlanResource() resource.Resource {
+	return &bridgeVlan{}
+}
 
-		Schema: map[string]*schema.Schema{
-			"id": {
-				Type:     schema.TypeString,
+func (r *bridgeVlan) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	r.client = req.ProviderData.(*client.Mikrotik)
+}
+
+// Metadata returns the resource type name.
+func (r *bridgeVlan) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_bridge_vlan"
+}
+
+// Schema defines the schema for the resource.
+func (s *bridgeVlan) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Description: "Creates a MikroTik BridgeVlan.",
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
 				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description: "A unique ID for this resource.",
 			},
-			"bridge": {
-				Type:        schema.TypeString,
+			"bridge": schema.StringAttribute{
 				Required:    true,
 				Description: "The bridge interface which the respective VLAN entry is intended for.",
 			},
-			"tagged": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+			"tagged": schema.SetAttribute{
+				Optional:    true,
+				Computed:    true,
+				ElementType: tftypes.StringType,
 				Description: "Interface list with a VLAN tag adding action in egress.",
 			},
-			"untagged": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+			"untagged": schema.SetAttribute{
+				Optional:    true,
+				Computed:    true,
+				ElementType: tftypes.StringType,
 				Description: "Interface list with a VLAN tag removing action in egress. ",
 			},
-			"vlan_ids": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeInt,
-				},
+			"vlan_ids": schema.SetAttribute{
+				Optional:    true,
+				Computed:    true,
+				ElementType: tftypes.Int64Type,
 				Description: "The list of VLAN IDs for certain port configuration. Ranges are not supported yet.",
 			},
 		},
 	}
 }
 
-func resourceBridgeVlanCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-	r, err := c.AddBridgeVlan(dataToBridgeVlan(d))
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	d.SetId(r.Id)
-
-	return resourceBridgeVlanRead(ctx, d, m)
+// Create creates the resource and sets the initial Terraform state.
+func (r *bridgeVlan) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var terraformModel bridgeVlanModel
+	var mikrotikModel client.BridgeVlan
+	GenericCreateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceBridgeVlanRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-	r, err := c.FindBridgeVlan(d.Id())
-	if client.IsNotFoundError(err) {
-		d.SetId("")
-		return nil
-	}
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return recordBridgeVlanToData(r, d)
+// Read refreshes the Terraform state with the latest data.
+func (r *bridgeVlan) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var terraformModel bridgeVlanModel
+	var mikrotikModel client.BridgeVlan
+	GenericReadResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceBridgeVlanUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-	r, err := c.UpdateBridgeVlan(dataToBridgeVlan(d))
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	return recordBridgeVlanToData(r, d)
+// Update updates the resource and sets the updated Terraform state on success.
+func (r *bridgeVlan) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var terraformModel bridgeVlanModel
+	var mikrotikModel client.BridgeVlan
+	GenericUpdateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceBridgeVlanDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-	if err := c.DeleteBridgeVlan(d.Id()); err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+// Delete deletes the resource and removes the Terraform state on success.
+func (r *bridgeVlan) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var terraformModel bridgeVlanModel
+	var mikrotikModel client.BridgeVlan
+	GenericDeleteResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func dataToBridgeVlan(d *schema.ResourceData) *client.BridgeVlan {
-	taggedInterface := d.Get("tagged").([]interface{})
-	tagged := make([]string, len(taggedInterface))
-	for i, v := range taggedInterface {
-		tagged[i] = v.(string)
-	}
-
-	untaggedInterface := d.Get("untagged").([]interface{})
-	untagged := make([]string, len(untaggedInterface))
-	for i, v := range untaggedInterface {
-		untagged[i] = v.(string)
-	}
-
-	vlanIDsInterface := d.Get("vlan_ids").([]interface{})
-	vlanIDs := make([]int, len(vlanIDsInterface))
-	for i, v := range vlanIDsInterface {
-		vlanIDs[i] = v.(int)
-	}
-
-	return &client.BridgeVlan{
-		Id:       d.Id(),
-		Bridge:   d.Get("bridge").(string),
-		Tagged:   tagged,
-		Untagged: untagged,
-		VlanIds:  vlanIDs,
-	}
+func (r *bridgeVlan) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Retrieve import ID and save to id attribute
+	utils.ImportUppercaseWrapper(resource.ImportStatePassthroughID)(ctx,
+		path.Root("id"),
+		req,
+		resp,
+	)
 }
 
-func recordBridgeVlanToData(r *client.BridgeVlan, d *schema.ResourceData) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	if err := d.Set("bridge", r.Bridge); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("tagged", r.Tagged); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("untagged", r.Untagged); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("vlan_ids", r.VlanIds); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
-	d.SetId(r.Id)
-
-	return diags
+type bridgeVlanModel struct {
+	Id       tftypes.String `tfsdk:"id"`
+	Bridge   tftypes.String `tfsdk:"bridge"`
+	Tagged   tftypes.Set    `tfsdk:"tagged"`
+	Untagged tftypes.Set    `tfsdk:"untagged"`
+	VlanIds  tftypes.Set    `tfsdk:"vlan_ids"`
 }
