@@ -41,6 +41,11 @@ func TestBridgePort_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(rStatePath, "comment", "updated resource"),
 				),
 			},
+			{
+				ImportState:       true,
+				ResourceName:      rStatePath,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

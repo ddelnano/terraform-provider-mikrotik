@@ -328,13 +328,13 @@ func TestCopyTerraformToMikrotik(t *testing.T) {
 			src: struct {
 				Id       tftypes.String
 				Bridge   tftypes.String
-				Tagged   tftypes.List
+				Tagged   tftypes.Set
 				Untagged tftypes.List
 				VlanIds  tftypes.List
 			}{
 				Id:     tftypes.StringValue("new id field"),
 				Bridge: tftypes.StringValue("new bridge"),
-				Tagged: tftypes.ListValueMust(tftypes.StringType, []attr.Value{
+				Tagged: tftypes.SetValueMust(tftypes.StringType, []attr.Value{
 					tftypes.StringValue("new tagged 3"),
 				}),
 				Untagged: tftypes.ListValueMust(tftypes.StringType, []attr.Value{
