@@ -5,135 +5,125 @@ import (
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+
+	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func resourceDhcpServerNetwork() *schema.Resource {
-	return &schema.Resource{
+type dhcpServerNetwork struct {
+	client *client.Mikrotik
+}
+
+// Ensure the implementation satisfies the expected interfaces.
+var (
+	_ resource.Resource                = &dhcpServerNetwork{}
+	_ resource.ResourceWithConfigure   = &dhcpServerNetwork{}
+	_ resource.ResourceWithImportState = &dhcpServerNetwork{}
+)
+
+// NewDhcpServerNetworkResource is a helper function to simplify the provider implementation.
+func NewDhcpServerNetworkResource() resource.Resource {
+	return &dhcpServerNetwork{}
+}
+
+func (r *dhcpServerNetwork) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	r.client = req.ProviderData.(*client.Mikrotik)
+}
+
+// Metadata returns the resource type name.
+func (r *dhcpServerNetwork) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_dhcp_server_network"
+}
+
+// Schema defines the schema for the resource.
+func (s *dhcpServerNetwork) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: "Manages a DHCP network resource within Mikrotik device.",
-
-		CreateContext: resourceDhcpServerNetworkCreate,
-		ReadContext:   resourceDhcpServerNetworkRead,
-		UpdateContext: resourceDhcpServerNetworkUpdate,
-		DeleteContext: resourceDhcpServerNetworkDelete,
-		Importer: &schema.ResourceImporter{
-			StateContext: utils.ImportStateContextUppercaseWrapper(schema.ImportStatePassthroughContext),
-		},
-
-		Schema: map[string]*schema.Schema{
-			"id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Identifier of this network.",
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description: "Unique ID of this resource.",
 			},
-			"address": {
-				Type:        schema.TypeString,
+			"comment": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+			},
+			"address": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "The network DHCP server(s) will lease addresses from.",
 			},
-			"comment": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"dns_server": {
-				Type:        schema.TypeString,
+			"netmask": schema.StringAttribute{
 				Optional:    true,
-				Description: "The DHCP client will use these as the default DNS servers.",
+				Computed:    true,
+				Default:     stringdefault.StaticString("0"),
+				Description: "The actual network mask to be used by DHCP client. If set to '0' - netmask from network address will be used.",
 			},
-			"gateway": {
-				Type:        schema.TypeString,
+			"gateway": schema.StringAttribute{
 				Optional:    true,
-				Default:     "0.0.0.0",
+				Computed:    true,
+				Default:     stringdefault.StaticString("0.0.0.0"),
 				Description: "The default gateway to be used by DHCP Client.",
 			},
-			"netmask": {
-				Type:        schema.TypeString,
+			"dns_server": schema.StringAttribute{
 				Optional:    true,
-				Default:     "0",
-				Description: "The actual network mask to be used by DHCP client. If set to '0' - netmask from network address will be used.",
+				Computed:    true,
+				Description: "The DHCP client will use these as the default DNS servers.",
 			},
 		},
 	}
 }
 
-func resourceDhcpServerNetworkCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-	r := dataToDhcpServerNetwork(d)
-	record, err := c.AddDhcpServerNetwork(r)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	d.SetId(record.Id)
-
-	return resourceDhcpServerNetworkRead(ctx, d, m)
+// Create creates the resource and sets the initial Terraform state.
+func (r *dhcpServerNetwork) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var terraformModel dhcpServerNetworkModel
+	var mikrotikModel client.DhcpServerNetwork
+	GenericCreateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceDhcpServerNetworkRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-	record, err := c.FindDhcpServerNetwork(d.Id())
-	if client.IsNotFoundError(err) {
-		d.SetId("")
-		return nil
-	}
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return dhcpServerNetworkToData(record, d)
+// Read refreshes the Terraform state with the latest data.
+func (r *dhcpServerNetwork) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var terraformModel dhcpServerNetworkModel
+	var mikrotikModel client.DhcpServerNetwork
+	GenericReadResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceDhcpServerNetworkUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-	r := dataToDhcpServerNetwork(d)
-	_, err := c.UpdateDhcpServerNetwork(r)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return resourceDhcpServerNetworkRead(ctx, d, m)
+// Update updates the resource and sets the updated Terraform state on success.
+func (r *dhcpServerNetwork) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var terraformModel dhcpServerNetworkModel
+	var mikrotikModel client.DhcpServerNetwork
+	GenericUpdateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceDhcpServerNetworkDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-	if err := c.DeleteDhcpServerNetwork(d.Id()); err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
+// Delete deletes the resource and removes the Terraform state on success.
+func (r *dhcpServerNetwork) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var terraformModel dhcpServerNetworkModel
+	var mikrotikModel client.DhcpServerNetwork
+	GenericDeleteResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func dataToDhcpServerNetwork(d *schema.ResourceData) *client.DhcpServerNetwork {
-	r := &client.DhcpServerNetwork{}
-	r.Address = d.Get("address").(string)
-	r.Comment = d.Get("comment").(string)
-	r.DnsServer = d.Get("dns_server").(string)
-	r.Gateway = d.Get("gateway").(string)
-	r.Netmask = d.Get("netmask").(string)
-	r.Id = d.Id()
-
-	return r
+func (r *dhcpServerNetwork) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Retrieve import ID and save to id attribute
+	utils.ImportUppercaseWrapper(resource.ImportStatePassthroughID)(ctx, path.Root("id"), req, resp)
 }
 
-func dhcpServerNetworkToData(r *client.DhcpServerNetwork, d *schema.ResourceData) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	if err := d.Set("address", r.Address); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("comment", r.Comment); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("dns_server", r.DnsServer); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("gateway", r.Gateway); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	if err := d.Set("netmask", r.Netmask); err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-	d.SetId(r.Id)
-
-	return diags
+type dhcpServerNetworkModel struct {
+	Id        tftypes.String `tfsdk:"id"`
+	Comment   tftypes.String `tfsdk:"comment"`
+	Address   tftypes.String `tfsdk:"address"`
+	Netmask   tftypes.String `tfsdk:"netmask"`
+	Gateway   tftypes.String `tfsdk:"gateway"`
+	DnsServer tftypes.String `tfsdk:"dns_server"`
 }

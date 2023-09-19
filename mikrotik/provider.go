@@ -64,14 +64,8 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"mikrotik_bgp_instance":          resourceBgpInstance(),
-			"mikrotik_bridge_port":           resourceBridgePort(),
-			"mikrotik_dhcp_server_network":   resourceDhcpServerNetwork(),
-			"mikrotik_dns_record":            resourceRecord(),
-			"mikrotik_firewall_filter_rule":  resourceFirewallFilterRule(),
-			"mikrotik_interface_list_member": resourceInterfaceListMember(),
-			"mikrotik_interface_list":        resourceInterfaceList(),
-			"mikrotik_ip_address":            resourceIpAddress(),
+			"mikrotik_bgp_instance":         resourceBgpInstance(),
+			"mikrotik_firewall_filter_rule": resourceFirewallFilterRule(),
 		},
 	}
 
