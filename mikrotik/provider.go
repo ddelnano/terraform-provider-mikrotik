@@ -68,7 +68,6 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 			"mikrotik_bridge_vlan":          resourceBridgeVlan(),
 			"mikrotik_dhcp_server_network":  resourceDhcpServerNetwork(),
 			"mikrotik_firewall_filter_rule": resourceFirewallFilterRule(),
-			"mikrotik_interface_list":       resourceInterfaceList(),
 		},
 	}
 

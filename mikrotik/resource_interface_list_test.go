@@ -43,13 +43,13 @@ func testAccCheckInterfaceListDestroy(s *terraform.State) error {
 			continue
 		}
 
-		remoteRecord, err := c.FindInterfaceList(rs.Primary.ID)
+		remoteRecord, err := c.FindInterfaceList(rs.Primary.Attributes["name"])
 		if !client.IsNotFoundError(err) && err != nil {
 			return err
 		}
 
 		if remoteRecord != nil {
-			return fmt.Errorf("remote record (%s) still exists", remoteRecord.Id)
+			return fmt.Errorf("remote record (%s) still exists", remoteRecord.Name)
 		}
 	}
 
@@ -68,7 +68,7 @@ func testAccInterfaceListExists(resourceName string) resource.TestCheckFunc {
 		}
 
 		c := client.NewClient(client.GetConfigFromEnv())
-		record, err := c.FindInterfaceList(rs.Primary.ID)
+		record, err := c.FindInterfaceList(rs.Primary.Attributes["name"])
 		if err != nil {
 			return fmt.Errorf("Unable to get remote record for %s: %v", resourceName, err)
 		}
