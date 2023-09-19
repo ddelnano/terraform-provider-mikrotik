@@ -6,9 +6,9 @@ import (
 
 // InterfaceList manages a list of interfaces
 type InterfaceList struct {
-	Id      string `mikrotik:".id"`
-	Comment string `mikrotik:"comment"`
-	Name    string `mikrotik:"name"`
+	Id      string `mikrotik:".id" codegen:"id,mikrotikID"`
+	Comment string `mikrotik:"comment" codegen:"comment"`
+	Name    string `mikrotik:"name" codegen:"name,terraformID,required"`
 }
 
 var _ Resource = (*InterfaceList)(nil)

@@ -142,8 +142,9 @@ func TestAccMikrotikDnsRecord_import(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "id")),
 			},
 			{
-				ResourceName:      resourceName,
 				ImportState:       true,
+				ResourceName:      resourceName,
+				ImportStateId:     dnsName,
 				ImportStateVerify: true,
 			},
 		},
@@ -184,7 +185,7 @@ func testAccDnsRecordExists(resourceName string) resource.TestCheckFunc {
 
 		c := client.NewClient(client.GetConfigFromEnv())
 
-		dnsRecord, err := c.FindDnsRecord(rs.Primary.ID)
+		dnsRecord, err := c.FindDnsRecord(rs.Primary.Attributes["name"])
 
 		if err != nil {
 			return fmt.Errorf("Unable to get the dns record with error: %v", err)
@@ -194,7 +195,7 @@ func testAccDnsRecordExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Unable to get the dns record with name: %s", dnsRecord.Name)
 		}
 
-		if dnsRecord.Name == rs.Primary.ID {
+		if dnsRecord.Name == rs.Primary.Attributes["name"] {
 			return nil
 		}
 		return nil
@@ -208,7 +209,7 @@ func testAccCheckMikrotikDnsRecordDestroy(s *terraform.State) error {
 			continue
 		}
 
-		dnsRecord, err := c.FindDnsRecord(rs.Primary.ID)
+		dnsRecord, err := c.FindDnsRecord(rs.Primary.Attributes["name"])
 
 		if !client.IsNotFoundError(err) && err != nil {
 			return err
