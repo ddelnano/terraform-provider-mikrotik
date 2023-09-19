@@ -5,12 +5,12 @@ import (
 )
 
 type IpAddress struct {
-	Id        string `mikrotik:".id"`
-	Address   string `mikrotik:"address"`
-	Comment   string `mikrotik:"comment"`
-	Disabled  bool   `mikrotik:"disabled"`
-	Interface string `mikrotik:"interface"`
-	Network   string `mikrotik:"network"`
+	Id        string `mikrotik:".id" codegen:"id,mikrotikID"`
+	Address   string `mikrotik:"address" codegen:"address,required"`
+	Comment   string `mikrotik:"comment" codegen:"comment"`
+	Disabled  bool   `mikrotik:"disabled" codegen:"disabled"`
+	Interface string `mikrotik:"interface" codegen:"interface,required"`
+	Network   string `mikrotik:"network" codegen:"network,computed"`
 }
 
 var _ Resource = (*IpAddress)(nil)
