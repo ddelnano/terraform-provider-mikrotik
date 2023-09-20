@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/types/defaultaware"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -71,12 +72,14 @@ func (s *script) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				ElementType: tftypes.StringType,
 				Description: "What permissions the script has. This must be one of the following: ftp, reboot, read, write, policy, test, password, sniff, sensitive, romon.",
 			},
-			"dont_require_permissions": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Description: "If the script requires permissions or not.",
-				Default:     booldefault.StaticBool(false),
-			},
+			"dont_require_permissions": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "If the script requires permissions or not.",
+				},
+			),
 			"source": schema.StringAttribute{
 				Required:    true,
 				Description: "The source code of the script. See the [MikroTik docs](https://wiki.mikrotik.com/wiki/Manual:Scripting) for the scripting language.",

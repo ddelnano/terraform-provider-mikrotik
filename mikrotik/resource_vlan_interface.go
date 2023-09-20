@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/types/defaultaware"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -58,40 +59,50 @@ func (s *vlanInterface) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				},
 				Description: "ID of the resource.",
 			},
-			"interface": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString("*0"),
-				Description: "Name of physical interface on top of which VLAN will work.",
-			},
-			"mtu": schema.Int64Attribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     int64default.StaticInt64(1500),
-				Description: "Layer3 Maximum transmission unit.",
-			},
+			"interface": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString("*0"),
+					Description: "Name of physical interface on top of which VLAN will work.",
+				},
+			),
+			"mtu": defaultaware.Int64Attribute(
+				schema.Int64Attribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     int64default.StaticInt64(1500),
+					Description: "Layer3 Maximum transmission unit.",
+				},
+			),
 			"name": schema.StringAttribute{
 				Required:    true,
 				Description: "Interface name.",
 			},
-			"disabled": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(false),
-				Description: "Whether to create the interface in disabled state.",
-			},
-			"use_service_tag": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(false),
-				Description: "802.1ad compatible Service Tag.",
-			},
-			"vlan_id": schema.Int64Attribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     int64default.StaticInt64(1),
-				Description: "Virtual LAN identifier or tag that is used to distinguish VLANs. Must be equal for all computers that belong to the same VLAN.",
-			},
+			"disabled": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "Whether to create the interface in disabled state.",
+				},
+			),
+			"use_service_tag": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "802.1ad compatible Service Tag.",
+				},
+			),
+			"vlan_id": defaultaware.Int64Attribute(
+				schema.Int64Attribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     int64default.StaticInt64(1),
+					Description: "Virtual LAN identifier or tag that is used to distinguish VLANs. Must be equal for all computers that belong to the same VLAN.",
+				},
+			),
 		},
 	}
 }

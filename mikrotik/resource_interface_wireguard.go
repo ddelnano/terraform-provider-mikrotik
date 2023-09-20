@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/types/defaultaware"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -69,27 +70,33 @@ func (i *interfaceWireguard) Schema(_ context.Context, _ resource.SchemaRequest,
 				Computed:    true,
 				Description: "Comment associated with interface wireguard.",
 			},
-			"disabled": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(false),
-				Description: "Boolean for whether or not the interface wireguard is disabled.",
-			},
-			"listen_port": schema.Int64Attribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     int64default.StaticInt64(13231),
-				Description: "Port for WireGuard service to listen on for incoming sessions.",
-			},
-			"mtu": schema.Int64Attribute{
-				Optional: true,
-				Computed: true,
-				Default:  int64default.StaticInt64(1420),
-				Validators: []validator.Int64{
-					int64validator.Between(0, 65536),
+			"disabled": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "Boolean for whether or not the interface wireguard is disabled.",
 				},
-				Description: "Layer3 Maximum transmission unit.",
-			},
+			),
+			"listen_port": defaultaware.Int64Attribute(
+				schema.Int64Attribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     int64default.StaticInt64(13231),
+					Description: "Port for WireGuard service to listen on for incoming sessions.",
+				},
+			),
+			"mtu": defaultaware.Int64Attribute(
+				schema.Int64Attribute{
+					Optional: true,
+					Computed: true,
+					Default:  int64default.StaticInt64(1420),
+					Validators: []validator.Int64{
+						int64validator.Between(0, 65536),
+					},
+					Description: "Layer3 Maximum transmission unit.",
+				},
+			),
 			"private_key": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,

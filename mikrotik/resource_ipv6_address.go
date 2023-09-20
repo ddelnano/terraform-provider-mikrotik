@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/types/defaultaware"
 	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -60,49 +61,55 @@ func (s *ipv6Address) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Required:    true,
 				Description: "The IPv6 address and prefix length of the interface using slash notation.",
 			},
-			"advertise": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-
-				Description: "Whether to enable stateless address configuration. The prefix of that address is automatically advertised to hosts using ICMPv6 protocol. The option is set by default for addresses with prefix length 64.",
-			},
+			"advertise": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "Whether to enable stateless address configuration. The prefix of that address is automatically advertised to hosts using ICMPv6 protocol. The option is set by default for addresses with prefix length 64.",
+				},
+			),
 			"comment": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "The comment for the IPv6 address assignment.",
 			},
-			"disabled": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-
-				Description: "Whether to disable IPv6 address.",
-			},
-			"eui_64": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-
-				Description: "Whether to calculate EUI-64 address and use it as last 64 bits of the IPv6 address.",
-			},
-			"from_pool": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString(""),
-				Description: "Name of the pool from which prefix will be taken to construct IPv6 address taking last part of the address from address property.",
-			},
+			"disabled": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "Whether to disable IPv6 address.",
+				},
+			),
+			"eui_64": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "Whether to calculate EUI-64 address and use it as last 64 bits of the IPv6 address.",
+				},
+			),
+			"from_pool": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString(""),
+					Description: "Name of the pool from which prefix will be taken to construct IPv6 address taking last part of the address from address property.",
+				},
+			),
 			"interface": schema.StringAttribute{
 				Required:    true,
 				Description: "The interface on which the IPv6 address is assigned.",
 			},
-			"no_dad": schema.BoolAttribute{
-				Optional: true,
-				Computed: true,
-				Default:  booldefault.StaticBool(false),
-
-				Description: "If set indicates that address is anycast address and Duplicate Address Detection should not be performed.",
-			},
+			"no_dad": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "If set indicates that address is anycast address and Duplicate Address Detection should not be performed.",
+				},
+			),
 		},
 	}
 }

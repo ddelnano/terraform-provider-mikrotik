@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/types/defaultaware"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -66,94 +67,122 @@ func (s *bgpInstance) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Required:    true,
 				Description: "The 32-bit BGP autonomous system number. Must be a value within 0 to 4294967295.",
 			},
-			"client_to_client_reflection": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(true),
-				Description: "In case this instance is a route reflector: whether to redistribute routes learned from one routing reflection client to other clients.",
-			},
-			"comment": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString(""),
-				Description: "The comment of the BGP instance to be created.",
-			},
-			"confederation_peers": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString(""),
-				Description: "List of AS numbers internal to the [local] confederation. For example: `10,20,30-50`.",
-			},
-			"disabled": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(false),
-				Description: "Whether instance is disabled.",
-			},
-			"ignore_as_path_len": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(false),
-				Description: "Whether to ignore AS_PATH attribute in BGP route selection algorithm.",
-			},
-			"out_filter": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString(""),
-				Description: "Output routing filter chain used by all BGP peers belonging to this instance.",
-			},
-			"redistribute_connected": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(false),
-				Description: "If enabled, this BGP instance will redistribute the information about connected routes.",
-			},
-			"redistribute_ospf": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(false),
-				Description: "If enabled, this BGP instance will redistribute the information about routes learned by OSPF.",
-			},
-			"redistribute_other_bgp": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(false),
-				Description: "If enabled, this BGP instance will redistribute the information about routes learned by other BGP instances.",
-			},
-			"redistribute_rip": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(false),
-				Description: "If enabled, this BGP instance will redistribute the information about routes learned by RIP.",
-			},
-			"redistribute_static": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(false),
-				Description: "If enabled, the router will redistribute the information about static routes added to its routing database.",
-			},
+			"client_to_client_reflection": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(true),
+					Description: "In case this instance is a route reflector: whether to redistribute routes learned from one routing reflection client to other clients.",
+				},
+			),
+			"comment": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString(""),
+					Description: "The comment of the BGP instance to be created.",
+				},
+			),
+			"confederation_peers": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString(""),
+					Description: "List of AS numbers internal to the [local] confederation. For example: `10,20,30-50`.",
+				},
+			),
+			"disabled": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "Whether instance is disabled.",
+				},
+			),
+			"ignore_as_path_len": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "Whether to ignore AS_PATH attribute in BGP route selection algorithm.",
+				},
+			),
+			"out_filter": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString(""),
+					Description: "Output routing filter chain used by all BGP peers belonging to this instance.",
+				},
+			),
+			"redistribute_connected": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "If enabled, this BGP instance will redistribute the information about connected routes.",
+				},
+			),
+			"redistribute_ospf": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "If enabled, this BGP instance will redistribute the information about routes learned by OSPF.",
+				},
+			),
+			"redistribute_other_bgp": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "If enabled, this BGP instance will redistribute the information about routes learned by other BGP instances.",
+				},
+			),
+			"redistribute_rip": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "If enabled, this BGP instance will redistribute the information about routes learned by RIP.",
+				},
+			),
+			"redistribute_static": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "If enabled, the router will redistribute the information about static routes added to its routing database.",
+				},
+			),
 			"router_id": schema.StringAttribute{
 				Required:    true,
 				Description: "BGP Router ID (for this instance). If set to 0.0.0.0, BGP will use one of router's IP addresses.",
 			},
-			"routing_table": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString(""),
-				Description: "Name of routing table this BGP instance operates on. ",
-			},
-			"cluster_id": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString(""),
-				Description: "In case this instance is a route reflector: cluster ID of the router reflector cluster this instance belongs to.",
-			},
-			"confederation": schema.Int64Attribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     int64default.StaticInt64(0),
-				Description: "In case of BGP confederations: autonomous system number that identifies the [local] confederation as a whole.",
-			},
+			"routing_table": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString(""),
+					Description: "Name of routing table this BGP instance operates on. ",
+				},
+			),
+			"cluster_id": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString(""),
+					Description: "In case this instance is a route reflector: cluster ID of the router reflector cluster this instance belongs to.",
+				},
+			),
+			"confederation": defaultaware.Int64Attribute(
+				schema.Int64Attribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     int64default.StaticInt64(0),
+					Description: "In case of BGP confederations: autonomous system number that identifies the [local] confederation as a whole.",
+				},
+			),
 		},
 	}
 }
