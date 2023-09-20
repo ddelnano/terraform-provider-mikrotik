@@ -13,9 +13,9 @@ Creates a Mikrotik interface wireguard only supported by RouterOS v7+.
 ### Optional
 
 - `comment` (String) Comment associated with interface wireguard.
-- `disabled` (Boolean) Boolean for whether or not the interface wireguard is disabled.
-- `listen_port` (Number) Port for WireGuard service to listen on for incoming sessions.
-- `mtu` (Number) Layer3 Maximum transmission unit.
+- `disabled` (Boolean) Boolean for whether or not the interface wireguard is disabled. Default: `false`.
+- `listen_port` (Number) Port for WireGuard service to listen on for incoming sessions. Default: `13231`.
+- `mtu` (Number) Layer3 Maximum transmission unit. Default: `1420`.
 - `private_key` (String, Sensitive) A base64 private key. If not specified, it will be automatically generated upon interface creation.
 
 ### Read-Only

@@ -20,11 +20,11 @@ resource "mikrotik_vlan_interface" "default" {
 
 ### Optional
 
-- `disabled` (Boolean) Whether to create the interface in disabled state.
-- `interface` (String) Name of physical interface on top of which VLAN will work.
-- `mtu` (Number) Layer3 Maximum transmission unit.
-- `use_service_tag` (Boolean) 802.1ad compatible Service Tag.
-- `vlan_id` (Number) Virtual LAN identifier or tag that is used to distinguish VLANs. Must be equal for all computers that belong to the same VLAN.
+- `disabled` (Boolean) Whether to create the interface in disabled state. Default: `false`.
+- `interface` (String) Name of physical interface on top of which VLAN will work. Default: `*0`.
+- `mtu` (Number) Layer3 Maximum transmission unit. Default: `1500`.
+- `use_service_tag` (Boolean) 802.1ad compatible Service Tag. Default: `false`.
+- `vlan_id` (Number) Virtual LAN identifier or tag that is used to distinguish VLANs. Must be equal for all computers that belong to the same VLAN. Default: `1`.
 
 ### Read-Only
 

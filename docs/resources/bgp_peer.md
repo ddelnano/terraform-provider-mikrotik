@@ -33,28 +33,28 @@ resource "mikrotik_bgp_peer" "peer" {
 
 ### Optional
 
-- `address_families` (String) The list of address families about which this peer will exchange routing information.
+- `address_families` (String) The list of address families about which this peer will exchange routing information. Default: `ip`.
 - `allow_as_in` (Number) How many times to allow own AS number in AS-PATH, before discarding a prefix.
-- `as_override` (Boolean) If set, then all instances of remote peer's AS number in BGP AS PATH attribute are replaced with local AS number before sending route update to that peer.
+- `as_override` (Boolean) If set, then all instances of remote peer's AS number in BGP AS PATH attribute are replaced with local AS number before sending route update to that peer. Default: `false`.
 - `cisco_vpls_nlri_len_fmt` (String) VPLS NLRI length format type.
 - `comment` (String) The comment of the BGP peer to be created.
-- `default_originate` (String) The comment of the BGP peer to be created.
-- `disabled` (Boolean) Whether peer is disabled.
-- `hold_time` (String) Specifies the BGP Hold Time value to use when negotiating with peer
+- `default_originate` (String) The comment of the BGP peer to be created. Default: `never`.
+- `disabled` (Boolean) Whether peer is disabled. Default: `false`.
+- `hold_time` (String) Specifies the BGP Hold Time value to use when negotiating with peer Default: `3m`.
 - `in_filter` (String) The name of the routing filter chain that is applied to the incoming routing information.
-- `instance` (String) The name of the instance this peer belongs to. See Mikrotik bgp instance resource.
+- `instance` (String) The name of the instance this peer belongs to. See Mikrotik bgp instance resource. Default: `default`.
 - `keepalive_time` (String)
 - `max_prefix_limit` (Number) Maximum number of prefixes to accept from a specific peer.
 - `max_prefix_restart_time` (String) Minimum time interval after which peers can reestablish BGP session.
 - `multihop` (Boolean) Specifies whether the remote peer is more than one hop away.
-- `nexthop_choice` (String) Affects the outgoing NEXT_HOP attribute selection, either: 'default', 'force-self', or 'propagate'
+- `nexthop_choice` (String) Affects the outgoing NEXT_HOP attribute selection, either: 'default', 'force-self', or 'propagate' Default: `default`.
 - `out_filter` (String) The name of the routing filter chain that is applied to the outgoing routing information.
-- `passive` (Boolean) Name of the routing filter chain that is applied to the outgoing routing information.
+- `passive` (Boolean) Name of the routing filter chain that is applied to the outgoing routing information. Default: `false`.
 - `remote_port` (Number) Remote peers port to establish tcp session.
 - `remove_private_as` (Boolean) If set, then BGP AS-PATH attribute is removed before sending out route update if attribute contains only private AS numbers.
 - `route_reflect` (Boolean) Specifies whether this peer is route reflection client.
 - `tcp_md5_key` (String) Key used to authenticate the connection with TCP MD5 signature as described in RFC 2385.
-- `ttl` (String) Time To Live, the hop limit for TCP connection. This is a `string` field that can be 'default' or '0'-'255'.
+- `ttl` (String) Time To Live, the hop limit for TCP connection. This is a `string` field that can be 'default' or '0'-'255'. Default: `default`.
 - `update_source` (String) If address is specified, this address is used as the source address of the outgoing TCP connection.
 - `use_bfd` (Boolean) Whether to use BFD protocol for fast state detection.
 

@@ -20,12 +20,12 @@ resource "mikrotik_ipv6_address" "lan" {
 
 ### Optional
 
-- `advertise` (Boolean) Whether to enable stateless address configuration. The prefix of that address is automatically advertised to hosts using ICMPv6 protocol. The option is set by default for addresses with prefix length 64.
+- `advertise` (Boolean) Whether to enable stateless address configuration. The prefix of that address is automatically advertised to hosts using ICMPv6 protocol. The option is set by default for addresses with prefix length 64. Default: `false`.
 - `comment` (String) The comment for the IPv6 address assignment.
-- `disabled` (Boolean) Whether to disable IPv6 address.
-- `eui_64` (Boolean) Whether to calculate EUI-64 address and use it as last 64 bits of the IPv6 address.
-- `from_pool` (String) Name of the pool from which prefix will be taken to construct IPv6 address taking last part of the address from address property.
-- `no_dad` (Boolean) If set indicates that address is anycast address and Duplicate Address Detection should not be performed.
+- `disabled` (Boolean) Whether to disable IPv6 address. Default: `false`.
+- `eui_64` (Boolean) Whether to calculate EUI-64 address and use it as last 64 bits of the IPv6 address. Default: `false`.
+- `from_pool` (String) Name of the pool from which prefix will be taken to construct IPv6 address taking last part of the address from address property. Default: `""`.
+- `no_dad` (Boolean) If set indicates that address is anycast address and Duplicate Address Detection should not be performed. Default: `false`.
 
 ### Read-Only
 

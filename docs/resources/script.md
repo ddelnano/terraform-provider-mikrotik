@@ -28,7 +28,7 @@ EOF
 
 ### Optional
 
-- `dont_require_permissions` (Boolean) If the script requires permissions or not.
+- `dont_require_permissions` (Boolean) If the script requires permissions or not. Default: `false`.
 
 ### Read-Only
 
