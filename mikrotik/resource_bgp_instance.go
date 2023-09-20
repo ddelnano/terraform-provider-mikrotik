@@ -4,242 +4,210 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+
+	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
 )
 
-func resourceBgpInstance() *schema.Resource {
-	return &schema.Resource{
+type bgpInstance struct {
+	client *client.Mikrotik
+}
+
+// Ensure the implementation satisfies the expected interfaces.
+var (
+	_ resource.Resource                = &bgpInstance{}
+	_ resource.ResourceWithConfigure   = &bgpInstance{}
+	_ resource.ResourceWithImportState = &bgpInstance{}
+)
+
+// NewBgpInstanceResource is a helper function to simplify the provider implementation.
+func NewBgpInstanceResource() resource.Resource {
+	return &bgpInstance{}
+}
+
+func (r *bgpInstance) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	if req.ProviderData == nil {
+		return
+	}
+
+	r.client = req.ProviderData.(*client.Mikrotik)
+}
+
+// Metadata returns the resource type name.
+func (r *bgpInstance) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+	resp.TypeName = req.ProviderTypeName + "_bgp_instance"
+}
+
+// Schema defines the schema for the resource.
+func (s *bgpInstance) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
 		Description: "Creates a Mikrotik BGP Instance.",
 
-		CreateContext: resourceBgpInstanceCreate,
-		ReadContext:   resourceBgpInstanceRead,
-		UpdateContext: resourceBgpInstanceUpdate,
-		DeleteContext: resourceBgpInstanceDelete,
-		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
-		},
-
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:        schema.TypeString,
+		Attributes: map[string]schema.Attribute{
+			"id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
+				Description: "ID of this resource.",
+			},
+			"name": schema.StringAttribute{
 				Required:    true,
 				Description: "The name of the BGP instance.",
 			},
-			"as": {
-				Type:        schema.TypeInt,
+			"as": schema.Int64Attribute{
 				Required:    true,
 				Description: "The 32-bit BGP autonomous system number. Must be a value within 0 to 4294967295.",
 			},
-			"client_to_client_reflection": {
-				Type:        schema.TypeBool,
+			"client_to_client_reflection": schema.BoolAttribute{
 				Optional:    true,
-				Default:     true,
-				Description: "The comment of the IP Pool to be created.",
+				Computed:    true,
+				Default:     booldefault.StaticBool(true),
+				Description: "In case this instance is a route reflector: whether to redistribute routes learned from one routing reflection client to other clients.",
 			},
-			"comment": {
-				Type:        schema.TypeString,
+			"comment": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString(""),
 				Description: "The comment of the BGP instance to be created.",
 			},
-			"confederation_peers": {
-				Type:        schema.TypeString,
+			"confederation_peers": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString(""),
 				Description: "List of AS numbers internal to the [local] confederation. For example: `10,20,30-50`.",
 			},
-			"disabled": {
-				Type:        schema.TypeBool,
+			"disabled": schema.BoolAttribute{
 				Optional:    true,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 				Description: "Whether instance is disabled.",
 			},
-			"ignore_as_path_len": {
-				Type:        schema.TypeBool,
+			"ignore_as_path_len": schema.BoolAttribute{
 				Optional:    true,
-				Default:     false,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 				Description: "Whether to ignore AS_PATH attribute in BGP route selection algorithm.",
 			},
-			"out_filter": {
-				Type:        schema.TypeString,
+			"out_filter": schema.StringAttribute{
 				Optional:    true,
-				Default:     "",
+				Computed:    true,
+				Default:     stringdefault.StaticString(""),
 				Description: "Output routing filter chain used by all BGP peers belonging to this instance.",
 			},
-			"redistribute_connected": {
-				Type:        schema.TypeBool,
+			"redistribute_connected": schema.BoolAttribute{
 				Optional:    true,
-				Default:     false,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 				Description: "If enabled, this BGP instance will redistribute the information about connected routes.",
 			},
-			"redistribute_ospf": {
-				Type:        schema.TypeBool,
+			"redistribute_ospf": schema.BoolAttribute{
 				Optional:    true,
-				Default:     false,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 				Description: "If enabled, this BGP instance will redistribute the information about routes learned by OSPF.",
 			},
-			"redistribute_other_bgp": {
-				Type:        schema.TypeBool,
+			"redistribute_other_bgp": schema.BoolAttribute{
 				Optional:    true,
-				Default:     false,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 				Description: "If enabled, this BGP instance will redistribute the information about routes learned by other BGP instances.",
 			},
-			"redistribute_rip": {
-				Type:        schema.TypeBool,
+			"redistribute_rip": schema.BoolAttribute{
 				Optional:    true,
-				Default:     false,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 				Description: "If enabled, this BGP instance will redistribute the information about routes learned by RIP.",
 			},
-			"redistribute_static": {
-				Type:        schema.TypeBool,
+			"redistribute_static": schema.BoolAttribute{
 				Optional:    true,
-				Default:     false,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
 				Description: "If enabled, the router will redistribute the information about static routes added to its routing database.",
 			},
-			"router_id": {
-				Type:        schema.TypeString,
+			"router_id": schema.StringAttribute{
 				Required:    true,
 				Description: "BGP Router ID (for this instance). If set to 0.0.0.0, BGP will use one of router's IP addresses.",
 			},
-			"routing_table": {
-				Type:        schema.TypeString,
+			"routing_table": schema.StringAttribute{
 				Optional:    true,
-				Default:     "",
+				Computed:    true,
+				Default:     stringdefault.StaticString(""),
 				Description: "Name of routing table this BGP instance operates on. ",
 			},
-			"cluster_id": {
-				Type:        schema.TypeString,
+			"cluster_id": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString(""),
 				Description: "In case this instance is a route reflector: cluster ID of the router reflector cluster this instance belongs to.",
 			},
-			"confederation": {
-				Type:        schema.TypeInt,
+			"confederation": schema.Int64Attribute{
 				Optional:    true,
+				Computed:    true,
+				Default:     int64default.StaticInt64(0),
 				Description: "In case of BGP confederations: autonomous system number that identifies the [local] confederation as a whole.",
 			},
 		},
 	}
 }
 
-func resourceBgpInstanceCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	instance := prepareBgpInstance(d)
-
-	c := m.(*client.Mikrotik)
-
-	bgpInstance, err := c.AddBgpInstance(instance)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return bgpInstanceToData(bgpInstance, d)
+// Create creates the resource and sets the initial Terraform state.
+func (r *bgpInstance) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var terraformModel bgpInstanceModel
+	var mikrotikModel client.BgpInstance
+	GenericCreateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceBgpInstanceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	bgpInstance, err := c.FindBgpInstance(d.Id())
-
-	if _, ok := err.(client.LegacyBgpUnsupported); ok {
-		return diag.FromErr(err)
-	}
-
-	if client.IsNotFoundError(err) {
-		d.SetId("")
-		return nil
-	}
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return bgpInstanceToData(bgpInstance, d)
+// Read refreshes the Terraform state with the latest data.
+func (r *bgpInstance) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var terraformModel bgpInstanceModel
+	var mikrotikModel client.BgpInstance
+	GenericReadResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceBgpInstanceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	currentBgpInstance, err := c.FindBgpInstance(d.Get("name").(string))
-	if _, ok := err.(client.LegacyBgpUnsupported); ok {
-		return diag.FromErr(err)
-	}
-
-	instance := prepareBgpInstance(d)
-	instance.Id = currentBgpInstance.Id
-
-	bgpInstance, err := c.UpdateBgpInstance(instance)
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return bgpInstanceToData(bgpInstance, d)
+// Update updates the resource and sets the updated Terraform state on success.
+func (r *bgpInstance) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var terraformModel bgpInstanceModel
+	var mikrotikModel client.BgpInstance
+	GenericUpdateResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func resourceBgpInstanceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	c := m.(*client.Mikrotik)
-
-	err := c.DeleteBgpInstance(d.Get("name").(string))
-	if _, ok := err.(client.LegacyBgpUnsupported); ok {
-		return diag.FromErr(err)
-	}
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	d.SetId("")
-	return nil
+// Delete deletes the resource and removes the Terraform state on success.
+func (r *bgpInstance) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var terraformModel bgpInstanceModel
+	var mikrotikModel client.BgpInstance
+	GenericDeleteResource(&terraformModel, &mikrotikModel, r.client)(ctx, req, resp)
 }
 
-func bgpInstanceToData(b *client.BgpInstance, d *schema.ResourceData) diag.Diagnostics {
-	values := map[string]interface{}{
-		"name":                        b.Name,
-		"as":                          b.As,
-		"client_to_client_reflection": b.ClientToClientReflection,
-		"comment":                     b.Comment,
-		"confederation_peers":         b.ConfederationPeers,
-		"disabled":                    b.Disabled,
-		"ignore_as_path_len":          b.IgnoreAsPathLen,
-		"out_filter":                  b.OutFilter,
-		"redistribute_connected":      b.RedistributeConnected,
-		"redistribute_ospf":           b.RedistributeOspf,
-		"redistribute_other_bgp":      b.RedistributeOtherBgp,
-		"redistribute_rip":            b.RedistributeRip,
-		"redistribute_static":         b.RedistributeStatic,
-		"router_id":                   b.RouterID,
-		"routing_table":               b.RoutingTable,
-		"cluster_id":                  b.ClusterID,
-		"confederation":               b.Confederation,
-	}
-
-	d.SetId(b.Name)
-
-	var diags diag.Diagnostics
-
-	for key, value := range values {
-		if err := d.Set(key, value); err != nil {
-			diags = append(diags, diag.Errorf("failed to set %s: %v", key, err)...)
-		}
-	}
-
-	return diags
+func (r *bgpInstance) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	// Retrieve import ID and save to id attribute
+	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
 }
 
-func prepareBgpInstance(d *schema.ResourceData) *client.BgpInstance {
-	return &client.BgpInstance{
-		Name:                     d.Get("name").(string),
-		As:                       d.Get("as").(int),
-		ClientToClientReflection: d.Get("client_to_client_reflection").(bool),
-		Comment:                  d.Get("comment").(string),
-		ConfederationPeers:       d.Get("confederation_peers").(string),
-		Disabled:                 d.Get("disabled").(bool),
-		IgnoreAsPathLen:          d.Get("ignore_as_path_len").(bool),
-		OutFilter:                d.Get("out_filter").(string),
-		RedistributeConnected:    d.Get("redistribute_connected").(bool),
-		RedistributeOspf:         d.Get("redistribute_ospf").(bool),
-		RedistributeOtherBgp:     d.Get("redistribute_other_bgp").(bool),
-		RedistributeRip:          d.Get("redistribute_rip").(bool),
-		RedistributeStatic:       d.Get("redistribute_static").(bool),
-		RouterID:                 d.Get("router_id").(string),
-		RoutingTable:             d.Get("routing_table").(string),
-		ClusterID:                d.Get("cluster_id").(string),
-		Confederation:            d.Get("confederation").(int),
-	}
+type bgpInstanceModel struct {
+	Id                       tftypes.String `tfsdk:"id"`
+	Name                     tftypes.String `tfsdk:"name"`
+	As                       tftypes.Int64  `tfsdk:"as"`
+	ClientToClientReflection tftypes.Bool   `tfsdk:"client_to_client_reflection"`
+	Comment                  tftypes.String `tfsdk:"comment"`
+	ConfederationPeers       tftypes.String `tfsdk:"confederation_peers"`
+	Disabled                 tftypes.Bool   `tfsdk:"disabled"`
+	IgnoreAsPathLen          tftypes.Bool   `tfsdk:"ignore_as_path_len"`
+	OutFilter                tftypes.String `tfsdk:"out_filter"`
+	RedistributeConnected    tftypes.Bool   `tfsdk:"redistribute_connected"`
+	RedistributeOspf         tftypes.Bool   `tfsdk:"redistribute_ospf"`
+	RedistributeOtherBgp     tftypes.Bool   `tfsdk:"redistribute_other_bgp"`
+	RedistributeRip          tftypes.Bool   `tfsdk:"redistribute_rip"`
+	RedistributeStatic       tftypes.Bool   `tfsdk:"redistribute_static"`
+	RouterID                 tftypes.String `tfsdk:"router_id"`
+	RoutingTable             tftypes.String `tfsdk:"routing_table"`
+	ClusterID                tftypes.String `tfsdk:"cluster_id"`
+	Confederation            tftypes.Int64  `tfsdk:"confederation"`
 }

@@ -2,7 +2,6 @@ package mikrotik
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"testing"
 
@@ -11,10 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
 	"github.com/hashicorp/terraform-plugin-mux/tf6to5server"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 const (
@@ -59,39 +55,5 @@ func testAccPreCheck(t *testing.T) {
 	}
 	if _, exists := os.LookupEnv("MIKROTIK_PASSWORD"); !exists {
 		t.Fatal("The MIKROTIK_PASSWORD environment variable must be set")
-	}
-}
-
-func testAccDeleteResource(resource *schema.Resource, d *schema.ResourceData, meta interface{}) error {
-	if resource.DeleteContext != nil {
-		var diags diag.Diagnostics
-
-		diags = resource.DeleteContext(context.Background(), d, meta)
-
-		for i := range diags {
-			if diags[i].Severity == diag.Error {
-				return fmt.Errorf("error deleting resource: %s", diags[i].Summary)
-			}
-		}
-
-		return nil
-	}
-
-	return resource.Delete(d, meta)
-}
-
-func testAccCheckResourceDisappears(provider *schema.Provider, resource *schema.Resource, resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		resourceState, ok := s.RootModule().Resources[resourceName]
-
-		if !ok {
-			return fmt.Errorf("resource not found: %s", resourceName)
-		}
-
-		if resourceState.Primary.ID == "" {
-			return fmt.Errorf("resource ID missing: %s", resourceName)
-		}
-
-		return testAccDeleteResource(resource, resource.Data(resourceState.Primary), provider.Meta())
 	}
 }

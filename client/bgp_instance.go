@@ -23,24 +23,24 @@ func legacyBgpUnsupported(err error) bool {
 
 // BgpInstance Mikrotik resource
 type BgpInstance struct {
-	Id                       string `mikrotik:".id"`
-	Name                     string `mikrotik:"name"`
-	As                       int    `mikrotik:"as"`
-	ClientToClientReflection bool   `mikrotik:"client-to-client-reflection"`
-	Comment                  string `mikrotik:"comment"`
-	ConfederationPeers       string `mikrotik:"confederation-peers"`
-	Disabled                 bool   `mikrotik:"disabled"`
-	IgnoreAsPathLen          bool   `mikrotik:"ignore-as-path-len"`
-	OutFilter                string `mikrotik:"out-filter"`
-	RedistributeConnected    bool   `mikrotik:"redistribute-connected"`
-	RedistributeOspf         bool   `mikrotik:"redistribute-ospf"`
-	RedistributeOtherBgp     bool   `mikrotik:"redistribute-other-bgp"`
-	RedistributeRip          bool   `mikrotik:"redistribute-rip"`
-	RedistributeStatic       bool   `mikrotik:"redistribute-static"`
-	RouterID                 string `mikrotik:"router-id"`
-	RoutingTable             string `mikrotik:"routing-table"`
-	ClusterID                string `mikrotik:"cluster-id"`
-	Confederation            int    `mikrotik:"confederation"`
+	Id                       string `mikrotik:".id" codegen:"id,mikrotikID"`
+	Name                     string `mikrotik:"name" codegen:"name,required,terraformID"`
+	As                       int    `mikrotik:"as" codegen:"as,required"`
+	ClientToClientReflection bool   `mikrotik:"client-to-client-reflection" codegen:"client_to_client_reflection"`
+	Comment                  string `mikrotik:"comment" codegen:"comment"`
+	ConfederationPeers       string `mikrotik:"confederation-peers" codegen:"confederation_peers"`
+	Disabled                 bool   `mikrotik:"disabled" codegen:"disabled"`
+	IgnoreAsPathLen          bool   `mikrotik:"ignore-as-path-len" codegen:"ignore_as_path_len"`
+	OutFilter                string `mikrotik:"out-filter" codegen:"out_filter"`
+	RedistributeConnected    bool   `mikrotik:"redistribute-connected" codegen:"redistribute_connected"`
+	RedistributeOspf         bool   `mikrotik:"redistribute-ospf" codegen:"redistribute_ospf"`
+	RedistributeOtherBgp     bool   `mikrotik:"redistribute-other-bgp" codegen:"redistribute_other_bgp"`
+	RedistributeRip          bool   `mikrotik:"redistribute-rip" codegen:"redistribute_rip"`
+	RedistributeStatic       bool   `mikrotik:"redistribute-static" codegen:"redistribute_static"`
+	RouterID                 string `mikrotik:"router-id" codegen:"router_id,required"`
+	RoutingTable             string `mikrotik:"routing-table" codegen:"routing_table"`
+	ClusterID                string `mikrotik:"cluster-id" codegen:"cluster_id"`
+	Confederation            int    `mikrotik:"confederation" codegen:"confederation"`
 }
 
 var _ Resource = (*BgpInstance)(nil)
@@ -86,12 +86,19 @@ func (b *BgpInstance) DeleteFieldValue() string {
 	return b.Name
 }
 
+// HandleError intercepts errors during CRUD operations.
+// It is used to catch "no such command prefix" on RouterOS >= v7.0
+func (b *BgpInstance) HandleError(err error) error {
+	if legacyBgpUnsupported(err) {
+		return LegacyBgpUnsupported{}
+	}
+
+	return err
+}
+
 // Typed wrappers
 func (c Mikrotik) AddBgpInstance(r *BgpInstance) (*BgpInstance, error) {
 	res, err := c.Add(r)
-	if legacyBgpUnsupported(err) {
-		return nil, LegacyBgpUnsupported{}
-	}
 	if err != nil {
 		return nil, err
 	}
@@ -101,9 +108,6 @@ func (c Mikrotik) AddBgpInstance(r *BgpInstance) (*BgpInstance, error) {
 
 func (c Mikrotik) UpdateBgpInstance(r *BgpInstance) (*BgpInstance, error) {
 	res, err := c.Update(r)
-	if legacyBgpUnsupported(err) {
-		return nil, LegacyBgpUnsupported{}
-	}
 	if err != nil {
 		return nil, err
 	}
@@ -113,10 +117,6 @@ func (c Mikrotik) UpdateBgpInstance(r *BgpInstance) (*BgpInstance, error) {
 
 func (c Mikrotik) FindBgpInstance(name string) (*BgpInstance, error) {
 	res, err := c.Find(&BgpInstance{Name: name})
-	if legacyBgpUnsupported(err) {
-		return nil, LegacyBgpUnsupported{}
-	}
-
 	if err != nil {
 		return nil, err
 	}
@@ -126,9 +126,5 @@ func (c Mikrotik) FindBgpInstance(name string) (*BgpInstance, error) {
 
 func (c Mikrotik) DeleteBgpInstance(name string) error {
 	err := c.Delete(&BgpInstance{Name: name})
-	if legacyBgpUnsupported(err) {
-		return LegacyBgpUnsupported{}
-	}
-
 	return err
 }

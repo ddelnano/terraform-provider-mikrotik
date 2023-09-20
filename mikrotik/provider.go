@@ -63,9 +63,7 @@ func Provider(client *mt.Mikrotik) *schema.Provider {
 				Description: "Insecure connection does not verify MikroTik's TLS certificate",
 			},
 		},
-		ResourcesMap: map[string]*schema.Resource{
-			"mikrotik_bgp_instance": resourceBgpInstance(),
-		},
+		ResourcesMap: map[string]*schema.Resource{},
 	}
 
 	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
