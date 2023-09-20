@@ -1,5 +1,5 @@
 # mikrotik_firewall_filter_rule (Resource)
-Manages firewall filter rules.
+Creates a MikroTik FirewallFilterRule.
 
 ## Example Usage
 ```terraform
@@ -25,18 +25,18 @@ resource "mikrotik_firewall_filter_rule" "https" {
 
 ### Optional
 
-- `action` (String) Action to take if packet is matched by the rule. Default: `accept`.
+- `action` (String) Action to take if packet is matched by the rule.
 - `comment` (String) Comment to the rule.
-- `connection_state` (List of String) Interprets the connection tracking analysis data for a particular packet.
+- `connection_state` (Set of String) Interprets the connection tracking analysis data for a particular packet.
 - `dst_port` (String) List of destination port numbers or port number ranges.
 - `in_interface` (String) Interface the packet has entered the router.
 - `in_interface_list` (String) Set of interfaces defined in interface list. Works the same as in-interface.
 - `out_interface_list` (String) Set of interfaces defined in interface list. Works the same as out-interface.
-- `protocol` (String) Matches particular IP protocol specified by protocol name or number. Default: `tcp`.
+- `protocol` (String) Matches particular IP protocol specified by protocol name or number.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) Unique ID of this resource.
 
 ## Import
 Import is supported using the following syntax:
