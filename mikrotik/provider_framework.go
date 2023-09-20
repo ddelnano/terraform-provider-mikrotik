@@ -191,6 +191,7 @@ func (p *ProviderFramework) Resources(ctx context.Context) []func() resource.Res
 		NewDhcpServerNetworkResource,
 		NewDhcpServerResource,
 		NewDnsRecordResource,
+		NewFirewallFilterRuleResource,
 		NewInterfaceListMemberResource,
 		NewInterfaceListResource,
 		NewInterfaceWireguardPeerResource,
