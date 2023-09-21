@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/types/defaultaware"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -63,35 +64,43 @@ func (s *dhcpServer) Schema(_ context.Context, _ resource.SchemaRequest, resp *r
 				},
 				Description: "Reference name.",
 			},
-			"disabled": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(true),
-				Description: "Disable this DHCP server instance.",
-			},
+			"disabled": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(true),
+					Description: "Disable this DHCP server instance.",
+				},
+			),
 			"add_arp": schema.BoolAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "Whether to add dynamic ARP entry. If set to no either ARP mode should be enabled on that interface or static ARP entries should be administratively defined.",
 			},
-			"address_pool": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString("static-only"),
-				Description: "IP pool, from which to take IP addresses for the clients. If set to static-only, then only the clients that have a static lease (added in lease submenu) will be allowed.",
-			},
-			"authoritative": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString("yes"),
-				Description: "Option changes the way how server responds to DHCP requests.",
-			},
-			"interface": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString("*0"),
-				Description: "Interface on which server will be running.",
-			},
+			"address_pool": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString("static-only"),
+					Description: "IP pool, from which to take IP addresses for the clients. If set to static-only, then only the clients that have a static lease (added in lease submenu) will be allowed.",
+				},
+			),
+			"authoritative": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString("yes"),
+					Description: "Option changes the way how server responds to DHCP requests.",
+				},
+			),
+			"interface": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString("*0"),
+					Description: "Interface on which server will be running.",
+				},
+			),
 			"lease_script": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,

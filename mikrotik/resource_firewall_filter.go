@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/types/defaultaware"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -55,12 +56,14 @@ func (s *firewallFilterRule) Schema(_ context.Context, _ resource.SchemaRequest,
 				},
 				Description: "Unique ID of this resource.",
 			},
-			"action": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString("accept"),
-				Description: "Action to take if packet is matched by the rule.",
-			},
+			"action": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString("accept"),
+					Description: "Action to take if packet is matched by the rule.",
+				},
+			),
 			"chain": schema.StringAttribute{
 				Required:    true,
 				Description: "Specifies to which chain rule will be added. If the input does not match the name of an already defined chain, a new chain will be created.",
@@ -96,12 +99,14 @@ func (s *firewallFilterRule) Schema(_ context.Context, _ resource.SchemaRequest,
 				Computed:    true,
 				Description: "Set of interfaces defined in interface list. Works the same as out-interface.",
 			},
-			"protocol": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString("tcp"),
-				Description: "Matches particular IP protocol specified by protocol name or number.",
-			},
+			"protocol": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString("tcp"),
+					Description: "Matches particular IP protocol specified by protocol name or number.",
+				},
+			),
 		},
 	}
 }

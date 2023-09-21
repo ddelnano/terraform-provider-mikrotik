@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/types/defaultaware"
 	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -65,18 +66,22 @@ func (s *dhcpServerNetwork) Schema(_ context.Context, _ resource.SchemaRequest, 
 				Computed:    true,
 				Description: "The network DHCP server(s) will lease addresses from.",
 			},
-			"netmask": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString("0"),
-				Description: "The actual network mask to be used by DHCP client. If set to '0' - netmask from network address will be used.",
-			},
-			"gateway": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString("0.0.0.0"),
-				Description: "The default gateway to be used by DHCP Client.",
-			},
+			"netmask": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString("0"),
+					Description: "The actual network mask to be used by DHCP client. If set to '0' - netmask from network address will be used.",
+				},
+			),
+			"gateway": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString("0.0.0.0"),
+					Description: "The default gateway to be used by DHCP Client.",
+				},
+			),
 			"dns_server": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,

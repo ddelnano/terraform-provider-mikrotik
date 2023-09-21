@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/types/defaultaware"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -59,12 +60,14 @@ func (s *bridge) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				Required:    true,
 				Description: "Name of the bridge interface",
 			},
-			"fast_forward": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(true),
-				Description: "Special and faster case of FastPath which works only on bridges with 2 interfaces (enabled by default only for new bridges).",
-			},
+			"fast_forward": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(true),
+					Description: "Special and faster case of FastPath which works only on bridges with 2 interfaces (enabled by default only for new bridges).",
+				},
+			),
 			"vlan_filtering": schema.BoolAttribute{
 				Optional:    true,
 				Computed:    true,

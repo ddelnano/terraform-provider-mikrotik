@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/types/defaultaware"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -62,58 +63,72 @@ func (i *interfaceWireguardPeer) Schema(_ context.Context, _ resource.SchemaRequ
 				},
 				Description: "Identifier of this resource assigned by RouterOS",
 			},
-			"allowed_address": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString(""),
-				Description: "List of IP (v4 or v6) addresses with CIDR masks from which incoming traffic for this peer is allowed and to which outgoing traffic for this peer is directed. The catch-all 0.0.0.0/0 may be specified for matching all IPv4 addresses, and ::/0 may be specified for matching all IPv6 addresses.",
-			},
-			"comment": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString(""),
-				Description: "Short description of the peer.",
-			},
-			"disabled": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(false),
-				Description: "Boolean for whether or not the interface peer is disabled.",
-			},
-			"endpoint_address": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString(""),
-				Description: "An endpoint IP or hostname can be left blank to allow remote connection from any address.",
-			},
-			"endpoint_port": schema.Int64Attribute{
-				Optional: true,
-				Computed: true,
-				Default:  int64default.StaticInt64(0),
-				Validators: []validator.Int64{
-					int64validator.Between(0, 65535),
+			"allowed_address": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString(""),
+					Description: "List of IP (v4 or v6) addresses with CIDR masks from which incoming traffic for this peer is allowed and to which outgoing traffic for this peer is directed. The catch-all 0.0.0.0/0 may be specified for matching all IPv4 addresses, and ::/0 may be specified for matching all IPv6 addresses.",
 				},
-				Description: "An endpoint port can be left blank to allow remote connection from any port.",
-			},
+			),
+			"comment": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString(""),
+					Description: "Short description of the peer.",
+				},
+			),
+			"disabled": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "Boolean for whether or not the interface peer is disabled.",
+				},
+			),
+			"endpoint_address": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString(""),
+					Description: "An endpoint IP or hostname can be left blank to allow remote connection from any address.",
+				},
+			),
+			"endpoint_port": defaultaware.Int64Attribute(
+				schema.Int64Attribute{
+					Optional: true,
+					Computed: true,
+					Default:  int64default.StaticInt64(0),
+					Validators: []validator.Int64{
+						int64validator.Between(0, 65535),
+					},
+					Description: "An endpoint port can be left blank to allow remote connection from any port.",
+				},
+			),
 			"interface": schema.StringAttribute{
 				Required:    true,
 				Description: "Name of the WireGuard interface the peer belongs to.",
 			},
-			"persistent_keepalive": schema.Int64Attribute{
-				Optional: true,
-				Computed: true,
-				Default:  int64default.StaticInt64(0),
-				Validators: []validator.Int64{
-					int64validator.Between(0, 65535),
+			"persistent_keepalive": defaultaware.Int64Attribute(
+				schema.Int64Attribute{
+					Optional: true,
+					Computed: true,
+					Default:  int64default.StaticInt64(0),
+					Validators: []validator.Int64{
+						int64validator.Between(0, 65535),
+					},
+					Description: "A seconds interval, between 1 and 65535 inclusive, of how often to send an authenticated empty packet to the peer for the purpose of keeping a stateful firewall or NAT mapping valid persistently. For example, if the interface very rarely sends traffic, but it might at anytime receive traffic from a peer, and it is behind NAT, the interface might benefit from having a persistent keepalive interval of 25 seconds.",
 				},
-				Description: "A seconds interval, between 1 and 65535 inclusive, of how often to send an authenticated empty packet to the peer for the purpose of keeping a stateful firewall or NAT mapping valid persistently. For example, if the interface very rarely sends traffic, but it might at anytime receive traffic from a peer, and it is behind NAT, the interface might benefit from having a persistent keepalive interval of 25 seconds.",
-			},
-			"preshared_key": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString(""),
-				Description: "A base64 preshared key. Optional, and may be omitted. This option adds an additional layer of symmetric-key cryptography to be mixed into the already existing public-key cryptography, for post-quantum resistance.",
-			},
+			),
+			"preshared_key": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString(""),
+					Description: "A base64 preshared key. Optional, and may be omitted. This option adds an additional layer of symmetric-key cryptography to be mixed into the already existing public-key cryptography, for post-quantum resistance.",
+				},
+			),
 			"public_key": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,

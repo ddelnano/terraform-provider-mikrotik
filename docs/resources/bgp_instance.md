@@ -26,20 +26,20 @@ resource "mikrotik_bgp_instance" "instance" {
 
 ### Optional
 
-- `client_to_client_reflection` (Boolean) In case this instance is a route reflector: whether to redistribute routes learned from one routing reflection client to other clients.
-- `cluster_id` (String) In case this instance is a route reflector: cluster ID of the router reflector cluster this instance belongs to.
-- `comment` (String) The comment of the BGP instance to be created.
-- `confederation` (Number) In case of BGP confederations: autonomous system number that identifies the [local] confederation as a whole.
-- `confederation_peers` (String) List of AS numbers internal to the [local] confederation. For example: `10,20,30-50`.
-- `disabled` (Boolean) Whether instance is disabled.
-- `ignore_as_path_len` (Boolean) Whether to ignore AS_PATH attribute in BGP route selection algorithm.
-- `out_filter` (String) Output routing filter chain used by all BGP peers belonging to this instance.
-- `redistribute_connected` (Boolean) If enabled, this BGP instance will redistribute the information about connected routes.
-- `redistribute_ospf` (Boolean) If enabled, this BGP instance will redistribute the information about routes learned by OSPF.
-- `redistribute_other_bgp` (Boolean) If enabled, this BGP instance will redistribute the information about routes learned by other BGP instances.
-- `redistribute_rip` (Boolean) If enabled, this BGP instance will redistribute the information about routes learned by RIP.
-- `redistribute_static` (Boolean) If enabled, the router will redistribute the information about static routes added to its routing database.
-- `routing_table` (String) Name of routing table this BGP instance operates on.
+- `client_to_client_reflection` (Boolean) In case this instance is a route reflector: whether to redistribute routes learned from one routing reflection client to other clients. Default: `true`.
+- `cluster_id` (String) In case this instance is a route reflector: cluster ID of the router reflector cluster this instance belongs to. Default: `""`.
+- `comment` (String) The comment of the BGP instance to be created. Default: `""`.
+- `confederation` (Number) In case of BGP confederations: autonomous system number that identifies the [local] confederation as a whole. Default: `0`.
+- `confederation_peers` (String) List of AS numbers internal to the [local] confederation. For example: `10,20,30-50`. Default: `""`.
+- `disabled` (Boolean) Whether instance is disabled. Default: `false`.
+- `ignore_as_path_len` (Boolean) Whether to ignore AS_PATH attribute in BGP route selection algorithm. Default: `false`.
+- `out_filter` (String) Output routing filter chain used by all BGP peers belonging to this instance. Default: `""`.
+- `redistribute_connected` (Boolean) If enabled, this BGP instance will redistribute the information about connected routes. Default: `false`.
+- `redistribute_ospf` (Boolean) If enabled, this BGP instance will redistribute the information about routes learned by OSPF. Default: `false`.
+- `redistribute_other_bgp` (Boolean) If enabled, this BGP instance will redistribute the information about routes learned by other BGP instances. Default: `false`.
+- `redistribute_rip` (Boolean) If enabled, this BGP instance will redistribute the information about routes learned by RIP. Default: `false`.
+- `redistribute_static` (Boolean) If enabled, the router will redistribute the information about static routes added to its routing database. Default: `false`.
+- `routing_table` (String) Name of routing table this BGP instance operates on.  Default: `""`.
 
 ### Read-Only
 

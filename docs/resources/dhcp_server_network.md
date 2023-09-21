@@ -20,8 +20,8 @@ resource "mikrotik_dhcp_server_network" "default" {
 - `address` (String) The network DHCP server(s) will lease addresses from.
 - `comment` (String)
 - `dns_server` (String) The DHCP client will use these as the default DNS servers.
-- `gateway` (String) The default gateway to be used by DHCP Client.
-- `netmask` (String) The actual network mask to be used by DHCP client. If set to '0' - netmask from network address will be used.
+- `gateway` (String) The default gateway to be used by DHCP Client. Default: `0.0.0.0`.
+- `netmask` (String) The actual network mask to be used by DHCP client. If set to '0' - netmask from network address will be used. Default: `0`.
 
 ### Read-Only
 

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/types/defaultaware"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -59,26 +60,30 @@ func (s *bgpPeer) Schema(_ context.Context, _ resource.SchemaRequest, resp *reso
 				Required:    true,
 				Description: "The name of the BGP peer.",
 			},
-			"address_families": schema.StringAttribute{
-				Optional: true,
-				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
+			"address_families": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional: true,
+					Computed: true,
+					PlanModifiers: []planmodifier.String{
+						stringplanmodifier.UseStateForUnknown(),
+					},
+					Default:     stringdefault.StaticString("ip"),
+					Description: "The list of address families about which this peer will exchange routing information.",
 				},
-				Default:     stringdefault.StaticString("ip"),
-				Description: "The list of address families about which this peer will exchange routing information.",
-			},
+			),
 			"allow_as_in": schema.Int64Attribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "How many times to allow own AS number in AS-PATH, before discarding a prefix.",
 			},
-			"as_override": schema.BoolAttribute{
-				Computed:    true,
-				Optional:    true,
-				Default:     booldefault.StaticBool(false),
-				Description: "If set, then all instances of remote peer's AS number in BGP AS PATH attribute are replaced with local AS number before sending route update to that peer.",
-			},
+			"as_override": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Computed:    true,
+					Optional:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "If set, then all instances of remote peer's AS number in BGP AS PATH attribute are replaced with local AS number before sending route update to that peer.",
+				},
+			),
 			"cisco_vpls_nlri_len_fmt": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
@@ -89,35 +94,43 @@ func (s *bgpPeer) Schema(_ context.Context, _ resource.SchemaRequest, resp *reso
 				Computed:    true,
 				Description: "The comment of the BGP peer to be created.",
 			},
-			"default_originate": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString("never"),
-				Description: "The comment of the BGP peer to be created.",
-			},
-			"disabled": schema.BoolAttribute{
-				Computed:    true,
-				Optional:    true,
-				Default:     booldefault.StaticBool(false),
-				Description: "Whether peer is disabled.",
-			},
-			"hold_time": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString("3m"),
-				Description: "Specifies the BGP Hold Time value to use when negotiating with peer",
-			},
+			"default_originate": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString("never"),
+					Description: "The comment of the BGP peer to be created.",
+				},
+			),
+			"disabled": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Computed:    true,
+					Optional:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "Whether peer is disabled.",
+				},
+			),
+			"hold_time": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString("3m"),
+					Description: "Specifies the BGP Hold Time value to use when negotiating with peer",
+				},
+			),
 			"in_filter": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "The name of the routing filter chain that is applied to the incoming routing information.",
 			},
-			"instance": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString("default"),
-				Description: "The name of the instance this peer belongs to. See Mikrotik bgp instance resource.",
-			},
+			"instance": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString("default"),
+					Description: "The name of the instance this peer belongs to. See Mikrotik bgp instance resource.",
+				},
+			),
 			"keepalive_time": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
@@ -137,23 +150,27 @@ func (s *bgpPeer) Schema(_ context.Context, _ resource.SchemaRequest, resp *reso
 				Computed:    true,
 				Description: "Specifies whether the remote peer is more than one hop away.",
 			},
-			"nexthop_choice": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString("default"),
-				Description: "Affects the outgoing NEXT_HOP attribute selection, either: 'default', 'force-self', or 'propagate'",
-			},
+			"nexthop_choice": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString("default"),
+					Description: "Affects the outgoing NEXT_HOP attribute selection, either: 'default', 'force-self', or 'propagate'",
+				},
+			),
 			"out_filter": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "The name of the routing filter chain that is applied to the outgoing routing information. ",
 			},
-			"passive": schema.BoolAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     booldefault.StaticBool(false),
-				Description: "Name of the routing filter chain that is applied to the outgoing routing information.",
-			},
+			"passive": defaultaware.BoolAttribute(
+				schema.BoolAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     booldefault.StaticBool(false),
+					Description: "Name of the routing filter chain that is applied to the outgoing routing information.",
+				},
+			),
 			"remote_address": schema.StringAttribute{
 				Required:    true,
 				Description: "The address of the remote peer",
@@ -182,12 +199,14 @@ func (s *bgpPeer) Schema(_ context.Context, _ resource.SchemaRequest, resp *reso
 				Computed:    true,
 				Description: "Key used to authenticate the connection with TCP MD5 signature as described in RFC 2385.",
 			},
-			"ttl": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     stringdefault.StaticString("default"),
-				Description: "Time To Live, the hop limit for TCP connection. This is a `string` field that can be 'default' or '0'-'255'.",
-			},
+			"ttl": defaultaware.StringAttribute(
+				schema.StringAttribute{
+					Optional:    true,
+					Computed:    true,
+					Default:     stringdefault.StaticString("default"),
+					Description: "Time To Live, the hop limit for TCP connection. This is a `string` field that can be 'default' or '0'-'255'.",
+				},
+			),
 			"update_source": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,

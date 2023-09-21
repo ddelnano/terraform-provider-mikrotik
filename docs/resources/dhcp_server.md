@@ -28,10 +28,10 @@ resource "mikrotik_dhcp_server" "default" {
 ### Optional
 
 - `add_arp` (Boolean) Whether to add dynamic ARP entry. If set to no either ARP mode should be enabled on that interface or static ARP entries should be administratively defined.
-- `address_pool` (String) IP pool, from which to take IP addresses for the clients. If set to static-only, then only the clients that have a static lease (added in lease submenu) will be allowed.
-- `authoritative` (String) Option changes the way how server responds to DHCP requests.
-- `disabled` (Boolean) Disable this DHCP server instance.
-- `interface` (String) Interface on which server will be running.
+- `address_pool` (String) IP pool, from which to take IP addresses for the clients. If set to static-only, then only the clients that have a static lease (added in lease submenu) will be allowed. Default: `static-only`.
+- `authoritative` (String) Option changes the way how server responds to DHCP requests. Default: `yes`.
+- `disabled` (Boolean) Disable this DHCP server instance. Default: `true`.
+- `interface` (String) Interface on which server will be running. Default: `*0`.
 - `lease_script` (String) Script that will be executed after lease is assigned or de-assigned. Internal "global" variables that can be used in the script.
 
 ### Read-Only
