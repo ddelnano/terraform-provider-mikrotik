@@ -1,6 +1,9 @@
 package client
 
-import "github.com/go-routeros/routeros"
+import (
+	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
+	"github.com/go-routeros/routeros"
+)
 
 const (
 	WirelessAuthenticationTypeWpaPsk  = "wpa-psk"
@@ -16,10 +19,11 @@ const (
 
 // WirelessSecurityProfile defines resource
 type WirelessSecurityProfile struct {
-	Id                  string `mikrotik:".id"`
-	Name                string `mikrotik:"name"`
-	Mode                string `mikrotik:"mode"`
-	AuthenticationTypes string `mikrotik:"authentication-types"`
+	Id                  string             `mikrotik:".id" codegen:"id,mikrotikID"`
+	Name                string             `mikrotik:"name" codegen:"name,required"`
+	Mode                string             `mikrotik:"mode" codegen:"mode,optional"`
+	AuthenticationTypes types.MikrotikList `mikrotik:"authentication-types" codegen:"authentication_types,optional"`
+	WPA2PreSharedKey    string             `mikrotik:"wpa2-pre-shared-key" codegen:"wpa2_pre_shared_key"`
 }
 
 var _ Resource = (*WirelessSecurityProfile)(nil)

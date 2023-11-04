@@ -2,18 +2,31 @@ package client
 
 import "github.com/go-routeros/routeros"
 
+const (
+	WirelessInterfaceModeStation                   = "station"
+	WirelessInterfaceModeStationWDS                = "station-wds"
+	WirelessInterfaceModeAPBridge                  = "ap-bridge"
+	WirelessInterfaceModeBridge                    = "bridge"
+	WirelessInterfaceModeAlignmentOnly             = "alignment-only"
+	WirelessInterfaceModeNstremeDualSlave          = "nstreme-dual-slave"
+	WirelessInterfaceModeWDSSlave                  = "wds-slave"
+	WirelessInterfaceModeStationPseudobridge       = "station-pseudobridge"
+	WirelessInterfaceModeStationsPseudobridgeClone = "station-pseudobridge-clone"
+	WirelessInterfaceModeStationBridge             = "station-bridge"
+)
+
 // WirelessInterface defines resource
 type WirelessInterface struct {
-	Id              string `mikrotik:".id"`
-	Name            string `mikrotik:"name"`
-	MasterInterface string `mikrotik:"master-insterface"`
-	Mode            string `mikrotik:"mode"`
-	Disabled        bool   `mikrotik:"disabled"`
-	SecurityProfile string `mikrotik:"security-profile"`
-	SSID            string `mikrotik:"ssid"`
-	HideSSID        bool   `mikrotik:"hide-ssid"`
-	VlanID          string `mikrotik:"vlan-id"`
-	VlanMode        string `mikrotik:"vlan-mode"`
+	Id              string `mikrotik:".id" codegen:"id,mikrotikID"`
+	Name            string `mikrotik:"name" codegen:"name,required"`
+	MasterInterface string `mikrotik:"master-insterface" codegen:"master_interface"`
+	Mode            string `mikrotik:"mode" codegen:"mode"`
+	Disabled        bool   `mikrotik:"disabled" codegen:"disabled"`
+	SecurityProfile string `mikrotik:"security-profile" codegen:"security_profile"`
+	SSID            string `mikrotik:"ssid" codegen:"ssid"`
+	HideSSID        bool   `mikrotik:"hide-ssid" codegen:"hide_ssid"`
+	VlanID          int    `mikrotik:"vlan-id" codegen:"vlan_id"`
+	VlanMode        string `mikrotik:"vlan-mode" codegen:"vlan_mode"`
 }
 
 var _ Resource = (*WirelessInterface)(nil)
