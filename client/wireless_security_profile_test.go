@@ -28,6 +28,7 @@ func TestWirelessSecurityProgile_basic(t *testing.T) {
 	updated.Name += "-updated"
 	updated.Mode = WirelessModeDynamicKeys
 	updated.AuthenticationTypes = []string{WirelessAuthenticationTypeWpa2Psk}
+	updated.WPA2PreSharedKey = "1234567890"
 	_, err = c.UpdateWirelessSecurityProfile(updated)
 	require.NoError(t, err)
 
