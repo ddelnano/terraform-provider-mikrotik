@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/types/defaultaware"
 	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -181,7 +182,7 @@ func (p *ProviderFramework) DataSources(ctx context.Context) []func() datasource
 }
 
 func (p *ProviderFramework) Resources(ctx context.Context) []func() resource.Resource {
-	return []func() resource.Resource{
+	return defaultaware.WrapResources([]func() resource.Resource{
 		NewBgpInstanceResource,
 		NewBgpPeerResource,
 		NewBridgePortResource,
@@ -202,7 +203,8 @@ func (p *ProviderFramework) Resources(ctx context.Context) []func() resource.Res
 		NewSchedulerResource,
 		NewScriptResource,
 		NewVlanInterfaceResource,
-	}
+	},
+	)
 }
 
 type mikrotikProviderModel struct {
