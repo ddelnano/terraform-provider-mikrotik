@@ -26,7 +26,7 @@ func WrapResources(funcs []func() resource.Resource) []func() resource.Resource 
 // Schema overrides Schema functions from the wrapped resource and makes attributes default-aware.
 //
 // Default-aware wrappers allows generating documentation with default values, if any.
-func (r *resourceWrapper) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r resourceWrapper) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	r.Resource.Schema(ctx, req, resp)
 
 	for name, attr := range resp.Schema.Attributes {
@@ -45,6 +45,11 @@ func (r *resourceWrapper) Schema(ctx context.Context, req resource.SchemaRequest
 			}
 		}
 	}
+}
+
+func (r resourceWrapper) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	rwc := r.Resource.(resource.ResourceWithConfigure)
+	rwc.Configure(ctx, req, resp)
 }
 
 type resourceWrapper struct {
