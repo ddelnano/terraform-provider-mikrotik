@@ -52,6 +52,11 @@ func (r resourceWrapper) Configure(ctx context.Context, req resource.ConfigureRe
 	rwc.Configure(ctx, req, resp)
 }
 
+func (r resourceWrapper) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	rwi := r.Resource.(resource.ResourceWithImportState)
+	rwi.ImportState(ctx, req, resp)
+}
+
 type resourceWrapper struct {
 	resource.Resource
 }
