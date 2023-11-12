@@ -60,3 +60,9 @@ func (r resourceWrapper) ImportState(ctx context.Context, req resource.ImportSta
 type resourceWrapper struct {
 	resource.Resource
 }
+
+var (
+	_ resource.Resource                = &resourceWrapper{}
+	_ resource.ResourceWithConfigure   = &resourceWrapper{}
+	_ resource.ResourceWithImportState = &resourceWrapper{}
+)
