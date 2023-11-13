@@ -148,7 +148,7 @@ func (r *pool) Delete(ctx context.Context, req resource.DeleteRequest, resp *res
 
 func (r *pool) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	utils.ImportUppercaseWrapper(resource.ImportStatePassthroughID)(ctx, path.Root("id"), req, resp)
 }
 
 type poolModel struct {
