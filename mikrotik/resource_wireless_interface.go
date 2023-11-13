@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/types/defaultaware"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -62,67 +61,53 @@ func (s *wirelessInterface) Schema(_ context.Context, _ resource.SchemaRequest, 
 				Required:    true,
 				Description: "Name of the interface.",
 			},
-			"master_interface": defaultaware.StringAttribute(
-				schema.StringAttribute{
-					Optional:    true,
-					Computed:    true,
-					Default:     stringdefault.StaticString(""),
-					Description: "Name of wireless interface that has virtual-ap capability. Virtual AP interface will only work if master interface is in ap-bridge, bridge, station or wds-slave mode. This property is only for virtual AP interfaces.",
-				},
-			),
-			"mode": defaultaware.StringAttribute(
-				schema.StringAttribute{
-					Optional:    true,
-					Computed:    true,
-					Default:     stringdefault.StaticString("station"),
-					Description: "Selection between different station and access point (AP) modes.",
-				},
-			),
-			"disabled": defaultaware.BoolAttribute(
-				schema.BoolAttribute{
-					Optional:    true,
-					Computed:    true,
-					Default:     booldefault.StaticBool(true),
-					Description: "Whether interface is disabled.",
-				},
-			),
-			"security_profile": defaultaware.StringAttribute(
-				schema.StringAttribute{
-					Optional:    true,
-					Computed:    true,
-					Default:     stringdefault.StaticString("default"),
-					Description: "Name of profile from security-profiles.",
-				},
-			),
+			"master_interface": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString(""),
+				Description: "Name of wireless interface that has virtual-ap capability. Virtual AP interface will only work if master interface is in ap-bridge, bridge, station or wds-slave mode. This property is only for virtual AP interfaces.",
+			},
+			"mode": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString("station"),
+				Description: "Selection between different station and access point (AP) modes.",
+			},
+			"disabled": schema.BoolAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     booldefault.StaticBool(true),
+				Description: "Whether interface is disabled.",
+			},
+			"security_profile": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString("default"),
+				Description: "Name of profile from security-profiles.",
+			},
 			"ssid": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "SSID (service set identifier) is a name that identifies wireless network.",
 			},
-			"hide_ssid": defaultaware.BoolAttribute(
-				schema.BoolAttribute{
-					Optional:    true,
-					Computed:    true,
-					Default:     booldefault.StaticBool(false),
-					Description: "This property has an effect only in AP mode.",
-				},
-			),
-			"vlan_id": defaultaware.Int64Attribute(
-				schema.Int64Attribute{
-					Optional:    true,
-					Computed:    true,
-					Default:     int64default.StaticInt64(1),
-					Description: "VLAN identification number.",
-				},
-			),
-			"vlan_mode": defaultaware.StringAttribute(
-				schema.StringAttribute{
-					Optional:    true,
-					Computed:    true,
-					Default:     stringdefault.StaticString("no-tag"),
-					Description: "Three VLAN modes are available: no-tag|use-service-tag|use-tag.",
-				},
-			),
+			"hide_ssid": schema.BoolAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
+				Description: "This property has an effect only in AP mode.",
+			},
+			"vlan_id": schema.Int64Attribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     int64default.StaticInt64(1),
+				Description: "VLAN identification number.",
+			},
+			"vlan_mode": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     stringdefault.StaticString("no-tag"),
+				Description: "Three VLAN modes are available: no-tag|use-service-tag|use-tag.",
+			},
 		},
 	}
 }
