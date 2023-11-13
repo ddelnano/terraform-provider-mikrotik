@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
-	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/types/defaultaware"
 	"github.com/ddelnano/terraform-provider-mikrotik/mikrotik/internal/utils"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -71,14 +70,12 @@ func (s *dhcpLease) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Computed:    true,
 				Description: "The comment of the DHCP lease to be created.",
 			},
-			"blocked": defaultaware.BoolAttribute(
-				schema.BoolAttribute{
-					Optional:    true,
-					Computed:    true,
-					Default:     booldefault.StaticBool(false),
-					Description: "Whether to block access for this DHCP client (true|false).",
-				},
-			),
+			"blocked": schema.BoolAttribute{
+				Optional:    true,
+				Computed:    true,
+				Default:     booldefault.StaticBool(false),
+				Description: "Whether to block access for this DHCP client (true|false).",
+			},
 			"dynamic": schema.BoolAttribute{
 				Computed: true,
 				PlanModifiers: []planmodifier.Bool{
