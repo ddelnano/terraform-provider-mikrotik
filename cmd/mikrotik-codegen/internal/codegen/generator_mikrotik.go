@@ -4,7 +4,7 @@ import (
 	"io"
 	"text/template"
 
-	consoleinspected "github.com/ddelnano/terraform-provider-mikrotik/cmd/mikrotik-codegen/internal/codegen/console-inspected"
+	consoleinspected "github.com/ddelnano/terraform-provider-mikrotik/client/console-inspected"
 	"github.com/ddelnano/terraform-provider-mikrotik/cmd/mikrotik-codegen/internal/utils"
 )
 
