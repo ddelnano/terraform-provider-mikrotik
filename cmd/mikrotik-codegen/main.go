@@ -11,12 +11,14 @@ import (
 	"strconv"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/cmd/mikrotik-codegen/internal/codegen"
+	consoleinspected "github.com/ddelnano/terraform-provider-mikrotik/cmd/mikrotik-codegen/internal/codegen/console-inspected"
 )
 
 type (
 	MikrotikConfiguration struct {
-		CommandBasePath string
-		ResourceName    string
+		CommandBasePath       string
+		ResourceName          string
+		InspectDefinitionFile string
 	}
 
 	TerraformConfiguration struct {
@@ -102,11 +104,26 @@ func realMain(args []string) error {
 		commonFlags(fs, &destFile, &formatCode)
 		fs.StringVar(&config.ResourceName, "name", "", "Name of the resource to generate.")
 		fs.StringVar(&config.CommandBasePath, "commandBase", "/", "The command base path in MikroTik.")
+		fs.StringVar(&config.InspectDefinitionFile, "inspect-definition-file", "",
+			"[EXPERIMENTAL] File with command definition. Ooutput of '/console/inspect' command (see README)")
 		_ = fs.Parse(args)
 
+		consoleCommandDefinition := consoleinspected.ConsoleItem{}
+		if config.InspectDefinitionFile != "" {
+			fileBytes, err := os.ReadFile(config.InspectDefinitionFile)
+			if err != nil {
+				return err
+			}
+
+			consoleCommandDefinition, err = consoleinspected.Parse(string(fileBytes), consoleinspected.DefaultSplitStrategy)
+			if err != nil {
+				return err
+			}
+
+		}
 		generator = func() GeneratorFunc {
 			return func(w io.Writer) error {
-				return codegen.GenerateMikrotikResource(config.ResourceName, config.CommandBasePath, w)
+				return codegen.GenerateMikrotikResource(config.ResourceName, config.CommandBasePath, consoleCommandDefinition, w)
 			}
 		}
 	default:
