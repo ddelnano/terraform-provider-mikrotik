@@ -26,9 +26,9 @@ type (
 
 	// Item represents inspected console items.
 	Item struct {
-		NodeType NodeType
-		Type     Type
-		Name     string
+		NodeType NodeType `mikrotik:"node-type"`
+		Type     Type     `mikrotik:"type"`
+		Name     string   `mikrotik:"name"`
 	}
 
 	// ConsoleItem represents inspected console item with extracted commands, arguments, etc.

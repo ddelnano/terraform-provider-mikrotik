@@ -10,8 +10,9 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	consoleinspected "github.com/ddelnano/terraform-provider-mikrotik/client/console-inspected"
 	"github.com/ddelnano/terraform-provider-mikrotik/cmd/mikrotik-codegen/internal/codegen"
-	consoleinspected "github.com/ddelnano/terraform-provider-mikrotik/cmd/mikrotik-codegen/internal/codegen/console-inspected"
 )
 
 type (
@@ -19,6 +20,7 @@ type (
 		CommandBasePath       string
 		ResourceName          string
 		InspectDefinitionFile string
+		QueryDefinition       bool
 	}
 
 	TerraformConfiguration struct {
@@ -105,8 +107,14 @@ func realMain(args []string) error {
 		fs.StringVar(&config.ResourceName, "name", "", "Name of the resource to generate.")
 		fs.StringVar(&config.CommandBasePath, "commandBase", "/", "The command base path in MikroTik.")
 		fs.StringVar(&config.InspectDefinitionFile, "inspect-definition-file", "",
-			"[EXPERIMENTAL] File with command definition. Ooutput of '/console/inspect' command (see README)")
+			"[EXPERIMENTAL] File with command definition. Conflicts with query-definition.")
+		fs.BoolVar(&config.QueryDefinition, "query-definition", false,
+			"[EXPERIMENTAL] Query remote MikroTik device to fetch resource fields. Conflicts with inspect-definition-file.")
 		_ = fs.Parse(args)
+
+		if config.InspectDefinitionFile != "" && config.QueryDefinition {
+			return errors.New("only one of inspect-definition-file or query-definition can be used")
+		}
 
 		consoleCommandDefinition := consoleinspected.ConsoleItem{}
 		if config.InspectDefinitionFile != "" {
@@ -119,8 +127,17 @@ func realMain(args []string) error {
 			if err != nil {
 				return err
 			}
-
 		}
+
+		if config.QueryDefinition {
+			var err error
+			c := client.NewClient(client.GetConfigFromEnv())
+			consoleCommandDefinition, err = c.InspectConsoleCommand(config.CommandBasePath + "/add")
+			if err != nil {
+				return err
+			}
+		}
+
 		generator = func() GeneratorFunc {
 			return func(w io.Writer) error {
 				return codegen.GenerateMikrotikResource(config.ResourceName, config.CommandBasePath, consoleCommandDefinition, w)
