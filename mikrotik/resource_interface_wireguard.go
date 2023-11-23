@@ -2,17 +2,16 @@ package mikrotik
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
@@ -67,6 +66,7 @@ func (i *interfaceWireguard) Schema(_ context.Context, _ resource.SchemaRequest,
 			"comment": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
+				Default:     stringdefault.StaticString(""),
 				Description: "Comment associated with interface wireguard.",
 			},
 			"disabled": schema.BoolAttribute{
@@ -112,90 +112,30 @@ func (i *interfaceWireguard) Schema(_ context.Context, _ resource.SchemaRequest,
 
 // Create creates the resource and sets the initial Terraform state.
 func (i *interfaceWireguard) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan interfaceWireguardModel
-	diags := req.Plan.Get(ctx, &plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-	created, err := i.client.AddInterfaceWireguard(modelToInterfaceWireguard(&plan))
-	if err != nil {
-		resp.Diagnostics.AddError("creation failed", err.Error())
-		return
-	}
-
-	resp.Diagnostics.Append(interfaceWireguardToModel(created, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	var terraformModel interfaceWireguardModel
+	var mikrotikModel client.InterfaceWireguard
+	GenericCreateResource(&terraformModel, &mikrotikModel, i.client)(ctx, req, resp)
 }
 
 // Read refreshes the Terraform state with the latest data.
 func (i *interfaceWireguard) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var state interfaceWireguardModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resource, err := i.client.FindInterfaceWireguard(state.Name.ValueString())
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Error reading remote resource",
-			fmt.Sprintf("Could not read interfaceWireguard with name %q", state.Name.ValueString()),
-		)
-		return
-	}
-
-	resp.Diagnostics.Append(interfaceWireguardToModel(resource, &state)...)
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	var terraformModel interfaceWireguardModel
+	var mikrotikModel client.InterfaceWireguard
+	GenericReadResource(&terraformModel, &mikrotikModel, i.client)(ctx, req, resp)
 }
 
 // Update updates the resource and sets the updated Terraform state on success.
 func (i *interfaceWireguard) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var plan interfaceWireguardModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	updated, err := i.client.UpdateInterfaceWireguard(modelToInterfaceWireguard(&plan))
-	if err != nil {
-		resp.Diagnostics.AddError("update failed", err.Error())
-		return
-	}
-
-	resp.Diagnostics.Append(interfaceWireguardToModel(updated, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
+	var terraformModel interfaceWireguardModel
+	var mikrotikModel client.InterfaceWireguard
+	GenericUpdateResource(&terraformModel, &mikrotikModel, i.client)(ctx, req, resp)
 }
 
 // Delete deletes the resource and removes the Terraform state on success.
 func (i *interfaceWireguard) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var state interfaceWireguardModel
-	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	if err := i.client.DeleteInterfaceWireguard(state.Name.ValueString()); err != nil {
-		resp.Diagnostics.AddError("Could not delete interfaceWireguard", err.Error())
-		return
-	}
+	var terraformModel interfaceWireguardModel
+	var mikrotikModel client.InterfaceWireguard
+	GenericDeleteResource(&terraformModel, &mikrotikModel, i.client)(ctx, req, resp)
 }
 
 func (i *interfaceWireguard) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
@@ -204,7 +144,7 @@ func (i *interfaceWireguard) ImportState(ctx context.Context, req resource.Impor
 }
 
 type interfaceWireguardModel struct {
-	ID         tftypes.String `tfsdk:"id"`
+	Id         tftypes.String `tfsdk:"id"`
 	Name       tftypes.String `tfsdk:"name"`
 	Comment    tftypes.String `tfsdk:"comment"`
 	Disabled   tftypes.Bool   `tfsdk:"disabled"`
@@ -213,37 +153,4 @@ type interfaceWireguardModel struct {
 	PrivateKey tftypes.String `tfsdk:"private_key"`
 	PublicKey  tftypes.String `tfsdk:"public_key"`
 	Running    tftypes.Bool   `tfsdk:"running"`
-}
-
-func interfaceWireguardToModel(i *client.InterfaceWireguard, m *interfaceWireguardModel) diag.Diagnostics {
-	var diags diag.Diagnostics
-	if i == nil {
-		diags.AddError("Interface Wireguard cannot be nil", "Cannot build model from nil object")
-		return diags
-	}
-	m.ID = tftypes.StringValue(i.Id)
-	m.Name = tftypes.StringValue(i.Name)
-	m.Comment = tftypes.StringValue(i.Comment)
-	m.Disabled = tftypes.BoolValue(i.Disabled)
-	m.ListenPort = tftypes.Int64Value(int64(i.ListenPort))
-	m.Mtu = tftypes.Int64Value(int64(i.Mtu))
-	m.PrivateKey = tftypes.StringValue(i.PrivateKey)
-	m.PublicKey = tftypes.StringValue(i.PublicKey)
-	m.Running = tftypes.BoolValue(i.Running)
-
-	return diags
-}
-
-func modelToInterfaceWireguard(m *interfaceWireguardModel) *client.InterfaceWireguard {
-	return &client.InterfaceWireguard{
-		Id:         m.ID.ValueString(),
-		Name:       m.Name.ValueString(),
-		Comment:    m.Comment.ValueString(),
-		Disabled:   m.Disabled.ValueBool(),
-		ListenPort: int(m.ListenPort.ValueInt64()),
-		Mtu:        int(m.Mtu.ValueInt64()),
-		PrivateKey: m.PrivateKey.ValueString(),
-		PublicKey:  m.PublicKey.ValueString(),
-		Running:    m.Running.ValueBool(),
-	}
 }
