@@ -80,6 +80,36 @@ func TestCopyStruct(t *testing.T) {
 			},
 		},
 		{
+			name: "different case",
+			src: struct {
+				NAME        string
+				SourceField int
+				itEMS       []string
+			}{
+				NAME:        "src field name",
+				SourceField: 10,
+				itEMS:       []string{"one", "two"},
+			},
+			dest: &struct {
+				Name             string
+				DestinationField int
+				Items            []string
+			}{
+				Name:             "dest field name",
+				DestinationField: 20,
+				Items:            []string{"one", "two", "three"},
+			},
+			expected: &struct {
+				Name             string
+				DestinationField int
+				Items            []string
+			}{
+				Name:             "src field name",
+				DestinationField: 20,
+				Items:            []string{"one", "two", "three"},
+			},
+		},
+		{
 			name: "custom field to regular",
 			src: client.BridgeVlan{
 				Id:       "identifier",

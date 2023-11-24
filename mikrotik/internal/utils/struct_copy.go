@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -24,7 +25,9 @@ func TerraformModelToMikrotikStruct(src interface{}, dest client.Resource) error
 
 // copyStruct copies fields of src struct to fields of dest struct.
 //
-// The fields matching is done based on field names.
+// The fields matching is done based on field names (case insensitive).
+// Having multiple fields with the same name but different case leads to unpredictable behavior.
+//
 // If dest struct has no field with particular name, it is skipped.
 func copyStruct(src, dest interface{}) error {
 	if reflect.ValueOf(dest).Kind() != reflect.Pointer {
@@ -40,11 +43,22 @@ func copyStruct(src, dest interface{}) error {
 	for i := 0; i < reflectedSrc.NumField(); i++ {
 		srcField := reflectedSrc.Field(i)
 		srcFieldType := reflectedSrc.Type().Field(i)
-		destField := reflectedDest.FieldByName(srcFieldType.Name)
 
-		_, ok := reflectedDest.Type().FieldByName(srcFieldType.Name)
-		if !ok {
+		destField := reflectedDest.FieldByNameFunc(
+			func(s string) bool {
+				return strings.EqualFold(srcFieldType.Name, s)
+			})
+		destFieldType, found := reflectedDest.Type().FieldByNameFunc(
+			func(s string) bool {
+				return strings.EqualFold(srcFieldType.Name, s)
+			})
+
+		if !destField.IsValid() || !found {
 			// skip if dest struct does not have it (by name)
+			continue
+		}
+		if srcFieldType.PkgPath != "" || destFieldType.PkgPath != "" {
+			// skip unexported fields
 			continue
 		}
 		if !destField.CanSet() {
