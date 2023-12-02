@@ -162,26 +162,7 @@ func generateCode(w io.Writer, templateName, templateBody string, templateData i
 		"lowerCase":  strings.ToLower,
 		"snakeCase":  utils.ToSnakeCase,
 		"firstLower": utils.FirstLower,
-		"sampleData": func(typeName string) string {
-			switch typeName {
-			case typeString:
-				return `"sample"`
-			case typeList:
-				return `[]`
-			case typeSet:
-				return `[]`
-			case typeInt64:
-				return "21"
-			case typeBool:
-				return "false"
-			case typeStringSlice:
-				return `["one", "two"]`
-			case typeIntSlice:
-				return `[1, 2, 3]`
-			default:
-				return `"` + typeUnknown + `"`
-			}
-		},
+		"sampleData": sampleData,
 	})
 	if _, err := t.Parse(templateBody); err != nil {
 		return err
@@ -244,4 +225,26 @@ func writeWrapper(w sourceWriter, data []byte) error {
 	_, err := w.Write(data)
 
 	return err
+}
+
+// sampleData generates sample value for provided type.
+func sampleData(typeName string) string {
+	switch typeName {
+	case typeString:
+		return `"sample"`
+	case typeList:
+		return `[]`
+	case typeSet:
+		return `[]`
+	case typeInt64:
+		return "42"
+	case typeBool:
+		return "false"
+	case typeStringSlice:
+		return `["one", "two"]`
+	case typeIntSlice:
+		return `[1, 2, 3]`
+	default:
+		return `"` + typeUnknown + `"`
+	}
 }
