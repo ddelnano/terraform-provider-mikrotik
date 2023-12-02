@@ -22,6 +22,7 @@ type (
 	TerraformConfiguration struct {
 		SrcFile    string
 		StructName string
+		AccTest    bool
 	}
 
 	GeneratorFunc func(w io.Writer) error
@@ -62,6 +63,7 @@ func realMain(args []string) error {
 		commonFlags(fs, &destFile, &formatCode)
 		fs.StringVar(&config.SrcFile, "src", "", "Source file to parse struct from.")
 		fs.StringVar(&config.StructName, "struct", "", "Name of a struct to process.")
+		fs.BoolVar(&config.AccTest, "accTest", false, "Generate acceptance test instead.")
 		_ = fs.Parse(args)
 
 		startLine := 1
@@ -96,6 +98,18 @@ func realMain(args []string) error {
 				}
 			}
 		}(s)
+
+		if config.AccTest {
+			generator = func(s *codegen.Struct) func() GeneratorFunc {
+				return func() GeneratorFunc {
+					return func(w io.Writer) error {
+						return codegen.GenerateResourceTest(s, w)
+					}
+				}
+			}(s)
+
+		}
+
 	case "mikrotik":
 		config := MikrotikConfiguration{}
 		fs := flag.NewFlagSet("mikrotik", flag.ExitOnError)

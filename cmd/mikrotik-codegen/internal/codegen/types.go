@@ -1,12 +1,14 @@
 package codegen
 
 const (
-	typeString  = "String"
-	typeInt64   = "Int64"
-	typeList    = "List"
-	typeSet     = "Set"
-	typeBool    = "Bool"
-	typeUnknown = "unknown"
+	typeString      = "String"
+	typeInt64       = "Int64"
+	typeList        = "List"
+	typeSet         = "Set"
+	typeBool        = "Bool"
+	typeStringSlice = "StringSlice"
+	typeIntSlice    = "IntSlice"
+	typeUnknown     = "unknown"
 )
 
 type (
@@ -26,12 +28,14 @@ type (
 )
 
 var (
-	StringType  Type = basetype{typeName: typeString}
-	Int64Type   Type = basetype{typeName: typeInt64}
-	ListType    Type = basetype{typeName: typeList}
-	SetType     Type = basetype{typeName: typeSet}
-	BoolType    Type = basetype{typeName: typeBool}
-	UnknownType Type = basetype{typeName: typeUnknown}
+	StringType      Type = basetype{typeName: typeString}
+	Int64Type       Type = basetype{typeName: typeInt64}
+	ListType        Type = basetype{typeName: typeList}
+	SetType         Type = basetype{typeName: typeSet}
+	BoolType        Type = basetype{typeName: typeBool}
+	StringSliceType Type = basetype{typeName: typeStringSlice}
+	IntSliceType    Type = basetype{typeName: typeIntSlice}
+	UnknownType     Type = basetype{typeName: typeUnknown}
 )
 
 func (b basetype) Name() string {
