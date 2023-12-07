@@ -215,6 +215,60 @@ func (c Mikrotik) Delete{{.ResourceName}}(id string) error {
 
 `
 
+	mikrotikResourceTestDefinitionTemplate = `
+package client
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestAdd{{.ResourceName}}UpdateAndDelete(t *testing.T) {
+	c := NewClient(GetConfigFromEnv())
+
+	expectedResource := &{{.ResourceName}}{
+	{{- range $field := .Fields }}
+		{{- if and $field.Computed (not $field.Optional) }}{{continue}}{{end}}
+		{{$field.Name}}: {{$field.Type.Name | sampleData}},
+	{{- end }}
+	}
+
+	createdResource, err := c.Add{{.ResourceName}}(expectedResource)
+	require.NoError(t, err)
+
+	defer func(){
+		id := createdResource.{{.TerraformIDField.Name}}
+		err := c.Delete{{.ResourceName}}(id)
+		if !assert.True(t, IsNotFoundError(err)) {
+			assert.NoError(t, err)
+		}
+	}()
+
+	expectedResource.Id = createdResource.Id
+
+	foundResource, err := c.Find{{.ResourceName}}(expectedResource.{{.TerraformIDField.Name}})
+	require.NoError(t, err)
+	assert.Equal(t, expectedResource, foundResource)
+{{ range $field := .Fields }}
+	{{- if and $field.Computed (not $field.Optional) }}{{continue}}{{end}}
+	expectedResource.{{$field.Name}} = expectedResource.{{$field.Name}} + {{$field.Type.Name | sampleData}}
+{{- end }}
+
+	updatedResource, err := c.Update{{.ResourceName}}(expectedResource)
+	require.NoError(t, err)
+	assert.Equal(t, expectedResource, updatedResource)
+
+	// cleanup
+	err = c.Delete{{.ResourceName}}(updatedResource.{{.TerraformIDField.Name}})
+	assert.NoError(t, err)
+
+	_, err = c.Find{{.ResourceName}}(expectedResource.{{.TerraformIDField.Name}})
+	assert.Error(t, err)
+}
+`
+
 	terraformResourceTestDefinitionTemplate = `
 package mikrotik
 

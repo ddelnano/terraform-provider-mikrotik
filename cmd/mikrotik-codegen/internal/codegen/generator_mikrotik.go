@@ -2,18 +2,9 @@ package codegen
 
 import (
 	"io"
-	"text/template"
 )
 
 func GenerateMikrotikResource(resourceName, commandBasePath string, w io.Writer) error {
-	if err := writeWrapper(w, []byte(generatedNotice)); err != nil {
-		return err
-	}
-	t := template.New("resource")
-	if _, err := t.Parse(mikrotikResourceDefinitionTemplate); err != nil {
-		return err
-	}
-
 	data := struct {
 		CommandBasePath string
 		ResourceName    string
@@ -21,6 +12,24 @@ func GenerateMikrotikResource(resourceName, commandBasePath string, w io.Writer)
 		CommandBasePath: commandBasePath,
 		ResourceName:    resourceName,
 	}
+	return generateCode(
+		w,
+		"resource",
+		mikrotikResourceDefinitionTemplate,
+		data,
+	)
+}
 
-	return t.Execute(w, data)
+func GenerateMikrotikResourceTest(resourceName string, s *Struct, w io.Writer) error {
+	data, err := generateTemplateData(*s)
+	if err != nil {
+		return err
+	}
+
+	return generateCode(
+		w,
+		"resource-test",
+		mikrotikResourceTestDefinitionTemplate,
+		data,
+	)
 }

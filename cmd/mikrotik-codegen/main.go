@@ -17,6 +17,8 @@ type (
 	MikrotikConfiguration struct {
 		CommandBasePath string
 		ResourceName    string
+		Test            bool
+		SrcFile         string
 	}
 
 	TerraformConfiguration struct {
@@ -76,7 +78,7 @@ func realMain(args []string) error {
 			startLine = lineInt
 		}
 
-		s, err := codegen.ParseFile(config.SrcFile, startLine, config.StructName)
+		s, err := parseFile(config.SrcFile, startLine, config.StructName)
 		if err != nil {
 			return err
 		}
@@ -114,8 +116,10 @@ func realMain(args []string) error {
 		config := MikrotikConfiguration{}
 		fs := flag.NewFlagSet("mikrotik", flag.ExitOnError)
 		commonFlags(fs, &destFile, &formatCode)
-		fs.StringVar(&config.ResourceName, "name", "", "Name of the resource to generate.")
-		fs.StringVar(&config.CommandBasePath, "commandBase", "/", "The command base path in MikroTik.")
+		fs.StringVar(&config.ResourceName, "name", "", "Name of the resource to generate main code or test-file.")
+		fs.StringVar(&config.CommandBasePath, "commandBase", "", "The command base path in MikroTik.")
+		fs.StringVar(&config.SrcFile, "src", "", "Source file to parse struct from. Conflicts with 'commandBase'")
+		fs.BoolVar(&config.Test, "test", false, "Generate resource test-file instead.")
 		_ = fs.Parse(args)
 
 		generator = func() GeneratorFunc {
@@ -123,6 +127,36 @@ func realMain(args []string) error {
 				return codegen.GenerateMikrotikResource(config.ResourceName, config.CommandBasePath, w)
 			}
 		}
+		if config.Test {
+			if config.CommandBasePath != "" {
+				return errors.New("while generating test-file, 'commandBase' flags must not be set")
+			}
+			if config.SrcFile == "" {
+				return errors.New("in test-file generating mode, 'src' flag must point to source file with struct.")
+			}
+
+			startLine := 1
+			lineStr := os.Getenv("GOLINE")
+			if lineStr != "" {
+				lineInt, err := strconv.Atoi(lineStr)
+				if err != nil {
+					return fmt.Errorf("fail to parse GOLINE: %v", err.Error())
+				}
+				startLine = lineInt
+			}
+
+			s, err := parseFile(config.SrcFile, startLine, config.ResourceName)
+			if err != nil {
+				return err
+			}
+
+			generator = func() GeneratorFunc {
+				return func(w io.Writer) error {
+					return codegen.GenerateMikrotikResourceTest(config.ResourceName, s, w)
+				}
+			}
+		}
+
 	default:
 		return errors.New("unsupported subcommand: " + subcommand)
 	}
@@ -171,4 +205,13 @@ func realMain(args []string) error {
 func commonFlags(fs *flag.FlagSet, dest *string, formatCode *bool) {
 	fs.StringVar(dest, "dest", "-", "File to write result to. Default: write to stdout.")
 	fs.BoolVar(formatCode, "formatCode", true, "Whether to format resulting code. Useful for debugging to see raw source code right after generation.")
+}
+
+func parseFile(srcFile string, startLine int, structName string) (*codegen.Struct, error) {
+	s, err := codegen.ParseFile(srcFile, startLine, structName)
+	if err != nil {
+		return nil, err
+	}
+
+	return s, nil
 }
