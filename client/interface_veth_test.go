@@ -1,9 +1,9 @@
 package client
 
 import (
-	"reflect"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,41 +22,42 @@ func TestAddFindDeleteInterfaceVeth(t *testing.T) {
 	SkipIfRouterOSV6OrEarlier(t, sysResources)
 	c := NewClient(GetConfigFromEnv())
 
-	name := "new_interface_veth"
-	interfaceVeth := &InterfaceVeth{
-		Name:       name,
+	expectedIface := &InterfaceVeth{
+		Name:      "veth-test-interface",
 		Disabled:   false,
 		Address: 	"192.168.88.2/24",
 		Gateway:    "192.168.88.1",
 		Comment:    "new interface from test",
+		Running:	true,
 	}
 
-	created, err := c.Add(interfaceVeth)
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-		return
-	}
-	defer func() {
-		err = c.Delete(interfaceVeth)
-		require.NoError(t, err)
+	iface, err := c.AddInterfaceVeth(&InterfaceVeth{
+		Name:       expectedIface.Name,
+		Disabled:   expectedIface.Disabled,
+		Address: 	expectedIface.Address,
+		Gateway:    expectedIface.Gateway,
+		Comment:    expectedIface.Comment,
+	})
+	require.NoError(t, err)
 
-		_, err := c.Find(interfaceVeth)
-		require.True(t, IsNotFoundError(err), "expected to get NotFound error")
-	}()
+	expectedIface.Id = iface.Id
 
-	findInterface := &InterfaceVeth{}
-	findInterface.Name = name
-	found, err := c.Find(findInterface)
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-		return
-	}
+	foundInterface, err := c.FindInterfaceVeth(expectedIface.Name)
+	require.NoError(t, err)
+	assert.Equal(t, expectedIface, foundInterface)
 
-	if _, ok := found.(Resource); !ok {
-		t.Error("expected found resource to implement Resource interface, but it doesn't")
-		return
-	}
-	if !reflect.DeepEqual(created, found) {
-		t.Error("expected created and found resources to be equal, but they don't")
-	}
+	expectedIface.Name = expectedIface.Name + "updated"
+	expectedIface.Address = "192.168.188.2/24"
+	expectedIface.Gateway = "192.168.188.1"
+	expectedIface.Comment = expectedIface.Comment + " with updated comment"
+
+	updatedIface, err := c.UpdateInterfaceVeth(expectedIface)
+	require.NoError(t, err)
+	assert.Equal(t, expectedIface, updatedIface)
+	// cleanup
+	err = c.DeleteInterfaceVeth(iface.Name)
+	assert.NoError(t, err)
+
+	_, err = c.FindInterfaceVeth(expectedIface.Name)
+	assert.Error(t, err)
 }
