@@ -130,9 +130,7 @@ func TestAccMikrotikInterfaceVeth_import(t *testing.T) {
 			{
 				ResourceName: resourceName,
 				ImportState:  true,
-				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-					return name, nil
-				},
+				ImportStateId: name,
 				ImportStateVerify: true,
 			},
 		},

@@ -5,14 +5,14 @@ import (
 )
 
 type InterfaceVeth struct {
-	Id         string `mikrotik:".id"`
-	Name       string `mikrotik:"name"`
-	Comment    string `mikrotik:"comment"`
-	Disabled   bool   `mikrotik:"disabled"`
-	Address	   string `mikrotik:"address"`
-	Gateway	   string `mikrotik:"gateway"`
-	Gateway6   string `mikrotik:"gateway6"`
-	Running    bool   `mikrotik:"running,readonly"`    //read only property
+	Id         string `mikrotik:".id" codegen:"id,mikrotikID"`
+	Name       string `mikrotik:"name" codegen:"name,terraformID,required"`
+	Comment    string `mikrotik:"comment" codegen:"comment"`
+	Disabled   bool   `mikrotik:"disabled" codegen:"disabled"`
+	Address	   string `mikrotik:"address" codegen:"address,required"`
+	Gateway	   string `mikrotik:"gateway" codegen:"gateway"`
+	Gateway6   string `mikrotik:"gateway6" codegen:"gateway6"`
+	Running    bool   `mikrotik:"running,readonly" codegen:"running"`    //read only property
 }
 
 func (i *InterfaceVeth) ActionToCommand(action Action) string {
