@@ -61,3 +61,48 @@ func TestAddFindDeleteInterfaceVeth(t *testing.T) {
 	_, err = c.FindInterfaceVeth(expectedIface.Name)
 	assert.Error(t, err)
 }
+
+
+func TestAddFindDeleteInterfaceVethIpv6(t *testing.T) {
+	SkipIfRouterOSV6OrEarlier(t, sysResources)
+	c := NewClient(GetConfigFromEnv())
+
+	expectedIface := &InterfaceVeth{
+		Name:      "veth-test-interface",
+		Disabled:   false,
+		Address: 	"1:1:1:1:1:1:1:2/64",
+		Gateway6:   "1:1:1:1:1:1:1:1",
+		Comment:    "new interface from test",
+		Running:	true,
+	}
+
+	iface, err := c.AddInterfaceVeth(&InterfaceVeth{
+		Name:       expectedIface.Name,
+		Disabled:   expectedIface.Disabled,
+		Address: 	expectedIface.Address,
+		Gateway6:   expectedIface.Gateway6,
+		Comment:    expectedIface.Comment,
+	})
+	require.NoError(t, err)
+
+	expectedIface.Id = iface.Id
+
+	foundInterface, err := c.FindInterfaceVeth(expectedIface.Name)
+	require.NoError(t, err)
+	assert.Equal(t, expectedIface, foundInterface)
+
+	expectedIface.Name = expectedIface.Name + "updated"
+	expectedIface.Address = "2:1:1:1:1:1:1:2/64"
+	expectedIface.Gateway6 = "2:1:1:1:1:1:1:1"
+	expectedIface.Comment = expectedIface.Comment + " with updated comment"
+
+	updatedIface, err := c.UpdateInterfaceVeth(expectedIface)
+	require.NoError(t, err)
+	assert.Equal(t, expectedIface, updatedIface)
+	// cleanup
+	err = c.DeleteInterfaceVeth(iface.Name)
+	assert.NoError(t, err)
+
+	_, err = c.FindInterfaceVeth(expectedIface.Name)
+	assert.Error(t, err)
+}
