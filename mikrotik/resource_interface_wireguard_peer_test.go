@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -16,7 +17,7 @@ var updatedCommentPeer string = "new_comment"
 func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
 	client.SkipIfRouterOSV6OrEarlier(t, sysResources)
 
-	interfaceName := "tf-acc-interface-wireguard"
+	interfaceName := acctest.RandomWithPrefix("tf-acc-interface-wireguard")
 	publicKey := "/yZWgiYAgNNSy7AIcxuEewYwOVPqJJRKG90s9ypwfiM="
 	resourceName := "mikrotik_interface_wireguard_peer.bar"
 	resource.ParallelTest(t, resource.TestCase{
@@ -39,7 +40,7 @@ func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
 func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
 	client.SkipIfRouterOSV6OrEarlier(t, sysResources)
 
-	interfaceName := "tf-acc-interface-wireguard-updated"
+	interfaceName := acctest.RandomWithPrefix("tf-acc-interface-wireguard")
 	publicKey := "/bTmUihbgNsSy2AIcxuEcwYwOVdqJJRKG51s4ypwfiM="
 	resourceName := "mikrotik_interface_wireguard_peer.bar"
 	resource.ParallelTest(t, resource.TestCase{
@@ -69,7 +70,7 @@ func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
 func TestAccMikrotikInterfaceWireguardPeer_import(t *testing.T) {
 	client.SkipIfRouterOSV6OrEarlier(t, sysResources)
 
-	interfaceName := "tf-acc-interface-wireguard-import"
+	interfaceName := acctest.RandomWithPrefix("tf-acc-interface-wireguard")
 	publicKey := "/zYaGiYbgNsSy8AIcxuEcwYwOVdqJJRKG91s9ypwfiM="
 	resourceName := "mikrotik_interface_wireguard_peer.bar"
 	resource.ParallelTest(t, resource.TestCase{
@@ -87,11 +88,8 @@ func TestAccMikrotikInterfaceWireguardPeer_import(t *testing.T) {
 				),
 			},
 			{
-				ResourceName: resourceName,
-				ImportState:  true,
-				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-					return interfaceName, nil
-				},
+				ResourceName:      resourceName,
+				ImportState:       true,
 				ImportStateVerify: true,
 			},
 		},
@@ -153,7 +151,7 @@ func testAccInterfaceWireguardPeerExists(resourceName string) resource.TestCheck
 
 		c := client.NewClient(client.GetConfigFromEnv())
 
-		interfaceWireguardPeer, err := c.FindInterfaceWireguardPeer(rs.Primary.Attributes["interface"])
+		interfaceWireguardPeer, err := c.FindInterfaceWireguardPeer(rs.Primary.ID)
 
 		_, ok = err.(*client.NotFound)
 		if !ok && err != nil {
