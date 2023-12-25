@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
@@ -334,7 +335,7 @@ func TestCopyStruct(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := copyStruct(tc.src, tc.dest)
+			err := copyStruct(context.TODO(), tc.src, tc.dest)
 			if tc.expectError {
 				require.Error(t, err)
 				return
@@ -395,7 +396,7 @@ func TestCopyTerraformToMikrotik(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := TerraformModelToMikrotikStruct(tc.src, tc.dest)
+			err := TerraformModelToMikrotikStruct(context.TODO(), tc.src, tc.dest)
 			if tc.expectError {
 				require.Error(t, err)
 				return
@@ -469,7 +470,7 @@ func TestCopyMikrotikToTerraform(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := MikrotikStructToTerraformModel(tc.src, tc.dest)
+			err := MikrotikStructToTerraformModel(context.TODO(), tc.src, tc.dest)
 			if tc.expectError {
 				require.Error(t, err)
 				return
