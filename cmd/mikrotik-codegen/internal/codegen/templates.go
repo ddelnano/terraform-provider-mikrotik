@@ -3,8 +3,8 @@ package codegen
 const (
 	generatedNotice = "// This code was generated. Review it carefully."
 
-	resourceDefinitionTemplate = `
-package {{ .Package }}
+	terraformResourceDefinitionTemplate = `
+package mikrotik
 
 import (
 	{{ range $import := .Imports -}}
@@ -55,7 +55,7 @@ func (s *{{$resourceStructName}}) Schema(_ context.Context, _ resource.SchemaReq
 				Computed: {{.Computed}},
 				{{if .Computed -}}
 				PlanModifiers: []planmodifier.{{.Type.Name}}{
-					{{.Type.Name | lowercase}}planmodifier.UseStateForUnknown(),
+					{{.Type.Name | lowerCase}}planmodifier.UseStateForUnknown(),
 				},
 				{{- end}}
 				Description: "",
@@ -214,6 +214,159 @@ func (c Mikrotik) List{{.ResourceName}}() ([]{{.ResourceName}}, error) {
 
 func (c Mikrotik) Delete{{.ResourceName}}(id string) error {
 	return c.Delete(&{{.ResourceName}}{Id: id})
+}
+
+`
+
+	mikrotikResourceTestDefinitionTemplate = `
+package client
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestAdd{{.ResourceName}}UpdateAndDelete(t *testing.T) {
+	c := NewClient(GetConfigFromEnv())
+
+	expectedResource := &{{.ResourceName}}{
+	{{- range $field := .Fields }}
+		{{- if and $field.Computed (not $field.Optional) }}{{continue}}{{end}}
+		{{$field.Name}}: {{$field.Type.Name | sampleData}},
+	{{- end }}
+	}
+
+	createdResource, err := c.Add{{.ResourceName}}(expectedResource)
+	require.NoError(t, err)
+
+	defer func(){
+		id := createdResource.{{.TerraformIDField.Name}}
+		err := c.Delete{{.ResourceName}}(id)
+		if !assert.True(t, IsNotFoundError(err)) {
+			assert.NoError(t, err)
+		}
+	}()
+
+	expectedResource.Id = createdResource.Id
+
+	foundResource, err := c.Find{{.ResourceName}}(expectedResource.{{.TerraformIDField.Name}})
+	require.NoError(t, err)
+	assert.Equal(t, expectedResource, foundResource)
+{{ range $field := .Fields }}
+	{{- if and $field.Computed (not $field.Optional) }}{{continue}}{{end}}
+	expectedResource.{{$field.Name}} = expectedResource.{{$field.Name}} + {{$field.Type.Name | sampleData}}
+{{- end }}
+
+	updatedResource, err := c.Update{{.ResourceName}}(expectedResource)
+	require.NoError(t, err)
+	assert.Equal(t, expectedResource, updatedResource)
+
+	// cleanup
+	err = c.Delete{{.ResourceName}}(updatedResource.{{.TerraformIDField.Name}})
+	assert.NoError(t, err)
+
+	_, err = c.Find{{.ResourceName}}(expectedResource.{{.TerraformIDField.Name}})
+	assert.Error(t, err)
+}
+`
+
+	terraformResourceTestDefinitionTemplate = `
+package mikrotik
+
+import (
+	{{ range $import := .Imports -}}
+		"{{ $import }}"
+	{{ end }}
+)
+
+{{ $resourceNameLower := .ResourceName | snakeCase }}
+{{ $resourceType := .ResourceName | snakeCase | printf "mikrotik_%s" }}
+
+func TestAcc{{.ResourceName}}_basic(t *testing.T) {
+	resourceName := "{{$resourceType}}.testacc_{{$resourceNameLower}}"
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheck{{.ResourceName}}Destroy,
+		Steps: []resource.TestStep{
+			{
+				Config: ` + "`" + `
+				resource "{{$resourceType}}" "testacc_{{$resourceNameLower}}" {
+					{{ range $x := .Fields -}}
+					{{if and $x.Computed (not $x.Optional) -}}{{continue}}{{end -}}
+						{{ $x.AttributeName }} = {{$x.Type.Name | sampleData}}
+					{{ end }}
+				}
+				` +
+		"`" +
+		`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAcc{{.ResourceName}}Exists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+				),
+			},
+			{
+				ResourceName: resourceName,
+				ImportState:  true,
+				ImportStateVerify: true,
+				ImportStateIdFunc: func(s *terraform.State) (string, error) {
+					rs, ok := s.RootModule().Resources[resourceName]
+					if !ok {
+						return "", fmt.Errorf("Not found: %s", resourceName)
+					}
+					return rs.Primary.Attributes["{{.TerraformIDField.AttributeName}}"], nil
+				},
+			},
+		},
+	})
+}
+
+func testAccCheck{{.ResourceName}}Destroy(s *terraform.State) error {
+	c := client.NewClient(client.GetConfigFromEnv())
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "mikrotik_{{.ResourceName | snakeCase}}" {
+			continue
+		}
+
+		remoteRecord, err := c.Find{{.ResourceName}}(rs.Primary.Attributes["{{.TerraformIDField.AttributeName}}"])
+
+		if !client.IsNotFoundError(err) && err != nil {
+			return err
+		}
+
+		if remoteRecord != nil {
+			return fmt.Errorf("remote record (%s) still exists", remoteRecord.ID())
+		}
+
+	}
+	return nil
+}
+
+func testAcc{{.ResourceName}}Exists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("%s does not exist in the statefile", resourceName)
+		}
+
+		c := client.NewClient(client.GetConfigFromEnv())
+		record, err := c.Find{{.ResourceName}}(rs.Primary.Attributes["{{.TerraformIDField.AttributeName}}"])
+		if err != nil {
+			return fmt.Errorf("Unable to get remote record for %s: %v", resourceName, err)
+		}
+
+		if record == nil {
+			return fmt.Errorf("Unable to get the remote record %s", resourceName)
+		}
+
+		return nil
+	}
 }
 
 `

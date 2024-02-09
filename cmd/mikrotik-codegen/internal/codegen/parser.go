@@ -181,10 +181,20 @@ func parseStructUsingTags(structNode *ast.StructType) (*Struct, error) {
 			continue
 		}
 
+		// determine the type of the field
+		typeName := typeUnknown
+		if exp, ok := astField.Type.(*ast.SelectorExpr); ok {
+			// selector expression when type comes from another package, e.g. types.MikrotikList
+			typeName = exp.Sel.Name
+		}
+		if exp, ok := astField.Type.(*ast.Ident); ok {
+			// identifier, when it is a builtin type, e.g. "string"
+			typeName = exp.Name
+		}
 		field := Field{
 			OriginalName: astField.Names[0].Name,
 			Name:         name,
-			Type:         fmt.Sprintf("%v", astField.Type),
+			Type:         typeName,
 		}
 		omit := false
 		for _, o := range opts {

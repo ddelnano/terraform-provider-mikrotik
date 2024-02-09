@@ -173,6 +173,11 @@ func (client Mikrotik) Delete(d Resource) error {
 	cmd := []string{d.ActionToCommand(Delete), "=" + deleteField + "=" + deleteFieldValue}
 	log.Printf("[INFO] Running the mikrotik command: `%s`", cmd)
 	_, err = c.RunArgs(cmd)
+	if rosErr, ok := err.(*routeros.DeviceError); ok {
+		if rosErr.Sentence.Map["message"] == "no such item" {
+			return NewNotFound(rosErr.Sentence.Map["message"])
+		}
+	}
 	if eh, ok := d.(ErrorHandler); ok {
 		err = eh.HandleError(err)
 	}
