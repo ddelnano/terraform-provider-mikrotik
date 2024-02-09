@@ -116,6 +116,9 @@ import (
 // {{.ResourceName}} defines resource
 type {{.ResourceName}} struct {
 	Id string ` + "`" + `mikrotik:".id"` + "`" + `
+	{{range $fieldName := .FieldNames -}}
+		{{$fieldName | pascalCase}} string ` + "`" + `mikrotik:"{{$fieldName}}"` + "`" + `
+	{{end}}
 }
 
 var _ Resource = (*{{.ResourceName}})(nil)

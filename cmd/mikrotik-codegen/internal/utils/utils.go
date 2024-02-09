@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"regexp"
 	"strings"
 )
 
@@ -34,4 +35,14 @@ func FirstLower(s string) string {
 	}
 
 	return strings.ToLower(s[:1]) + s[1:]
+}
+
+// PascalCase makes every word in input string upper case and removes all not alpha-numeric symbols.
+func PascalCase(s string) string {
+	r := regexp.MustCompile(`[^0-9a-zA-Z-]+`)
+	rClean := regexp.MustCompile(`[^0-9a-zA-Z]+`)
+	s = string(r.ReplaceAll([]byte(s), []byte("-")))
+	s = strings.Title(s)
+
+	return string(rClean.ReplaceAll([]byte(s), []byte("")))
 }

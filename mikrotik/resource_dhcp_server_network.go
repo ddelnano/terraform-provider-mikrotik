@@ -68,7 +68,6 @@ func (s *dhcpServerNetwork) Schema(_ context.Context, _ resource.SchemaRequest, 
 			"netmask": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Default:     stringdefault.StaticString("0"),
 				Description: "The actual network mask to be used by DHCP client. If set to '0' - netmask from network address will be used.",
 			},
 			"gateway": schema.StringAttribute{

@@ -5,28 +5,32 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	tftypes "github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // MikrotikStructToTerraformModel is a wrapper for copyStruct() to ensure proper src/dest typing
-func MikrotikStructToTerraformModel(src client.Resource, dest interface{}) error {
-	return copyStruct(src, dest)
+func MikrotikStructToTerraformModel(ctx context.Context, src client.Resource, dest interface{}) error {
+	return copyStruct(ctx, src, dest)
 }
 
 // TerraformModelToMikrotikStruct is a wrapper for copyStruct() to ensure proper src/dest typing
-func TerraformModelToMikrotikStruct(src interface{}, dest client.Resource) error {
-	return copyStruct(src, dest)
+func TerraformModelToMikrotikStruct(ctx context.Context, src interface{}, dest client.Resource) error {
+	return copyStruct(ctx, src, dest)
 }
 
 // copyStruct copies fields of src struct to fields of dest struct.
 //
-// The fields matching is done based on field names.
+// The fields matching is done based on field names (case insensitive).
+// Having multiple fields with the same name but different case leads to unpredictable behavior.
+//
 // If dest struct has no field with particular name, it is skipped.
-func copyStruct(src, dest interface{}) error {
+func copyStruct(ctx context.Context, src, dest interface{}) error {
 	if reflect.ValueOf(dest).Kind() != reflect.Pointer {
 		return errors.New("destination must be a pointer")
 	}
@@ -40,15 +44,29 @@ func copyStruct(src, dest interface{}) error {
 	for i := 0; i < reflectedSrc.NumField(); i++ {
 		srcField := reflectedSrc.Field(i)
 		srcFieldType := reflectedSrc.Type().Field(i)
-		destField := reflectedDest.FieldByName(srcFieldType.Name)
 
-		_, ok := reflectedDest.Type().FieldByName(srcFieldType.Name)
-		if !ok {
+		destField := reflectedDest.FieldByNameFunc(
+			func(s string) bool {
+				return strings.EqualFold(srcFieldType.Name, s)
+			})
+		destFieldType, found := reflectedDest.Type().FieldByNameFunc(
+			func(s string) bool {
+				return strings.EqualFold(srcFieldType.Name, s)
+			})
+		tflog.Debug(ctx, fmt.Sprintf("trying to copy struct field %q to %q", srcFieldType.Name, destFieldType.Name))
+		if !destField.IsValid() || !found {
 			// skip if dest struct does not have it (by name)
+			tflog.Debug(ctx, "target field was not found")
+			continue
+		}
+		if srcFieldType.PkgPath != "" || destFieldType.PkgPath != "" {
+			// skip unexported fields
+			tflog.Debug(ctx, "the source/target fields are unexported")
 			continue
 		}
 		if !destField.CanSet() {
 			// skip if dest field is not settable
+			tflog.Debug(ctx, "target field is not settable")
 			continue
 		}
 
