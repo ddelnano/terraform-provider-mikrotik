@@ -67,6 +67,62 @@ func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
 	})
 }
 
+func TestAccMikrotikInterfaceWireguardPeer_update(t *testing.T) {
+	client.SkipIfRouterOSV6OrEarlier(t, sysResources)
+
+	interfaceName := acctest.RandomWithPrefix("tf-acc-interface-wireguard")
+	publicKey := "/bTmUihbgNsSy2AIcxuEcwYwOVdqJJRKG51s4ypwfiM="
+	resourceName := "mikrotik_interface_wireguard_peer.bar"
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+				resource "mikrotik_interface_wireguard" "bar" {
+					name = "%s"
+					listen_port = 13231
+					mtu = 1420
+				}
+
+				resource "mikrotik_interface_wireguard_peer" "bar" {
+					interface = mikrotik_interface_wireguard.bar.name
+					public_key = "%s"
+					allowed_address = "%s"
+					endpoint_port = 13251
+				}`, interfaceName, publicKey, origAllowedAddress),
+
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccInterfaceWireguardPeerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "interface", interfaceName),
+					resource.TestCheckResourceAttr(resourceName, "public_key", publicKey),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`
+				resource "mikrotik_interface_wireguard" "bar" {
+					name = "%s"
+					listen_port = 13231
+					mtu = 1420
+				}
+
+				resource "mikrotik_interface_wireguard_peer" "bar" {
+					interface = mikrotik_interface_wireguard.bar.name
+					public_key = "%s"
+					allowed_address = "%s"
+					endpoint_port = 13251
+				}`, interfaceName, publicKey, origAllowedAddress),
+
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccInterfaceWireguardPeerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "interface", interfaceName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccMikrotikInterfaceWireguardPeer_import(t *testing.T) {
 	client.SkipIfRouterOSV6OrEarlier(t, sysResources)
 

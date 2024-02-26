@@ -48,6 +48,7 @@ func TestInterfaceWireguardPeer_Crud(t *testing.T) {
 		Interface:      createdInterface.(*InterfaceWireguard).Name,
 		Disabled:       false,
 		AllowedAddress: "0.0.0.0/0",
+		EndpointPort:   13250,
 		Comment:        "new interface from test",
 		PublicKey:      "/yZWgiYAgNNSy7AIcxuEewYwOVPqJJRKG90s9ypwfiM=",
 	}
