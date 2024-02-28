@@ -99,6 +99,9 @@ func Marshal(c string, s interface{}) []string {
 			case reflect.Int:
 				intValue := elem.Field(i).Interface().(int)
 				cmd = append(cmd, fmt.Sprintf("=%s=%d", mikrotikPropName, intValue))
+			case reflect.Int64:
+				intValue := elem.Field(i).Interface().(int64)
+				cmd = append(cmd, fmt.Sprintf("=%s=%d", mikrotikPropName, intValue))
 			case reflect.String:
 				stringValue := elem.Field(i).Interface().(string)
 				cmd = append(cmd, fmt.Sprintf("=%s=%s", mikrotikPropName, stringValue))
@@ -253,7 +256,7 @@ func parseStruct(v *reflect.Value, sentence proto.Sentence) {
 				case reflect.Bool:
 					b, _ := strconv.ParseBool(pair.Value)
 					field.SetBool(b)
-				case reflect.Int:
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 					intValue, _ := strconv.Atoi(pair.Value)
 					field.SetInt(int64(intValue))
 				}
