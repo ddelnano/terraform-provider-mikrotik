@@ -72,7 +72,8 @@ func copyStruct(ctx context.Context, src, dest interface{}) error {
 
 		switch kind := srcFieldType.Type.Kind(); kind {
 		case reflect.Bool,
-			reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Int8,
+			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
 			reflect.Float32, reflect.Float64,
 			reflect.String,
 			reflect.Slice:
@@ -111,6 +112,8 @@ func coreTypeToTerraformType(src, dest reflect.Value) error {
 	switch src.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		tfValue = tftypes.Int64Value(src.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		tfValue = tftypes.Int64Value(int64(src.Uint()))
 	case reflect.String:
 		tfValue = tftypes.StringValue(src.String())
 	case reflect.Bool:
@@ -127,7 +130,8 @@ func coreTypeToTerraformType(src, dest reflect.Value) error {
 		switch kind := src.Type().Elem().Kind(); kind {
 		case reflect.Bool:
 			tfType = tftypes.BoolType
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 			tfType = tftypes.Int64Type
 		case reflect.String:
 			tfType = tftypes.StringType
@@ -186,6 +190,16 @@ func terraformTypeToCoreType(src, dest reflect.Value) error {
 			sliceType = reflect.TypeOf(int32(0))
 		case reflect.Int64:
 			sliceType = reflect.TypeOf(int64(0))
+		case reflect.Uint:
+			sliceType = reflect.TypeOf(uint(0))
+		case reflect.Uint8:
+			sliceType = reflect.TypeOf(uint8(0))
+		case reflect.Uint16:
+			sliceType = reflect.TypeOf(uint16(0))
+		case reflect.Uint32:
+			sliceType = reflect.TypeOf(uint32(0))
+		case reflect.Uint64:
+			sliceType = reflect.TypeOf(uint64(0))
 		case reflect.String:
 			sliceType = reflect.TypeOf("")
 		default:
@@ -218,6 +232,16 @@ func terraformTypeToCoreType(src, dest reflect.Value) error {
 			sliceType = reflect.TypeOf(int32(0))
 		case reflect.Int64:
 			sliceType = reflect.TypeOf(int64(0))
+		case reflect.Uint:
+			sliceType = reflect.TypeOf(uint(0))
+		case reflect.Uint8:
+			sliceType = reflect.TypeOf(uint8(0))
+		case reflect.Uint16:
+			sliceType = reflect.TypeOf(uint16(0))
+		case reflect.Uint32:
+			sliceType = reflect.TypeOf(uint32(0))
+		case reflect.Uint64:
+			sliceType = reflect.TypeOf(uint64(0))
 		case reflect.String:
 			sliceType = reflect.TypeOf("")
 		default:
@@ -231,7 +255,6 @@ func terraformTypeToCoreType(src, dest reflect.Value) error {
 		if diag.HasError() {
 			return fmt.Errorf("%s", diag.Errors())
 		}
-
 		dest.Set(targetPtr.Elem())
 
 		return nil
@@ -252,6 +275,8 @@ func coreTypeToCoreType(src, dest reflect.Value) error {
 		dest.SetBool(src.Bool())
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		dest.SetInt(src.Int())
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		dest.SetUint(src.Uint())
 	case reflect.Float32, reflect.Float64:
 		dest.SetFloat(src.Float())
 	case reflect.String:
