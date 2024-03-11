@@ -15,8 +15,18 @@ func TestUnmarshal(t *testing.T) {
 		Name          string
 		NotNamedOwner string `mikrotik:"owner"`
 		RunCount      int    `mikrotik:"run-count"`
-		Allowed       bool
-		Schedule      types.MikrotikList
+		RunCount8     int8   `mikrotik:"run-count8"`
+		RunCount16    int16  `mikrotik:"run-count16"`
+		RunCount32    int32  `mikrotik:"run-count32"`
+		RunCount64    int64  `mikrotik:"run-count64"`
+		CountUint     uint   `mikrotik:"run-count-uint"`
+		CountUint8    uint8  `mikrotik:"run-count-uint8"`
+		CountUint16   uint16 `mikrotik:"run-count-uint16"`
+		CountUint32   uint32 `mikrotik:"run-count-uint32"`
+		CountUint64   uint64 `mikrotik:"run-count-uint64"`
+
+		Allowed  bool
+		Schedule types.MikrotikList
 	}
 
 	testCases := []struct {
@@ -44,6 +54,42 @@ func TestUnmarshal(t *testing.T) {
 								Value: "3",
 							},
 							{
+								Key:   "run-count8",
+								Value: "-3",
+							},
+							{
+								Key:   "run-count16",
+								Value: "12000",
+							},
+							{
+								Key:   "run-count32",
+								Value: "12000000",
+							},
+							{
+								Key:   "run-count64",
+								Value: "12000000000000",
+							},
+							{
+								Key:   "run-count-uint",
+								Value: "500",
+							},
+							{
+								Key:   "run-count-uint8",
+								Value: "5",
+							},
+							{
+								Key:   "run-count-uint16",
+								Value: "15000",
+							},
+							{
+								Key:   "run-count-uint32",
+								Value: "15000000",
+							},
+							{
+								Key:   "run-count-uint64",
+								Value: "15000000000000000",
+							},
+							{
 								Key:   "allowed",
 								Value: "true",
 							},
@@ -55,6 +101,15 @@ func TestUnmarshal(t *testing.T) {
 				Name:          "testing script",
 				NotNamedOwner: "admin",
 				RunCount:      3,
+				RunCount8:     -3,
+				RunCount16:    12000,
+				RunCount32:    12000000,
+				RunCount64:    12000000000000,
+				CountUint:     500,
+				CountUint8:    5,
+				CountUint16:   15000,
+				CountUint32:   15000000,
+				CountUint64:   15000000000000000,
 				Allowed:       true,
 			},
 		},
@@ -234,12 +289,30 @@ func TestMarshal(t *testing.T) {
 				Name          string `mikrotik:"name"`
 				NotNamedOwner string `mikrotik:"owner,extraTagNotUsed"`
 				RunCount      int    `mikrotik:"run-count"`
+				RunCount8     int8   `mikrotik:"run-count8"`
+				RunCount16    int16  `mikrotik:"run-count16"`
+				RunCount32    int32  `mikrotik:"run-count32"`
+				RunCount64    int64  `mikrotik:"run-count64"`
+				CountUint     uint   `mikrotik:"run-count-uint"`
+				CountUint8    uint8  `mikrotik:"run-count-uint8"`
+				CountUint16   uint16 `mikrotik:"run-count-uint16"`
+				CountUint32   uint32 `mikrotik:"run-count-uint32"`
+				CountUint64   uint64 `mikrotik:"run-count-uint64"`
 				ReadOnlyProp  bool   `mikrotik:"read-only-prop,readonly"`
 				Allowed       bool   `mikrotik:"allowed-or-not"`
 			}{
 				Name:          "test owner",
 				NotNamedOwner: "admin",
 				RunCount:      3,
+				RunCount8:     10,
+				RunCount16:    12000,
+				RunCount32:    -12_000_000,
+				RunCount64:    12_000_000_000_000_000,
+				CountUint:     15000,
+				CountUint8:    250,
+				CountUint16:   15000,
+				CountUint32:   15_000_000,
+				CountUint64:   15_000_000_000_000_000,
 				Allowed:       true,
 			},
 			expectedCmd: []string{
@@ -247,6 +320,15 @@ func TestMarshal(t *testing.T) {
 				"=name=test owner",
 				"=owner=admin",
 				"=run-count=3",
+				"=run-count8=10",
+				"=run-count16=12000",
+				"=run-count32=-12000000",
+				"=run-count64=12000000000000000",
+				"=run-count-uint=15000",
+				"=run-count-uint8=250",
+				"=run-count-uint16=15000",
+				"=run-count-uint32=15000000",
+				"=run-count-uint64=15000000000000000",
 				"=allowed-or-not=yes",
 			},
 		},
