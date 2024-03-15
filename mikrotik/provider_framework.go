@@ -203,6 +203,7 @@ func (p *ProviderFramework) Resources(ctx context.Context) []func() resource.Res
 		NewSchedulerResource,
 		NewScriptResource,
 		NewVlanInterfaceResource,
+		NewWirelessInterfaceResource,
 	},
 	)
 }
