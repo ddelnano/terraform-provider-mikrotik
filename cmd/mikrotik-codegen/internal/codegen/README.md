@@ -14,6 +14,17 @@ where
 
 `commandBase` - base path to craft commands for CRUD operations.
 
+It is also possible to pre-fill list of fields using either `-inspect-definition-file` argument
+```sh
+$ go run ./cmd/mikrotik-codegen mikrotik -name BridgeVlan -commandBase "/interface/bridge/vlan" -inspect-definition-file ./inspect_vlan.txt
+```
+
+or `-query-definition` flag (requires valid credentials in evironment)
+```sh
+$ go run ./cmd/mikrotik-codegen mikrotik -name BridgeVlan -commandBase "/interface/bridge/vlan" -query-definition
+```
+For details, see [Experimental](#experimental) section.
+
 ## Terraform resource
 Just add a `codegen` tag key to struct fields:
 ```go
@@ -47,3 +58,92 @@ $ go run ./cmd/mikrotik-codegen terraform -src client/resource.go -struct Mikrot
 |computed|Mark field as `computed` in resource schema|
 |elemType|Explicitly set element type for `List` or `Set` attributes. Usage `elemType=int`|
 |omit|Skip this field from code generation process|
+
+
+## Experimental
+
+This section contains documentation for experimental and non-stable features.
+
+### Generate Mikrotik resource using /console/inspect definition
+
+Modern RouterOS versions (>7.x) provide new `/console/inspect` command to query hierarchy or syntax of particular command.
+
+For example, `/console/inspect  path=interface,list request=child` prints `parent-child` relationship of the command:
+```
+Columns: TYPE, NAME, NODE-TYPE
+TYPE   NAME     NODE-TYPE
+self   list     dir
+child  add      cmd
+child  comment  cmd
+child  edit     cmd
+child  export   cmd
+child  find     cmd
+child  get      cmd
+child  member   dir
+child  print    cmd
+child  remove   cmd
+child  reset    cmd
+child  set      cmd
+```
+
+while `/console/inspect  path=interface,list request=syntax` gives another set of attributes:
+```
+Columns: TYPE, SYMBOL, SYMBOL-TYPE, NESTED, NONORM, TEXT
+TYPE    SYMBOL   SYMBOL-TYPE  NESTED  NONORM  TEXT
+syntax           collection        0  yes
+syntax  ..       explanation       1  no      go up to interface
+syntax  add      explanation       1  no      Create a new item
+syntax  comment  explanation       1  no      Set comment for items
+syntax  edit     explanation       1  no
+syntax  export   explanation       1  no      Print or save an export script that can be used to restore configuration
+syntax  find     explanation       1  no      Find items by value
+syntax  get      explanation       1  no      Gets value of item's property
+syntax  member   explanation       1  no
+syntax  print    explanation       1  no      Print values of item properties
+syntax  remove   explanation       1  no      Remove item
+syntax  reset    explanation       1  no
+syntax  set      explanation       1  no      Change item properties
+```
+
+Using that information, it is possible to query (even recursively) information about all menu items and sub-commands, starting from the root `/` command.
+
+:Warning: Since this feature is recent, trying to call it with our client package sometimes results in `terminal crush`.
+
+#### Using definition in file
+
+For this case, one needs:
+1. Machine-readable data about available fields
+2. Pass this data as `-inspect-definition-file` argument.
+
+To get resource definition, run the following command on remote system:
+```
+$ :put [/console/inspect  path=interface,list,add request=child as-value]
+```
+
+which produces:
+```
+name=add;node-type=cmd;type=self;name=comment;node-type=arg;type=child;name=copy-from;node-type=arg;type=child;name=exclude;node-type=arg;type=child;name=include;node-type=arg;type=child;name=name;node-type=arg;type=child
+```
+
+If you have `ssh` access to the Mikrotik, the following command will produce the same string:
+```shell
+$ ssh -o Port=XXXX -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@board ":put [/console inspect as-value request=child path=interface,list,add]" > inspect_definition.txt
+```
+
+After getting the definition file, just generate Mikrotik resource as usual with extra flag:
+```sh
+$ go run ./cmd/mikrotik-codegen mikrotik -name InterfaceList -commandBase "/interface/list" -inspect-definition-file ./inspect_definition.txt
+```
+and all fields for the struct will be created.
+
+
+Note, that we used `interface,list,add` as argument to `path`. The terminal equivalent would be `/interface/list/add` (not sure why it works that way, you can check [forum topic](https://forum.mikrotik.com/viewtopic.php?t=199139#p1024410))
+
+The reason we used `add` command and not `/interface/list` menu itself, is that we need only args (fields) of `add` command - not information about possible commands for `/interface/list`
+#### Query resource definition automatically
+
+To use this method, current environment must contain valid credentials.
+
+```shell
+$ go run cmd/mikrotik-codegen/main.go mikrotik -commandBase /ip/dhcp-server -name DhcpServer -query-definition
+```

@@ -17,7 +17,7 @@ jobs:
         go: ["1.18"]
         os: [ubuntu-latest]
         # Test against latest stable release, v6 beta and v7 beta
-        routeros: ["6.48.3", "6.49beta54"]
+        routeros: ["6.48.3", "6.49beta54", "7.1beta6"]
         include:
           - experimental: true
             go: 1.18

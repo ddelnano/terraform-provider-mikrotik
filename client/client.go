@@ -96,9 +96,10 @@ func Marshal(c string, s interface{}) []string {
 			}
 
 			switch value.Kind() {
-			case reflect.Int:
-				intValue := elem.Field(i).Interface().(int)
-				cmd = append(cmd, fmt.Sprintf("=%s=%d", mikrotikPropName, intValue))
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				cmd = append(cmd, fmt.Sprintf("=%s=%d", mikrotikPropName, elem.Field(i).Interface()))
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				cmd = append(cmd, fmt.Sprintf("=%s=%d", mikrotikPropName, elem.Field(i).Interface()))
 			case reflect.String:
 				stringValue := elem.Field(i).Interface().(string)
 				cmd = append(cmd, fmt.Sprintf("=%s=%s", mikrotikPropName, stringValue))
@@ -253,9 +254,12 @@ func parseStruct(v *reflect.Value, sentence proto.Sentence) {
 				case reflect.Bool:
 					b, _ := strconv.ParseBool(pair.Value)
 					field.SetBool(b)
-				case reflect.Int:
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 					intValue, _ := strconv.Atoi(pair.Value)
 					field.SetInt(int64(intValue))
+				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+					uintValue, _ := strconv.ParseUint(pair.Value, 10, 0)
+					field.SetUint(uint64(uintValue))
 				}
 			}
 		}

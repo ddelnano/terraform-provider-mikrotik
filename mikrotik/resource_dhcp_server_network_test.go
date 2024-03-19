@@ -10,9 +10,7 @@ import (
 )
 
 func TestDhcpServerNetwork_basic(t *testing.T) {
-
 	resourceName := "mikrotik_dhcp_server_network.testacc"
-
 	netmask := "24"
 	address := "10.10.10.0/" + netmask
 	gateway := "10.10.10.2"
@@ -44,6 +42,53 @@ func TestDhcpServerNetwork_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "gateway", gateway),
 					resource.TestCheckResourceAttr(resourceName, "dns_server", dnsServerUpdated),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
+				),
+			},
+		},
+	})
+}
+
+func TestDhcpServerNetwork_incompleteFieldsSet(t *testing.T) {
+	resourceName := "mikrotik_dhcp_server_network.testacc"
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckDhcpServerNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					resource mikrotik_dhcp_server_network "testacc" {
+						address    = "10.10.10.0/24"
+					}
+				`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccDhcpServerNetworkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "address", "10.10.10.0/24"),
+				),
+			},
+			{
+				Config: `
+					resource mikrotik_dhcp_server_network "testacc" {
+						address    = "10.10.10.0/24"
+						netmask    = "24"
+					}
+				`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccDhcpServerNetworkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "address", "10.10.10.0/24"),
+					resource.TestCheckResourceAttr(resourceName, "netmask", "24"),
+				),
+			},
+			{
+				Config: `
+					resource mikrotik_dhcp_server_network "testacc" {
+						address    = "10.10.10.0/24"
+					}
+				`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccDhcpServerNetworkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "address", "10.10.10.0/24"),
+					resource.TestCheckResourceAttr(resourceName, "netmask", "24"),
 				),
 			},
 		},

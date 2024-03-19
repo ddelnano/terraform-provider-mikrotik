@@ -122,7 +122,7 @@ func (r *pool) Update(ctx context.Context, req resource.UpdateRequest, resp *res
 		terraformModel.NextPool = tftypes.StringValue("none")
 	}
 
-	if err := utils.TerraformModelToMikrotikStruct(&terraformModel, &mikrotikModel); err != nil {
+	if err := utils.TerraformModelToMikrotikStruct(ctx, &terraformModel, &mikrotikModel); err != nil {
 		resp.Diagnostics.AddError("Cannot copy model: Terraform -> MikroTik", err.Error())
 		return
 	}
@@ -131,7 +131,7 @@ func (r *pool) Update(ctx context.Context, req resource.UpdateRequest, resp *res
 		resp.Diagnostics.AddError("Update failed", err.Error())
 		return
 	}
-	if err := utils.MikrotikStructToTerraformModel(updated, &terraformModel); err != nil {
+	if err := utils.MikrotikStructToTerraformModel(ctx, updated, &terraformModel); err != nil {
 		resp.Diagnostics.AddError("Cannot copy model: MikroTik -> Terraform", err.Error())
 		return
 	}
