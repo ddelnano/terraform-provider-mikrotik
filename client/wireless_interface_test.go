@@ -12,8 +12,9 @@ func TestWirelessInterface_basic(t *testing.T) {
 
 	c := NewClient(GetConfigFromEnv())
 	expected := &WirelessInterface{
-		Name: "wireless-" + randSuffix,
-		SSID: "ssid-" + randSuffix,
+		Name:            "wireless-" + randSuffix,
+		SSID:            "ssid-" + randSuffix,
+		MasterInterface: "*0",
 	}
 	created, err := c.AddWirelessInterface(expected)
 	require.NoError(t, err)

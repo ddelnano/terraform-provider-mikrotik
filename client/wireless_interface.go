@@ -19,7 +19,7 @@ const (
 type WirelessInterface struct {
 	Id              string `mikrotik:".id" codegen:"id,mikrotikID"`
 	Name            string `mikrotik:"name" codegen:"name,required"`
-	MasterInterface string `mikrotik:"master-insterface" codegen:"master_interface"`
+	MasterInterface string `mikrotik:"master-interface" codegen:"master_interface"`
 	Mode            string `mikrotik:"mode" codegen:"mode"`
 	Disabled        bool   `mikrotik:"disabled" codegen:"disabled"`
 	SecurityProfile string `mikrotik:"security-profile" codegen:"security_profile"`
