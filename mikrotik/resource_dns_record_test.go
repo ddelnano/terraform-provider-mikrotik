@@ -2,6 +2,7 @@ package mikrotik
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
@@ -25,6 +26,40 @@ func TestAccMikrotikDnsRecord_create(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccDnsRecordExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "id")),
+			},
+			{
+				Config: `
+					resource "mikrotik_dns_record" "bar" {
+						address = "10.10.200.100"
+						regexp  = ".+\\.domain\\.com"
+						ttl     = "300"
+					}
+				`,
+				ExpectError: regexp.MustCompile("only name or regexp allowed"),
+			},
+		},
+	})
+}
+
+func TestAccMikrotikDnsRecord_createRegexp(t *testing.T) {
+	resourceName := "mikrotik_dns_record.bar"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikDnsRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: `
+					resource "mikrotik_dns_record" "bar" {
+						address = "10.10.200.100"
+						regexp  = ".+\\.domain\\.com"
+						ttl     = "300"
+					}
+				`,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttr("mikrotik_dns_record.bar", "regexp", ".+\\.domain\\.com"),
+				),
 			},
 		},
 	})
@@ -110,6 +145,7 @@ func TestAccMikrotikDnsRecord_updateComment(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDnsRecordWithComment(dnsName, ipAddr, comment),
+
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccDnsRecordExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "comment", comment),
@@ -142,9 +178,9 @@ func TestAccMikrotikDnsRecord_import(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "id")),
 			},
 			{
-				ImportState:       true,
-				ResourceName:      resourceName,
-				ImportStateId:     dnsName,
+				ImportState:  true,
+				ResourceName: resourceName,
+				// ImportStateId:     dnsName,
 				ImportStateVerify: true,
 			},
 		},
@@ -192,12 +228,13 @@ func testAccDnsRecordExists(resourceName string) resource.TestCheckFunc {
 		}
 
 		if dnsRecord == nil {
-			return fmt.Errorf("Unable to get the dns record with name: %s", dnsRecord.Name)
+			return fmt.Errorf("Unable to get the dns record with name: %s", rs.Primary.Attributes["name"])
 		}
 
 		if dnsRecord.Name == rs.Primary.Attributes["name"] {
 			return nil
 		}
+
 		return nil
 	}
 }

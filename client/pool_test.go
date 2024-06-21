@@ -7,19 +7,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var name string = "testacc"
-var ranges string = "172.16.0.1-172.16.0.8,172.16.0.10"
-var comment string = "terraform-acc-test-pool"
-var updatedRanges string = "172.16.0.1-172.16.0.8,172.16.0.16"
-var updatedComment string = "terraform acc test pool updated"
-
 func TestAddUpdateAndDeletePool(t *testing.T) {
 	c := NewClient(GetConfigFromEnv())
 
 	expectedPool := &Pool{
-		Name:    name,
-		Ranges:  ranges,
-		Comment: comment,
+		Name:    "pool-" + RandomString(),
+		Ranges:  "172.16.0.1-172.16.0.8,172.16.0.10",
+		Comment: "pool comment",
 	}
 	pool, err := c.AddPool(expectedPool)
 
@@ -32,8 +26,8 @@ func TestAddUpdateAndDeletePool(t *testing.T) {
 		t.Errorf("The pool does not match what we expected. actual: %v expected: %v", pool, expectedPool)
 	}
 
-	expectedPool.Comment = updatedComment
-	expectedPool.Ranges = updatedRanges
+	expectedPool.Comment = "updated comment"
+	expectedPool.Ranges = "172.16.0.1-172.16.0.8,172.16.0.16"
 	pool, err = c.UpdatePool(expectedPool)
 
 	if err != nil {
@@ -64,9 +58,9 @@ func TestFindPoolByName_forExistingPool(t *testing.T) {
 	c := NewClient(GetConfigFromEnv())
 
 	p := &Pool{
-		Name:    name,
-		Ranges:  ranges,
-		Comment: comment,
+		Name:    "pool-" + RandomString(),
+		Ranges:  "172.16.0.1-172.16.0.8,172.16.0.10",
+		Comment: "existing pool",
 	}
 	pool, err := c.AddPool(p)
 
