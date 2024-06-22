@@ -43,14 +43,6 @@ func (i *InterfaceWireguardPeer) AfterAddHook(r *routeros.Reply) {
 	i.Id = r.Done.Map["ret"]
 }
 
-func (i *InterfaceWireguardPeer) FindField() string {
-	return "interface"
-}
-
-func (i *InterfaceWireguardPeer) FindFieldValue() string {
-	return i.Interface
-}
-
 func (i *InterfaceWireguardPeer) DeleteField() string {
 	return "numbers"
 }
@@ -68,8 +60,8 @@ func (client Mikrotik) AddInterfaceWireguardPeer(i *InterfaceWireguardPeer) (*In
 	return res.(*InterfaceWireguardPeer), nil
 }
 
-func (client Mikrotik) FindInterfaceWireguardPeer(interfaceName string) (*InterfaceWireguardPeer, error) {
-	res, err := client.Find(&InterfaceWireguardPeer{Interface: interfaceName})
+func (client Mikrotik) FindInterfaceWireguardPeer(id string) (*InterfaceWireguardPeer, error) {
+	res, err := client.Find(&InterfaceWireguardPeer{Id: id})
 	if err != nil {
 		return nil, err
 	}

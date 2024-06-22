@@ -1,9 +1,9 @@
 package client
 
 import (
-	"reflect"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -11,11 +11,11 @@ func TestFindInterfaceWireguardPeer_onNonExistantInterfacePeer(t *testing.T) {
 	SkipIfRouterOSV6OrEarlier(t, sysResources)
 	c := NewClient(GetConfigFromEnv())
 
-	interfaceName := "Interface peer does not exist"
-	_, err := c.FindInterfaceWireguardPeer(interfaceName)
+	peerID := "Interface peer does not exist"
+	_, err := c.FindInterfaceWireguardPeer(peerID)
 
 	require.Truef(t, IsNotFoundError(err),
-		"Expecting to receive NotFound error for Interface peer `%q`, instead error was nil.", interfaceName)
+		"Expecting to receive NotFound error for Interface peer `%q`, instead error was nil.", peerID)
 }
 
 func TestInterfaceWireguardPeer_Crud(t *testing.T) {
@@ -45,35 +45,25 @@ func TestInterfaceWireguardPeer_Crud(t *testing.T) {
 	}()
 
 	interfaceWireguardPeer := &InterfaceWireguardPeer{
-		Interface: createdInterface.(*InterfaceWireguard).Name,
-		Disabled:  false,
-		Comment:   "new interface from test",
+		Interface:      createdInterface.(*InterfaceWireguard).Name,
+		Disabled:       false,
+		AllowedAddress: "0.0.0.0/0",
+		EndpointPort:   13250,
+		Comment:        "new interface from test",
+		PublicKey:      "/yZWgiYAgNNSy7AIcxuEewYwOVPqJJRKG90s9ypwfiM=",
 	}
 
 	created, err := c.Add(interfaceWireguardPeer)
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-		return
-	}
+	require.NoError(t, err)
 	defer func() {
 		err = c.Delete(interfaceWireguardPeer)
-		if err != nil {
-			t.Errorf("expected no error, got %v", err)
-		}
+		assert.NoError(t, err)
 	}()
-	findInterface := &InterfaceWireguardPeer{}
-	findInterface.Interface = createdInterface.(*InterfaceWireguard).Name
-	found, err := c.Find(findInterface)
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-		return
-	}
 
-	if _, ok := found.(Resource); !ok {
-		t.Error("expected found resource to implement Resource interface, but it doesn't")
-		return
-	}
-	if !reflect.DeepEqual(created, found) {
-		t.Error("expected created and found resources to be equal, but they aren't")
-	}
+	findPeer := &InterfaceWireguardPeer{}
+	findPeer.Id = created.(*InterfaceWireguardPeer).Id
+	foundPeer, err := c.Find(findPeer)
+	require.NoError(t, err)
+
+	assert.Equal(t, created, foundPeer)
 }

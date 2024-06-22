@@ -87,11 +87,9 @@ func TestAccMikrotikInterfaceWireguard_import(t *testing.T) {
 				),
 			},
 			{
-				ResourceName: resourceName,
-				ImportState:  true,
-				ImportStateIdFunc: func(s *terraform.State) (string, error) {
-					return name, nil
-				},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateId:     name,
 				ImportStateVerify: true,
 			},
 		},

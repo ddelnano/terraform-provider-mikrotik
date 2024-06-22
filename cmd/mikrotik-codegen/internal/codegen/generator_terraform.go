@@ -3,14 +3,28 @@ package codegen
 import (
 	"errors"
 	"io"
+	"reflect"
 	"strings"
 	"text/template"
 
+	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
 	"github.com/ddelnano/terraform-provider-mikrotik/cmd/mikrotik-codegen/internal/utils"
 )
 
+const (
+	// List of declaration identifiers from ast package while parsing the source code
+	AstVarTypeString = "string"
+	AstVarTypeInt    = "int"
+	AstVarTypeBool   = "bool"
+)
+
 var (
-	defaultImports = []string{
+	// Handle custom types from the client package
+	AstVarTypeMikrotikList     = reflect.TypeOf(types.MikrotikList{}).Name()
+	AstVarTypeMikrotikIntList  = reflect.TypeOf(types.MikrotikIntList{}).Name()
+	AstVarTypeMikrotikDuration = reflect.TypeOf(types.MikrotikDuration(0)).Name()
+
+	terraformResourceImports = []string{
 		"context",
 		"github.com/ddelnano/terraform-provider-mikrotik/client",
 		"github.com/hashicorp/terraform-plugin-framework/path",
@@ -18,6 +32,14 @@ var (
 		"github.com/hashicorp/terraform-plugin-framework/resource/schema",
 		"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier",
 		"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier",
+	}
+
+	terraformResourceTestImports = []string{
+		"fmt",
+		"testing",
+		"github.com/ddelnano/terraform-provider-mikrotik/client",
+		"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource",
+		"github.com/hashicorp/terraform-plugin-sdk/v2/terraform",
 	}
 )
 
@@ -41,43 +63,49 @@ type (
 	}
 
 	templateData struct {
-		Package              string
-		Imports              []string
-		ResourceName         string
-		Fields               []*terraformField
-		TerraformIDField     *terraformField
-		TerraformIDAttribute string
-		MikrotikIDField      *Field
-		DeleteField          *terraformField
+		Imports          []string
+		ResourceName     string
+		Fields           []*terraformField
+		TerraformIDField *terraformField
+		MikrotikIDField  *Field
+		DeleteField      *terraformField
 	}
 )
 
 // GenerateResource generates Terraform resource and writes it to specified output
 func GenerateResource(s *Struct, w io.Writer) error {
-	if err := generateResource(w, *s); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func generateResource(w sourceWriter, s Struct) error {
-	if err := writeWrapper(w, []byte(generatedNotice)); err != nil {
-		return err
-	}
-	fields, err := convertToTerraformDefinition(s.Fields)
+	data, err := generateTemplateData(*s)
 	if err != nil {
 		return err
 	}
+	data.Imports = terraformResourceImports
 
-	t := template.New("resource")
-	t.Funcs(template.FuncMap{
-		"lowercase":  strings.ToLower,
-		"snakeCase":  utils.ToSnakeCase,
-		"firstLower": utils.FirstLower,
-	})
-	if _, err := t.Parse(resourceDefinitionTemplate); err != nil {
+	return generateCode(w,
+		"resource",
+		terraformResourceDefinitionTemplate,
+		data,
+	)
+}
+
+// GenerateResourceTest generates Terraform resource acceptance test and writes it to specified output
+func GenerateResourceTest(s *Struct, w io.Writer) error {
+	data, err := generateTemplateData(*s)
+	if err != nil {
 		return err
+	}
+	data.Imports = terraformResourceTestImports
+
+	return generateCode(w,
+		"resource_test",
+		terraformResourceTestDefinitionTemplate,
+		data,
+	)
+}
+
+func generateTemplateData(s Struct) (templateData, error) {
+	fields, err := convertToTerraformDefinition(s.Fields)
+	if err != nil {
+		return templateData{}, err
 	}
 
 	findTerraformFieldByName := func(fields []*terraformField, name string) *terraformField {
@@ -99,7 +127,7 @@ func generateResource(w sourceWriter, s Struct) error {
 
 	idField := findTerraformFieldByName(fields, s.MikrotikIDField)
 	if idField.AttributeName == "" {
-		return errors.New("The source struct does not provide information about ID field. Did you forget to mark one via 'id' tag?")
+		return templateData{}, errors.New("The source struct does not provide information about ID field. Did you forget to mark one via 'id' tag?")
 	}
 	terraformIdField := findTerraformFieldByName(fields, s.TerraformIDField)
 	if terraformIdField.AttributeName == "" {
@@ -118,16 +146,33 @@ func generateResource(w sourceWriter, s Struct) error {
 	idField.Computed = true
 	idField.Required = false
 	idField.Optional = false
-	if err := t.Execute(w,
-		templateData{
-			ResourceName:     s.Name,
-			Fields:           fields,
-			Package:          "mikrotik",
-			TerraformIDField: terraformIdField,
-			MikrotikIDField:  mikrotikIdField,
-			DeleteField:      deleteField,
-			Imports:          defaultImports,
-		}); err != nil {
+
+	return templateData{
+		ResourceName:     s.Name,
+		Fields:           fields,
+		TerraformIDField: terraformIdField,
+		MikrotikIDField:  mikrotikIdField,
+		DeleteField:      deleteField,
+	}, nil
+}
+
+func generateCode(w io.Writer, templateName, templateBody string, templateData interface{}) error {
+	t := template.New(templateName)
+	t.Funcs(template.FuncMap{
+		"lowerCase":  strings.ToLower,
+		"snakeCase":  utils.ToSnakeCase,
+		"firstLower": utils.FirstLower,
+		"sampleData": sampleData,
+	})
+	if _, err := t.Parse(templateBody); err != nil {
+		return err
+	}
+
+	if err := writeWrapper(w, []byte(generatedNotice)); err != nil {
+		return err
+	}
+
+	if err := t.Execute(w, templateData); err != nil {
 		return err
 	}
 
@@ -161,14 +206,16 @@ func convertToTerraformDefinition(fields []*Field) ([]*terraformField, error) {
 
 func typeToTerraformType(typ string) Type {
 	switch typ {
-	case "slice":
-		return ListType
-	case "bool":
+	case AstVarTypeBool:
 		return BoolType
-	case "int":
+	case AstVarTypeInt, AstVarTypeMikrotikDuration:
 		return Int64Type
-	case "string":
+	case AstVarTypeString:
 		return StringType
+	case AstVarTypeMikrotikList:
+		return StringSliceType
+	case AstVarTypeMikrotikIntList:
+		return IntSliceType
 	}
 
 	return UnknownType
@@ -178,4 +225,26 @@ func writeWrapper(w sourceWriter, data []byte) error {
 	_, err := w.Write(data)
 
 	return err
+}
+
+// sampleData generates sample value for provided type.
+func sampleData(typeName string) string {
+	switch typeName {
+	case typeString:
+		return `"sample"`
+	case typeList:
+		return `[]`
+	case typeSet:
+		return `[]`
+	case typeInt64:
+		return "42"
+	case typeBool:
+		return "false"
+	case typeStringSlice:
+		return `["one", "two"]`
+	case typeIntSlice:
+		return `[1, 2, 3]`
+	default:
+		return `"` + typeUnknown + `"`
+	}
 }
