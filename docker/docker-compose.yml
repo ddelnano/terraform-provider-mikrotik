@@ -1,13 +1,22 @@
 ---
 
-version: "2.4"
-
 services:
   routeros:
-    image: evilfreelancer/docker-routeros:${ROUTEROS_VERSION:-6.48.3}
+    build:
+      context: .
+      dockerfile: Dockerfile.routeros
+      args:
+        ROUTEROS_VERSION: ${ROUTEROS_VERSION}
+    environment:
+      DEBUG: "N"
+      DISPLAY: "web"
     ports:
       - 127.0.0.1:8728:8728
+      - 127.0.0.1:2222:22
+      - 127.0.0.1:8006:8006
+      - 127.0.0.1:5900:5900
     volumes:
       - /dev/net/tun:/dev/net/tun
     cap_add:
       - "NET_ADMIN"
+    stop_grace_period: 20s

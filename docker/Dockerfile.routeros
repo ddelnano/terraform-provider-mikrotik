@@ -1,0 +1,19 @@
+FROM alpine:3.19 as builder
+
+RUN apk add -U curl
+
+ARG ROUTEROS_VERSION
+ENV ROUTEROS_VERSION=${ROUTEROS_VERSION:-7.15.1}
+
+RUN curl -o data.img.zip https://download.mikrotik.com/routeros/${ROUTEROS_VERSION}/chr-${ROUTEROS_VERSION}.img.zip \
+    && unzip -p data.img.zip > /data.img
+
+FROM qemux/qemu-docker
+
+ENV KVM="N"
+ENV BOOT_MODE="legacy"
+ENV BOOT_INDEX="0"
+ENV ARGUMENTS="-nographic"
+ENV DISK_TYPE="blk"
+
+COPY --from=builder /data.img /storage/data.img
