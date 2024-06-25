@@ -1,7 +1,7 @@
 .PHONY: build generate clean plan apply lint-client lint-provider lint testacc testclient test
 
 TIMEOUT ?= 40m
-ROUTEROS_VERSION ?= "6.48.3"
+ROUTEROS_VERSION ?= ""
 ifdef TEST
     override TEST := ./... -run $(TEST)
 else
@@ -11,6 +11,8 @@ endif
 ifdef TF_LOG
     override TF_LOG := TF_LOG=$(TF_LOG)
 endif
+
+compose := docker compose -f docker/docker-compose.yml
 
 build:
 	go build -o terraform-provider-mikrotik
@@ -45,10 +47,13 @@ testacc:
 	TF_ACC=1 $(TF_LOG) go test $(TEST) -v -count 1 -timeout $(TIMEOUT)
 
 routeros: routeros-clean
-	ROUTEROS_VERSION=$(ROUTEROS_VERSION) docker compose -f docker/docker-compose.yml up -d routeros
+	ROUTEROS_VERSION=$(ROUTEROS_VERSION) ${compose} up -d --build routeros
 
 routeros-stop:
-	docker compose -f docker/docker-compose.yml stop routeros
+	${compose} stop routeros
+
+routeros-logs:
+	${compose} logs -f routeros
 
 routeros-clean:
-	docker compose -f docker/docker-compose.yml rm -sfv routeros
+	${compose} rm -sfv routeros
