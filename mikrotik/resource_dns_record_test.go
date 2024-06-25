@@ -178,9 +178,8 @@ func TestAccMikrotikDnsRecord_import(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "id")),
 			},
 			{
-				ImportState:  true,
-				ResourceName: resourceName,
-				// ImportStateId:     dnsName,
+				ImportState:       true,
+				ResourceName:      resourceName,
 				ImportStateVerify: true,
 			},
 		},
