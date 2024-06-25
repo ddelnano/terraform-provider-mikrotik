@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ddelnano/terraform-provider-mikrotik/client"
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -19,9 +20,10 @@ type dnsRecord struct {
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ resource.Resource                = &dnsRecord{}
-	_ resource.ResourceWithConfigure   = &dnsRecord{}
-	_ resource.ResourceWithImportState = &dnsRecord{}
+	_ resource.Resource                     = &dnsRecord{}
+	_ resource.ResourceWithConfigure        = &dnsRecord{}
+	_ resource.ResourceWithConfigValidators = &dnsRecord{}
+	_ resource.ResourceWithImportState      = &dnsRecord{}
 )
 
 // NewDnsRecordResource is a helper function to simplify the provider implementation.
@@ -55,8 +57,14 @@ func (s *dnsRecord) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Description: "Unique ID of this resource.",
 			},
 			"name": schema.StringAttribute{
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
 				Description: "The name of the DNS hostname to be created.",
+			},
+			"regexp": schema.StringAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "Regular expression against which domain names should be verified.",
 			},
 			"ttl": schema.Int64Attribute{
 				Optional:    true,
@@ -73,6 +81,15 @@ func (s *dnsRecord) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Description: "The comment text associated with the DNS record.",
 			},
 		},
+	}
+}
+
+func (r *dnsRecord) ConfigValidators(context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		resourcevalidator.ExactlyOneOf(
+			path.MatchRoot("name"),
+			path.MatchRoot("regexp"),
+		),
 	}
 }
 
@@ -106,12 +123,13 @@ func (r *dnsRecord) Delete(ctx context.Context, req resource.DeleteRequest, resp
 
 func (r *dnsRecord) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Retrieve import ID and save to id attribute
-	resource.ImportStatePassthroughID(ctx, path.Root("name"), req, resp)
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
 type dnsRecordModel struct {
 	Id      tftypes.String `tfsdk:"id"`
 	Name    tftypes.String `tfsdk:"name"`
+	Regexp  tftypes.String `tfsdk:"regexp"`
 	Ttl     tftypes.Int64  `tfsdk:"ttl"`
 	Address tftypes.String `tfsdk:"address"`
 	Comment tftypes.String `tfsdk:"comment"`
