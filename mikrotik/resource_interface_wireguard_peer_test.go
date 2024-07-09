@@ -112,11 +112,13 @@ func TestAccMikrotikInterfaceWireguardPeer_update(t *testing.T) {
 					public_key = "%s"
 					allowed_address = "%s"
 					endpoint_port = 13251
+					persistent_keepalive = 3602
 				}`, interfaceName, publicKey, origAllowedAddress),
 
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccInterfaceWireguardPeerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "interface", interfaceName),
+					resource.TestCheckResourceAttr(resourceName, "persistent_keepalive", "3602"),
 				),
 			},
 		},
