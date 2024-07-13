@@ -20,7 +20,7 @@ func TestAccMikrotikScript_create(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-create")
 
 	resourceName := "mikrotik_script.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikScriptDestroy,
@@ -40,7 +40,7 @@ func TestAccMikrotikScript_updateSource(t *testing.T) {
 	updatedSource := ":put updated"
 
 	resourceName := "mikrotik_script.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikScriptDestroy,
@@ -66,7 +66,7 @@ func TestAccMikrotikScript_updateOwner(t *testing.T) {
 	updatedOwner := "prometheus"
 
 	resourceName := "mikrotik_script.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikScriptDestroy,
@@ -91,7 +91,7 @@ func TestAccMikrotikScript_updateDontReqPerms(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-update-perm")
 
 	resourceName := "mikrotik_script.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikScriptDestroy,
@@ -117,7 +117,7 @@ func TestAccMikrotikScript_updatePolicies(t *testing.T) {
 	updatedPolicies := []string{"ftp"}
 
 	resourceName := "mikrotik_script.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikScriptDestroy,
@@ -145,7 +145,7 @@ func TestAccMikrotikScript_import(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-import")
 
 	resourceName := "mikrotik_script.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikScriptDestroy,

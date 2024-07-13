@@ -20,7 +20,7 @@ func TestAccMikrotikInterfaceWireguardPeer_create(t *testing.T) {
 	interfaceName := acctest.RandomWithPrefix("tf-acc-interface-wireguard")
 	publicKey := "/yZWgiYAgNNSy7AIcxuEewYwOVPqJJRKG90s9ypwfiM="
 	resourceName := "mikrotik_interface_wireguard_peer.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
@@ -43,7 +43,7 @@ func TestAccMikrotikInterfaceWireguardPeer_updatedComment(t *testing.T) {
 	interfaceName := acctest.RandomWithPrefix("tf-acc-interface-wireguard")
 	publicKey := "/bTmUihbgNsSy2AIcxuEcwYwOVdqJJRKG51s4ypwfiM="
 	resourceName := "mikrotik_interface_wireguard_peer.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
@@ -131,7 +131,7 @@ func TestAccMikrotikInterfaceWireguardPeer_import(t *testing.T) {
 	interfaceName := acctest.RandomWithPrefix("tf-acc-interface-wireguard")
 	publicKey := "/zYaGiYbgNsSy8AIcxuEcwYwOVdqJJRKG91s9ypwfiM="
 	resourceName := "mikrotik_interface_wireguard_peer.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardPeerDestroy,
