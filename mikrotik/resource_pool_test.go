@@ -16,7 +16,7 @@ func TestAccMikrotikPool_create(t *testing.T) {
 	ranges := fmt.Sprintf("%s,%s", internal.GetNewIpAddrRange(10), internal.GetNewIpAddr())
 
 	resourceName := "mikrotik_pool.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikPoolDestroy,
@@ -40,7 +40,7 @@ func TestAccMikrotikPool_createNextPool(t *testing.T) {
 	ranges := fmt.Sprintf("%s,%s", internal.GetNewIpAddrRange(10), internal.GetNewIpAddr())
 
 	resourceName := "mikrotik_pool.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikPoolDestroy,
@@ -95,7 +95,7 @@ func TestAccMikrotikPool_createAndPlanWithNonExistantPool(t *testing.T) {
 			t.Fatalf("Error removing the pool: %s", err)
 		}
 	}
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikPoolDestroy,
@@ -123,7 +123,7 @@ func TestAccMikrotikPool_updatePool(t *testing.T) {
 	comment := acctest.RandomWithPrefix("tf-acc-comment")
 
 	resourceName := "mikrotik_pool.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikPoolDestroy,
@@ -170,7 +170,7 @@ func TestAccMikrotikPool_import(t *testing.T) {
 	ranges := fmt.Sprintf("%s,%s", internal.GetNewIpAddrRange(10), internal.GetNewIpAddr())
 
 	resourceName := "mikrotik_pool.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikPoolDestroy,

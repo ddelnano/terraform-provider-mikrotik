@@ -17,7 +17,7 @@ func TestAccMikrotikDhcpLease_create(t *testing.T) {
 	comment := acctest.RandomWithPrefix("tf-acc-comment")
 
 	resourceName := "mikrotik_dhcp_lease.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikDhcpLeaseDestroy,
@@ -46,7 +46,7 @@ func TestAccMikrotikDhcpLease_updateLease(t *testing.T) {
 	updatedComment := acctest.RandomWithPrefix("tf-acc-comment")
 
 	resourceName := "mikrotik_dhcp_lease.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikDhcpLeaseDestroy,
@@ -107,7 +107,7 @@ func TestAccMikrotikDhcpLease_import(t *testing.T) {
 	comment := acctest.RandomWithPrefix("tf-acc-comment")
 
 	resourceName := "mikrotik_dhcp_lease.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikDhcpLeaseDestroy,

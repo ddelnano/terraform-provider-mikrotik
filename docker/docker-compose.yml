@@ -2,11 +2,7 @@
 
 services:
   routeros:
-    build:
-      context: .
-      dockerfile: Dockerfile.routeros
-      args:
-        ROUTEROS_VERSION: ${ROUTEROS_VERSION}
+    image: mnazarenko/docker-routeros:${ROUTEROS_VERSION:-latest}
     environment:
       DEBUG: "N"
       DISPLAY: "web"

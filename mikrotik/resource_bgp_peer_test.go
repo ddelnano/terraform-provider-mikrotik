@@ -30,7 +30,7 @@ func TestAccMikrotikBgpPeer_create(t *testing.T) {
 	remoteAddress, _ := acctest.RandIpAddress("192.168.0.0/24")
 
 	resourceName := "mikrotik_bgp_peer.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikBgpPeerDestroy,
@@ -80,7 +80,7 @@ func TestAccMikrotikBgpPeer_createAndPlanWithNonExistantBgpPeer(t *testing.T) {
 			t.Fatalf("Error removing the bgp peer: %s", err)
 		}
 	}
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikBgpPeerDestroy,
@@ -107,7 +107,7 @@ func TestAccMikrotikBgpPeer_updateBgpPeer(t *testing.T) {
 	remoteAddress, _ := acctest.RandIpAddress("192.168.3.0/24")
 
 	resourceName := "mikrotik_bgp_peer.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikBgpPeerDestroy,
@@ -170,7 +170,7 @@ func TestAccMikrotikBgpPeer_import(t *testing.T) {
 
 	resourceName := "mikrotik_bgp_peer.bar"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikBgpPeerDestroy,

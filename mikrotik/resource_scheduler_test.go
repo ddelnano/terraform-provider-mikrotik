@@ -19,7 +19,7 @@ func TestAccMikrotikScheduler_create(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-create")
 
 	resourceName := "mikrotik_scheduler.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikSchedulerDestroy,
@@ -68,7 +68,7 @@ func TestAccMikrotikScheduler_updatedOnEvent(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-update-event")
 
 	resourceName := "mikrotik_scheduler.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikSchedulerDestroy,
@@ -93,7 +93,7 @@ func TestAccMikrotikScheduler_import(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-import")
 
 	resourceName := "mikrotik_scheduler.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikSchedulerDestroy,

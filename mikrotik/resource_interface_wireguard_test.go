@@ -21,7 +21,7 @@ func TestAccMikrotikInterfaceWireguard_create(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-create")
 
 	resourceName := "mikrotik_interface_wireguard.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardDestroy,
@@ -45,7 +45,7 @@ func TestAccMikrotikInterfaceWireguard_updatedComment(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-update-comment")
 
 	resourceName := "mikrotik_interface_wireguard.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardDestroy,
@@ -73,7 +73,7 @@ func TestAccMikrotikInterfaceWireguard_import(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-import")
 
 	resourceName := "mikrotik_interface_wireguard.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikInterfaceWireguardDestroy,
