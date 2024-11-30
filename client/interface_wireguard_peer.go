@@ -1,20 +1,21 @@
 package client
 
 import (
+	"github.com/ddelnano/terraform-provider-mikrotik/client/types"
 	"github.com/go-routeros/routeros"
 )
 
 type InterfaceWireguardPeer struct {
-	Id                  string `mikrotik:".id"`
-	AllowedAddress      string `mikrotik:"allowed-address"`
-	Comment             string `mikrotik:"comment"`
-	Disabled            bool   `mikrotik:"disabled"`
-	EndpointAddress     string `mikrotik:"endpoint-address"`
-	EndpointPort        int64  `mikrotik:"endpoint-port"`
-	Interface           string `mikrotik:"interface"`
-	PersistentKeepalive int64  `mikrotik:"persistent-keepalive"`
-	PresharedKey        string `mikrotik:"preshared-key"`
-	PublicKey           string `mikrotik:"public-key"`
+	Id                  string                 `mikrotik:".id"`
+	AllowedAddress      string                 `mikrotik:"allowed-address"`
+	Comment             string                 `mikrotik:"comment"`
+	Disabled            bool                   `mikrotik:"disabled"`
+	EndpointAddress     string                 `mikrotik:"endpoint-address"`
+	EndpointPort        int64                  `mikrotik:"endpoint-port"`
+	Interface           string                 `mikrotik:"interface"`
+	PersistentKeepalive types.MikrotikDuration `mikrotik:"persistent-keepalive"`
+	PresharedKey        string                 `mikrotik:"preshared-key"`
+	PublicKey           string                 `mikrotik:"public-key"`
 }
 
 func (i *InterfaceWireguardPeer) ActionToCommand(action Action) string {
