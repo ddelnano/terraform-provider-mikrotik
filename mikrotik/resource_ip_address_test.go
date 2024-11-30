@@ -17,7 +17,7 @@ func TestAccMikrotikResourceIpAddress_create(t *testing.T) {
 	comment := acctest.RandomWithPrefix("tf-acc-comment")
 
 	resourceName := "mikrotik_ip_address.test"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikIpAddressDestroy,
@@ -46,7 +46,7 @@ func TestAccMikrotikResourceIpAddress_updateAddr(t *testing.T) {
 	updatedDisabled := "true"
 
 	resourceName := "mikrotik_ip_address.test"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikIpAddressDestroy,

@@ -16,7 +16,7 @@ func TestAccMikrotikDnsRecord_create(t *testing.T) {
 	ipAddr := internal.GetNewIpAddr()
 
 	resourceName := "mikrotik_dns_record.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikDnsRecordDestroy,
@@ -83,7 +83,7 @@ func TestAccMikrotikDnsRecord_createAndPlanWithNonExistantRecord(t *testing.T) {
 		}
 
 	}
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikDnsRecordDestroy,
@@ -109,7 +109,7 @@ func TestAccMikrotikDnsRecord_updateAddress(t *testing.T) {
 	updatedIpAddr := internal.GetNewIpAddr()
 
 	resourceName := "mikrotik_dns_record.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikDnsRecordDestroy,
@@ -138,7 +138,7 @@ func TestAccMikrotikDnsRecord_updateComment(t *testing.T) {
 	updatedComment := "new comment"
 
 	resourceName := "mikrotik_dns_record.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikDnsRecordDestroy,
@@ -166,7 +166,7 @@ func TestAccMikrotikDnsRecord_import(t *testing.T) {
 	ipAddr := internal.GetNewIpAddr()
 
 	resourceName := "mikrotik_dns_record.bar"
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikDnsRecordDestroy,

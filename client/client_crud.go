@@ -61,6 +61,13 @@ type (
 		DeleteFieldValue() string
 	}
 
+	// Normalizer is used to normalize response from RouterOS.
+	// The main use-case is to populate fields which are empty in response but have default value,
+	// for example `authoritative=yes` in `DHCPServer` resource is not returned by remote RouterOS instance.
+	Normalizer interface {
+		Normalize(r *routeros.Reply)
+	}
+
 	// ErrorHandler Defines contract to handle errors returned by RouterOS.
 	// It can either return another error, or supress original error by returning nil.
 	ErrorHandler interface {
@@ -216,6 +223,11 @@ func (client Mikrotik) findByField(d Resource, field, value string) (Resource, e
 	if err != nil {
 		return nil, err
 	}
+
+	if n, ok := targetStructInterface.(Normalizer); ok {
+		n.Normalize(r)
+	}
+
 	// assertion is not checked as we are creating the targetStruct from 'd' argument which satisfies Resource interface
 	targetResource := targetStructInterface.(Resource)
 	if targetResource.ID() == "" {

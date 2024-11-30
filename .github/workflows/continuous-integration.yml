@@ -16,8 +16,8 @@ jobs:
         experimental: [false]
         go: ["1.18"]
         os: [ubuntu-latest]
-        # Test against latest stable release, v6 beta and v7 beta
-        routeros: ["6.48.3", "6.49beta54", "7.1beta6"]
+        # Test against latest stable 6.x and 7.x and "latest" stable
+        routeros: ["6.49.15", "7.14.3"]
         include:
           - experimental: true
             go: 1.18
@@ -61,7 +61,7 @@ jobs:
 
     services:
       routeros:
-        image: evilfreelancer/docker-routeros:${{ matrix.routeros }}
+        image: mnazarenko/docker-routeros:${{ matrix.routeros }}
         ports:
           - 8728:8728
         volumes:

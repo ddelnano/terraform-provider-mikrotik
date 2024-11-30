@@ -21,7 +21,7 @@ func TestAccMikrotikBgpInstance_create(t *testing.T) {
 
 	resourceName := "mikrotik_bgp_instance.bar"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikBgpInstanceDestroy,
@@ -47,7 +47,7 @@ func TestAccMikrotikBgpInstance_createFailsOnRouterOSv7(t *testing.T) {
 	routerId := internal.GetNewIpAddr()
 	as := acctest.RandIntRange(1, 65535)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikBgpInstanceDestroy,
@@ -68,7 +68,7 @@ func TestAccMikrotikBgpInstance_createAndPlanWithNonExistantBgpInstance(t *testi
 
 	resourceName := "mikrotik_bgp_instance.bar"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikBgpInstanceDestroy,
@@ -107,7 +107,7 @@ func TestAccMikrotikBgpInstance_updateBgpInstance(t *testing.T) {
 
 	resourceName := "mikrotik_bgp_instance.bar"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikBgpInstanceDestroy,
@@ -155,7 +155,7 @@ func TestAccMikrotikBgpInstance_import(t *testing.T) {
 
 	resourceName := "mikrotik_bgp_instance.bar"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
 		CheckDestroy:             testAccCheckMikrotikBgpInstanceDestroy,

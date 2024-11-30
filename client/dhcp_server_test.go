@@ -8,8 +8,9 @@ func TestAddDhcpServerUpdateAndDelete(t *testing.T) {
 	name := "myserver"
 	disabled := true
 	dhcpServer, err := c.AddDhcpServer(&DhcpServer{
-		Name:     name,
-		Disabled: disabled,
+		Name:      name,
+		Disabled:  disabled,
+		Interface: "*0",
 	})
 	if err != nil {
 		t.Fatal(err)
