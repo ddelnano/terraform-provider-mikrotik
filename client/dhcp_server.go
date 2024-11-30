@@ -47,6 +47,16 @@ func (b *DhcpServer) FindField() string {
 	return "name"
 }
 
+func (b *DhcpServer) Normalize(r *routeros.Reply) {
+	if len(r.Re) < 1 || len(r.Re[0].Map) < 1 {
+		return
+	}
+
+	if _, ok := r.Re[0].Map["authoritative"]; !ok {
+		b.Authoritative = "yes"
+	}
+}
+
 func (b *DhcpServer) FindFieldValue() string {
 	return b.Name
 }
