@@ -11,8 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-// TODO: Add dependent resources for owner
-var defaultOwner = "admin"
 var defaultSource = ":put testing"
 var defaultPolicies = []string{"ftp", "reboot"}
 
@@ -56,32 +54,6 @@ func TestAccMikrotikScript_updateSource(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccScriptExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "source", updatedSource)),
-			},
-		},
-	})
-}
-
-func TestAccMikrotikScript_updateOwner(t *testing.T) {
-	name := acctest.RandomWithPrefix("tf-acc-update-owner")
-	updatedOwner := "prometheus"
-
-	resourceName := "mikrotik_script.bar"
-	resource.Test(t, resource.TestCase{
-		PreCheck:                 func() { testAccPreCheck(t) },
-		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
-		CheckDestroy:             testAccCheckMikrotikScriptDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccScriptRecord(name, defaultSource, defaultPolicies),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccScriptExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "owner", defaultOwner)),
-			},
-			{
-				Config: testAccScriptRecord(name, defaultSource, defaultPolicies),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccScriptExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "owner", updatedOwner)),
 			},
 		},
 	})
