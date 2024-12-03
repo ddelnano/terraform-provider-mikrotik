@@ -8,8 +8,14 @@ import (
 )
 
 func TestWirelessInterface_basic(t *testing.T) {
-	randSuffix := RandomString()
+	// This test is skipped, until we find a way to include required packages.
+	//
+	// Since RouterOS 7.13, 'wireless' package is separate from the main system package
+	// and there is no easy way to install it in Docker during tests.
+	// see https://help.mikrotik.com/docs/spaces/ROS/pages/40992872/Packages#Packages-RouterOSpackages
+	SkipIfRouterOSV7OrLater(t, sysResources)
 
+	randSuffix := RandomString()
 	c := NewClient(GetConfigFromEnv())
 	expected := &WirelessInterface{
 		Name:            "wireless-" + randSuffix,
