@@ -3,12 +3,12 @@ package client
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 var scriptSource string = ":put testing"
 var scriptName string = "testing"
-var scriptOwner string = "owner"
 var scriptPolicies []string = []string{
 	"ftp",
 	"reboot",
@@ -25,10 +25,11 @@ var scriptDontReqPerms = true
 
 func TestCreateScriptAndDeleteScript(t *testing.T) {
 	c := NewClient(GetConfigFromEnv())
+	_, owner, _, _, _, _ := GetConfigFromEnv()
 
 	expectedScript := &Script{
 		Name:                   scriptName,
-		Owner:                  scriptOwner,
+		Owner:                  owner,
 		Source:                 scriptSource,
 		Policy:                 scriptPolicies,
 		DontRequirePermissions: scriptDontReqPerms,
@@ -36,7 +37,6 @@ func TestCreateScriptAndDeleteScript(t *testing.T) {
 	script, err := NewClient(GetConfigFromEnv()).
 		AddScript(&Script{
 			Name:                   scriptName,
-			Owner:                  scriptOwner,
 			Source:                 scriptSource,
 			Policy:                 scriptPolicies,
 			DontRequirePermissions: scriptDontReqPerms,
@@ -46,11 +46,15 @@ func TestCreateScriptAndDeleteScript(t *testing.T) {
 
 	expectedScript.Id = script.Id
 
-	defer c.DeleteScript(scriptName)
+	defer func() {
+		if err := c.DeleteScript(scriptName); err != nil {
+			assert.True(t, IsNotFoundError(err), "the only acceptable error is NotFound")
+		}
+	}()
+
 	require.Equal(t, expectedScript, script)
 
 	err = c.DeleteScript(scriptName)
-
 	require.NoError(t, err)
 }
 

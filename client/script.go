@@ -8,7 +8,7 @@ import (
 type Script struct {
 	Id                     string             `mikrotik:".id" codegen:"id,deleteID"`
 	Name                   string             `mikrotik:"name" codegen:"name,required,mikrotikID"`
-	Owner                  string             `mikrotik:"owner" codegen:"owner,required"`
+	Owner                  string             `mikrotik:"owner,readonly" codegen:"owner,computed"`
 	Policy                 types.MikrotikList `mikrotik:"policy" codegen:"policy,required"`
 	DontRequirePermissions bool               `mikrotik:"dont-require-permissions" codegen:"dont_require_permissions"`
 	Source                 string             `mikrotik:"source" codegen:"source,required"`
