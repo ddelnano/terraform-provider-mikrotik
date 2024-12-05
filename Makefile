@@ -40,10 +40,10 @@ lint: lint-client lint-provider
 
 test: lint testclient testacc
 
-testclient:
+testclient: wait-for-routeros
 	cd client; go test $(TEST) -race -v -count 1
 
-testacc:
+testacc: wait-for-routeros
 	TF_ACC=1 $(TF_LOG) go test $(TEST) -v -count 1 -timeout $(TIMEOUT)
 
 routeros: routeros-clean
@@ -57,3 +57,6 @@ routeros-logs:
 
 routeros-clean:
 	${compose} rm -sfv routeros
+
+wait-for-routeros:
+	${compose} run wait-for-routeros
