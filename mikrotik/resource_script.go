@@ -62,10 +62,6 @@ func (s *script) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 				},
 				Description: "The name of script.",
 			},
-			"owner": schema.StringAttribute{
-				Required:    true,
-				Description: "The owner of the script.",
-			},
 			"policy": schema.ListAttribute{
 				Required:    true,
 				ElementType: tftypes.StringType,
@@ -80,6 +76,10 @@ func (s *script) Schema(_ context.Context, _ resource.SchemaRequest, resp *resou
 			"source": schema.StringAttribute{
 				Required:    true,
 				Description: "The source code of the script. See the [MikroTik docs](https://wiki.mikrotik.com/wiki/Manual:Scripting) for the scripting language.",
+			},
+			"owner": schema.StringAttribute{
+				Computed:    true,
+				Description: "The owner of the script.",
 			},
 		},
 	}
