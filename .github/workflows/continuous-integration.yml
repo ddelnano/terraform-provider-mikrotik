@@ -43,6 +43,9 @@ jobs:
       - name: Run linters
         run: make lint
 
+      - name: Wait until RouterOS container is ready
+        run: ./bin/wait-for-routeros.sh
+
       - name: Run provider tests
         run: make testacc
         env:

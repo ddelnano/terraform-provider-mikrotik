@@ -47,7 +47,7 @@ testacc: wait-for-routeros
 	TF_ACC=1 $(TF_LOG) go test $(TEST) -v -count 1 -timeout $(TIMEOUT)
 
 routeros: routeros-clean
-	ROUTEROS_VERSION=$(ROUTEROS_VERSION) ${compose} up -d --build routeros
+	ROUTEROS_VERSION=$(ROUTEROS_VERSION) ${compose} up -d --build --remove-orphans routeros
 
 routeros-stop:
 	${compose} stop routeros
@@ -57,6 +57,3 @@ routeros-logs:
 
 routeros-clean:
 	${compose} rm -sfv routeros
-
-wait-for-routeros:
-	${compose} run wait-for-routeros

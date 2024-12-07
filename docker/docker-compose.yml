@@ -16,19 +16,3 @@ services:
     cap_add:
       - "NET_ADMIN"
     stop_grace_period: 20s
-
-  wait-for-routeros:
-    image: alpine
-    entrypoint: ["/bin/sh"]
-    command:
-      - "-c"
-      - >-
-        echo "waiting for RouterOS to be up and running";
-        for i in $(seq 1 60); do
-          if nc -w1 -z routeros 8728; then
-            exit 0;
-          else
-            printf ".";
-            sleep 1;
-          fi done;
-          exit 1
