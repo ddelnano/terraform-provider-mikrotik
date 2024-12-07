@@ -44,7 +44,7 @@ jobs:
         run: make lint
 
       - name: Wait until RouterOS container is ready
-        run: ./bin/wait-for-routeros.sh 8080
+        run: ./bin/wait-for-routeros.sh 127.0.0.1 8080
 
       - name: Run provider tests
         run: make testacc
