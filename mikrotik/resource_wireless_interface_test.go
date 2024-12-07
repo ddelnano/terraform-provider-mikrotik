@@ -31,6 +31,7 @@ func TestWirelessInterface_basic(t *testing.T) {
 						ssid = %q
 						vlan_id = 2
 						hide_ssid = false
+						master_interface = "*0"
 					}`, name, client.WirelessInterfaceModeAPBridge, name+"-ssid"),
 
 					Check: resource.ComposeAggregateTestCheckFunc(
@@ -51,6 +52,7 @@ func TestWirelessInterface_basic(t *testing.T) {
 						disabled = false
 						ssid = %q
 						hide_ssid = true
+						master_interface = "*0"
 					}`, name, client.WirelessInterfaceModeAPBridge, name+"-ssid"),
 
 					Check: resource.ComposeAggregateTestCheckFunc(
