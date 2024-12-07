@@ -44,7 +44,7 @@ jobs:
         run: make lint
 
       - name: Wait until RouterOS container is ready
-        run: ./bin/wait-for-routeros.sh
+        run: ./bin/wait-for-routeros.sh 8080
 
       - name: Run provider tests
         run: make testacc
@@ -67,7 +67,7 @@ jobs:
         image: mnazarenko/docker-routeros:${{ matrix.routeros }}
         ports:
           - 8728:8728
-        volumes:
-          - /dev/net/tun:/dev/net/tun
+          - 8080:80
         options: >-
           --cap-add=NET_ADMIN
+          --device=/dev/net/tun
