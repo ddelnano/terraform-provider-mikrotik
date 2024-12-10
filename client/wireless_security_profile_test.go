@@ -7,7 +7,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestWirelessSecurityProgile_basic(t *testing.T) {
+func TestWirelessSecurityProfile_basic(t *testing.T) {
+	// This test is skipped, until we find a way to include required packages.
+	//
+	// Since RouterOS 7.13, 'wireless' package is separate from the main system package
+	// and there is no easy way to install it in Docker during tests.
+	// see https://help.mikrotik.com/docs/spaces/ROS/pages/40992872/Packages#Packages-RouterOSpackages
+	SkipIfRouterOSV7OrLater(t, sysResources)
+
 	c := NewClient(GetConfigFromEnv())
 
 	randSuffix := RandomString()
