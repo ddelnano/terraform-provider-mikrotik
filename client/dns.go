@@ -8,8 +8,9 @@ import (
 type DnsRecord struct {
 	Id      string                 `mikrotik:".id" codegen:"id,mikrotikID"`
 	Name    string                 `mikrotik:"name" codegen:"name,terraformID,required"`
-	Ttl     types.MikrotikDuration `mikrotik:"ttl" codegen:"ttl"`
 	Address string                 `mikrotik:"address" codegen:"address,required"`
+	Regexp  string                 `mikrotik:"regexp" codegen:"regexp"`
+	Ttl     types.MikrotikDuration `mikrotik:"ttl" codegen:"ttl"`
 	Comment string                 `mikrotik:"comment" codegen:"comment"`
 }
 
@@ -39,14 +40,6 @@ func (d *DnsRecord) AfterAddHook(r *routeros.Reply) {
 	d.Id = r.Done.Map["ret"]
 }
 
-func (d *DnsRecord) FindField() string {
-	return "name"
-}
-
-func (d *DnsRecord) FindFieldValue() string {
-	return d.Name
-}
-
 func (d *DnsRecord) DeleteField() string {
 	return "numbers"
 }
@@ -65,7 +58,11 @@ func (client Mikrotik) AddDnsRecord(d *DnsRecord) (*DnsRecord, error) {
 }
 
 func (client Mikrotik) FindDnsRecord(name string) (*DnsRecord, error) {
-	res, err := client.Find(&DnsRecord{Name: name})
+	res, err := client.Find(&FindByFieldWrapper{
+		Resource:       &DnsRecord{Name: name},
+		field:          "name",
+		fieldValueFunc: func() string { return name },
+	})
 	if err != nil {
 		return nil, err
 	}

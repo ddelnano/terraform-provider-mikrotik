@@ -73,6 +73,11 @@ type (
 	ErrorHandler interface {
 		HandleError(error) error
 	}
+
+	// ResourceInstanceCreator interface defines methods to create new instance of a Resource.
+	ResourceInstanceCreator interface {
+		Create() Resource
+	}
 )
 
 // Add creates new resource on remote system
@@ -233,5 +238,9 @@ func (client Mikrotik) findByField(d Resource, field, value string) (Resource, e
 }
 
 func (client Mikrotik) newTargetStruct(d interface{}) reflect.Value {
+	if c, ok := d.(ResourceInstanceCreator); ok {
+		return reflect.New(reflect.Indirect(reflect.ValueOf(c.Create())).Type())
+	}
+
 	return reflect.New(reflect.Indirect(reflect.ValueOf(d)).Type())
 }

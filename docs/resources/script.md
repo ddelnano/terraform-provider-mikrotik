@@ -22,7 +22,6 @@ EOF
 ### Required
 
 - `name` (String) The name of script.
-- `owner` (String) The owner of the script.
 - `policy` (List of String) What permissions the script has. This must be one of the following: ftp, reboot, read, write, policy, test, password, sniff, sensitive, romon.
 - `source` (String) The source code of the script. See the [MikroTik docs](https://wiki.mikrotik.com/wiki/Manual:Scripting) for the scripting language.
 
@@ -33,6 +32,7 @@ EOF
 ### Read-Only
 
 - `id` (String) ID of this resource.
+- `owner` (String) The owner of the script.
 
 ## Import
 Import is supported using the following syntax:
