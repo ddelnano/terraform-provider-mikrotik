@@ -70,6 +70,14 @@ func copyStruct(ctx context.Context, src, dest interface{}) error {
 			continue
 		}
 
+		// When copying from Terraform to Mikrotik, skip readonly fields
+		if _, ok := srcField.Interface().(attr.Value); ok {
+			if isReadonlyField(destFieldType) {
+				tflog.Debug(ctx, "skipping readonly field")
+				continue
+			}
+		}
+
 		switch kind := srcFieldType.Type.Kind(); kind {
 		case reflect.Bool,
 			reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
@@ -290,4 +298,19 @@ func coreTypeToCoreType(src, dest reflect.Value) error {
 	}
 
 	return nil
+}
+
+// isReadonlyField checks if a struct field has the "readonly" tag in its mikrotik struct tag
+func isReadonlyField(field reflect.StructField) bool {
+	tags := field.Tag.Get("mikrotik")
+	if tags == "" {
+		return false
+	}
+	mikrotikTags := strings.Split(tags, ",")
+	for _, tag := range mikrotikTags {
+		if tag == "readonly" {
+			return true
+		}
+	}
+	return false
 }
