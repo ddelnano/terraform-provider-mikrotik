@@ -17,6 +17,9 @@ func legacyBgpUnsupported(err error) bool {
 		if strings.Contains(err.Error(), "no such command prefix") {
 			return true
 		}
+		if strings.Contains(err.Error(), "unknown parameter") {
+			return true
+		}
 	}
 	return false
 }
