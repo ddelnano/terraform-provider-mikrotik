@@ -63,6 +63,7 @@ func (s *dhcpLease) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 			},
 			"server": schema.StringAttribute{
 				Optional:    true,
+				Computed:    true,
 				Description: "The server to restrict this lease to.",
 			},
 			"macaddress": schema.StringAttribute{
