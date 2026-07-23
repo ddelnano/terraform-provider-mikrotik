@@ -37,6 +37,38 @@ func TestAccMikrotikDhcpLease_create(t *testing.T) {
 	})
 }
 
+func TestAccMikrotikDhcpLease_createWithServer(t *testing.T) {
+	macAddr := internal.GetNewMacAddr()
+	dhcpServerName := acctest.RandomWithPrefix("dhcp-server")
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testAccPreCheck(t) },
+		ProtoV5ProviderFactories: testAccProtoV5ProviderFactories,
+		CheckDestroy:             testAccCheckMikrotikDhcpLeaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+					resource "mikrotik_dhcp_server" "default" {
+						name = "%s"
+					}
+
+					resource "mikrotik_dhcp_lease" "default" {
+						address = "1.2.3.4"
+						macaddress = "%s"
+						server = mikrotik_dhcp_server.default.name
+					}
+`, dhcpServerName, macAddr),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccDhcpLeaseExists("mikrotik_dhcp_lease.default"),
+					resource.TestCheckResourceAttrSet("mikrotik_dhcp_lease.default", "id"),
+					resource.TestCheckResourceAttr("mikrotik_dhcp_lease.default", "address", "1.2.3.4"),
+					resource.TestCheckResourceAttr("mikrotik_dhcp_lease.default", "macaddress", macAddr),
+					resource.TestCheckResourceAttr("mikrotik_dhcp_lease.default", "server", dhcpServerName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccMikrotikDhcpLease_updateLease(t *testing.T) {
 	ipAddr := internal.GetNewIpAddr()
 	updatedIpAddr := internal.GetNewIpAddr()

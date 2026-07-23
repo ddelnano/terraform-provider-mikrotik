@@ -61,6 +61,10 @@ func (s *dhcpLease) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 				Required:    true,
 				Description: "The IP address of the DHCP lease to be created.",
 			},
+			"server": schema.StringAttribute{
+				Optional:    true,
+				Description: "The server to restrict this lease to.",
+			},
 			"macaddress": schema.StringAttribute{
 				Required:    true,
 				Description: "The MAC addreess of the DHCP lease to be created.",
@@ -130,6 +134,7 @@ func (r *dhcpLease) ImportState(ctx context.Context, req resource.ImportStateReq
 type dhcpLeaseModel struct {
 	Id          tftypes.String `tfsdk:"id"`
 	Address     tftypes.String `tfsdk:"address"`
+	Server      tftypes.String `tfsdk:"server"`
 	MacAddress  tftypes.String `tfsdk:"macaddress"`
 	Comment     tftypes.String `tfsdk:"comment"`
 	BlockAccess tftypes.Bool   `tfsdk:"blocked"`

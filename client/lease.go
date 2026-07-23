@@ -12,6 +12,7 @@ type DhcpLease struct {
 	MacAddress  string `mikrotik:"mac-address" codegen:"macaddress,required"`
 	Comment     string `mikrotik:"comment" codegen:"comment"`
 	BlockAccess bool   `mikrotik:"block-access" codegen:"blocked"`
+	Server      string `mikrotik:"server" codegen:"server,optional"`
 	Dynamic     bool   `mikrotik:"dynamic,readonly" codegen:"dynamic,computed"` // TODO:  don't see this listed as a param https://wiki.mikrotik.com/wiki/Manual:IP/DHCP_Server, but our docs list it as one
 	Hostname    string `mikrotik:"host-name,readonly" codegen:"hostname,computed"`
 }

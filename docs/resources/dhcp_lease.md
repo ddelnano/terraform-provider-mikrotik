@@ -23,6 +23,7 @@ resource "mikrotik_dhcp_lease" "file_server" {
 
 - `blocked` (Boolean) Whether to block access for this DHCP client (true|false). Default: `false`.
 - `comment` (String) The comment of the DHCP lease to be created.
+- `server` (String) The server to restrict this lease to.
 
 ### Read-Only
 
