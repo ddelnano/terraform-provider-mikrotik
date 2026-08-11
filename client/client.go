@@ -15,6 +15,12 @@ import (
 	"github.com/go-routeros/routeros/v3/proto"
 )
 
+const (
+	tagMikrotik    = "mikrotik"
+	tagReadonly    = "readonly"
+	tagFallthrough = "fallthrough"
+)
+
 // Mikrotik struct defines connection parameters for RouterOS client
 type Mikrotik struct {
 	Host     string
@@ -53,7 +59,33 @@ func NewClient(host, username, password string, tls bool, caCertificate string, 
 	}
 }
 
-func Marshal(c string, s interface{}) []string {
+func Marshal(c string, s any) []string {
+
+	values, err := marshalStruct(s)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(values)%2 != 0 {
+		log.Fatal("dont know how to marshal odd number of command elements")
+	}
+	cmd := make([]string, 0, len(values)+1)
+	cmd = append(cmd, c)
+	buf := strings.Builder{}
+	for i := 0; i < len(values); i += 2 {
+		buf.Reset()
+		buf.WriteString("=")
+		buf.WriteString(values[i])
+		buf.WriteString("=")
+		buf.WriteString(values[i+1])
+
+		cmd = append(cmd, buf.String())
+	}
+
+	return cmd
+}
+
+func marshalStruct(s any) ([]string, error) {
 	var elem reflect.Value
 	rv := reflect.ValueOf(s)
 
@@ -64,13 +96,13 @@ func Marshal(c string, s interface{}) []string {
 		elem = rv
 	}
 
-	cmd := []string{c}
+	cmd := []string{}
 
 	for i := 0; i < elem.NumField(); i++ {
 		value := elem.Field(i)
 		fieldType := elem.Type().Field(i)
 		// fetch mikrotik struct tag, which supports multiple values separated by commas
-		tags := fieldType.Tag.Get("mikrotik")
+		tags := fieldType.Tag.Get(tagMikrotik)
 		// extract tag value that is the Mikrotik property name
 		// it is assumed that the first is mikrotik field name
 		mikrotikTags := strings.Split(tags, ",")
@@ -86,7 +118,7 @@ func Marshal(c string, s interface{}) []string {
 
 		// skip attributes marked as `readonly` (computed by RouterOS), such as the following wireguard props
 		// https://help.mikrotik.com/docs/display/ROS/WireGuard#WireGuard-Read-onlyproperties
-		if contains(mikrotikTags, "readonly") {
+		if contains(mikrotikTags, tagReadonly) {
 			// if a struct field contains the tag value of 'readonly', do not marshal it
 			continue
 		}
@@ -96,7 +128,7 @@ func Marshal(c string, s interface{}) []string {
 		if mar, ok := value.Interface().(Marshaler); ok {
 			// if type supports custom marshaling, use that result immediately
 			stringValue := mar.MarshalMikrotik()
-			cmd = append(cmd, fmt.Sprintf("=%s=%s", mikrotikPropName, stringValue))
+			cmd = append(cmd, mikrotikPropName, stringValue)
 			continue
 		}
 
@@ -105,21 +137,33 @@ func Marshal(c string, s interface{}) []string {
 		if !value.IsZero() || value.Kind() == reflect.Bool {
 			switch value.Kind() {
 			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				cmd = append(cmd, fmt.Sprintf("=%s=%d", mikrotikPropName, elem.Field(i).Interface()))
+				cmd = append(cmd, mikrotikPropName, strconv.FormatInt(elem.Field(i).Int(), 10))
 			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-				cmd = append(cmd, fmt.Sprintf("=%s=%d", mikrotikPropName, elem.Field(i).Interface()))
+				cmd = append(cmd, mikrotikPropName, strconv.FormatUint(elem.Field(i).Uint(), 10))
 			case reflect.String:
 				stringValue := elem.Field(i).Interface().(string)
-				cmd = append(cmd, fmt.Sprintf("=%s=%s", mikrotikPropName, stringValue))
+				cmd = append(cmd, mikrotikPropName, stringValue)
 			case reflect.Bool:
 				boolValue := elem.Field(i).Interface().(bool)
 				stringBoolValue := boolToMikrotikBool(boolValue)
-				cmd = append(cmd, fmt.Sprintf("=%s=%s", mikrotikPropName, stringBoolValue))
+				cmd = append(cmd, mikrotikPropName, stringBoolValue)
+			case reflect.Struct:
+				values, err := marshalStruct(elem.Field(i).Interface())
+				if err != nil {
+					return nil, err
+				}
+				if len(values)%2 != 0 {
+					return nil, errors.New("struct marshalling results in odd number of command elements")
+				}
+				structFieldNamePrefix := mikrotikPropName + "."
+				for i := 0; i < len(values); i += 2 {
+					cmd = append(cmd, structFieldNamePrefix+values[i], values[i+1])
+				}
 			}
 		}
 	}
 
-	return cmd
+	return cmd, nil
 }
 
 // Unmarshal decodes MikroTik's API reply into Go object
@@ -239,41 +283,116 @@ func (client *Mikrotik) getMikrotikClient() (*routeros.Client, error) {
 }
 
 func parseStruct(v *reflect.Value, sentence proto.Sentence) {
-	elem := *v
+
+	nestedStructDelimiter := "."
+
+	routerosFields := make(map[string]string)
+	routerosContainerFields := make(map[string]map[string]string)
+	for i := range sentence.List {
+		routerosFields[sentence.List[i].Key] = sentence.List[i].Value
+		if containerName, nestedFieldName, ok := strings.Cut(sentence.List[i].Key, nestedStructDelimiter); ok {
+			if _, ok := routerosContainerFields[containerName]; !ok {
+				routerosContainerFields[containerName] = make(map[string]string)
+			}
+			routerosContainerFields[containerName][nestedFieldName] = sentence.List[i].Value
+			normalizedNestedFieldName := strings.ReplaceAll(strings.ToLower(containerName+nestedFieldName), nestedStructDelimiter, "")
+			if _, ok := routerosFields[normalizedNestedFieldName]; !ok {
+				routerosFields[normalizedNestedFieldName] = sentence.List[i].Value
+			}
+		}
+	}
+
+	elem := reflect.Indirect(*v)
 	for i := 0; i < elem.NumField(); i++ {
 		field := elem.Field(i)
 		fieldType := elem.Type().Field(i)
-		tags := strings.Split(fieldType.Tag.Get("mikrotik"), ",")
+		tags := strings.Split(fieldType.Tag.Get(tagMikrotik), ",")
 
-		path := strings.ToLower(fieldType.Name)
-		fieldName := tags[0]
+		fieldName := strings.ToLower(fieldType.Name)
+		fieldNameTag := tags[0]
 
-		for _, pair := range sentence.List {
-			if strings.Compare(pair.Key, path) == 0 || strings.Compare(pair.Key, fieldName) == 0 {
-				if field.CanAddr() {
-					if unmar, ok := field.Addr().Interface().(Unmarshaler); ok {
-						// if type supports custom unmarshaling, try it and skip the rest
-						if err := unmar.UnmarshalMikrotik(pair.Value); err != nil {
-							log.Printf("[ERROR] cannot unmarshal RouterOS reply: %v", err)
-						}
-						continue
-					}
+		// field search order:
+		// - in fields map by mikrotik tag value
+		// - in nested fields map by tag value
+		// - in fields map by normalized field name
+		// - in nested fields map by normalized field name
+		selectedFieldName := fieldName
+		fieldValue, ok := routerosFields[fieldNameTag]
+		if !ok {
+			_, ok = routerosContainerFields[fieldNameTag]
+			selectedFieldName = fieldNameTag
+		}
+		if !ok {
+			fieldValue, ok = routerosFields[fieldName]
+			selectedFieldName = fieldName
+		}
+		if !ok {
+			_, ok = routerosContainerFields[fieldName]
+			selectedFieldName = fieldName
+		}
+		if !ok {
+			// skip processing if no matching field found in the reply
+			continue
+		}
+
+		if field.CanAddr() {
+			if unmar, ok := field.Addr().Interface().(Unmarshaler); ok {
+				if fieldType.Type.Kind() == reflect.Struct {
+					log.Println("[WARNING] custom Unmarshaler interface is not supported for struct fields")
+					continue
 				}
-
-				switch fieldType.Type.Kind() {
-				case reflect.String:
-					field.SetString(pair.Value)
-				case reflect.Bool:
-					b, _ := strconv.ParseBool(pair.Value)
-					field.SetBool(b)
-				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-					intValue, _ := strconv.Atoi(pair.Value)
-					field.SetInt(int64(intValue))
-				case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-					uintValue, _ := strconv.ParseUint(pair.Value, 10, 0)
-					field.SetUint(uint64(uintValue))
+				// if type supports custom unmarshaling, try it and skip the rest
+				if err := unmar.UnmarshalMikrotik(fieldValue); err != nil {
+					// todo(maksym): if target field is a nested struct,
+					// we need to unmarshal all values with field prefix, e.g. `fieldname.field1`, `fieldname.field2` etc.
+					// so we might need to change the signature of `UnmarshalMikrotik`
+					log.Printf("[ERROR] cannot unmarshal RouterOS reply: %v", err)
 				}
+				continue
 			}
+		}
+
+		switch fieldType.Type.Kind() {
+		case reflect.String:
+			field.SetString(fieldValue)
+		case reflect.Bool:
+			b, _ := strconv.ParseBool(fieldValue)
+			field.SetBool(b)
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			intValue, _ := strconv.Atoi(fieldValue)
+			field.SetInt(int64(intValue))
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			uintValue, _ := strconv.ParseUint(fieldValue, 10, 0)
+			field.SetUint(uint64(uintValue))
+		case reflect.Struct, reflect.Pointer:
+			var nestedStruct reflect.Value
+
+			switch fieldType.Type.Kind() {
+			case reflect.Pointer:
+				if fieldType.Type.Elem().Kind() != reflect.Struct {
+					log.Printf("[WARN] Only struct pointers are supported for unmarshaling, but got: %s", fieldType.Type.Kind())
+					continue
+				}
+				nestedStruct = reflect.New(fieldType.Type.Elem())
+			case reflect.Struct:
+				nestedStruct = reflect.New(fieldType.Type).Elem()
+			}
+
+			nestedSentence := proto.Sentence{
+				List: make([]proto.Pair, 0),
+			}
+			// filter the fields that belong to the nested struct based on the prefix
+			prefix := selectedFieldName + nestedStructDelimiter
+			for k, v := range routerosContainerFields[selectedFieldName] {
+				nestedKey := strings.TrimPrefix(k, prefix)
+				nestedSentence.List = append(nestedSentence.List, proto.Pair{Key: nestedKey, Value: v})
+			}
+
+			parseStruct(&nestedStruct, nestedSentence)
+			field.Set(nestedStruct)
+
+		default:
+			log.Printf("[WARN] Unsupported target field type while unmarshaling: %s", fieldType.Type.Kind())
 		}
 	}
 }

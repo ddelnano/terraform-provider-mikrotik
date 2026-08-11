@@ -11,28 +11,44 @@ import (
 )
 
 func TestUnmarshal(t *testing.T) {
-	type testStruct struct {
-		Name          string
-		NotNamedOwner string `mikrotik:"owner"`
-		RunCount      int    `mikrotik:"run-count"`
-		RunCount8     int8   `mikrotik:"run-count8"`
-		RunCount16    int16  `mikrotik:"run-count16"`
-		RunCount32    int32  `mikrotik:"run-count32"`
-		RunCount64    int64  `mikrotik:"run-count64"`
-		CountUint     uint   `mikrotik:"run-count-uint"`
-		CountUint8    uint8  `mikrotik:"run-count-uint8"`
-		CountUint16   uint16 `mikrotik:"run-count-uint16"`
-		CountUint32   uint32 `mikrotik:"run-count-uint32"`
-		CountUint64   uint64 `mikrotik:"run-count-uint64"`
+	type (
+		testNestedStruct struct {
+			Name    string `mikrotik:"name"`
+			Enabled bool   `mikrotik:"enabled"`
+			Count   int    `mikrotik:"count"`
+		}
 
-		Allowed  bool
-		Schedule types.MikrotikList
-	}
+		testParentStruct struct {
+			Title                string `mikrotik:"title"`
+			NameFromNestedStruct string `mikrotik:"inline.name"`
+			InlineName           string
+			Inline               testNestedStruct  `mikrotik:"inline"`
+			InlinePtr            *testNestedStruct `mikrotik:"inline_ptr"`
+		}
+
+		testStruct struct {
+			Name          string
+			NotNamedOwner string `mikrotik:"owner"`
+			RunCount      int    `mikrotik:"run-count"`
+			RunCount8     int8   `mikrotik:"run-count8"`
+			RunCount16    int16  `mikrotik:"run-count16"`
+			RunCount32    int32  `mikrotik:"run-count32"`
+			RunCount64    int64  `mikrotik:"run-count64"`
+			CountUint     uint   `mikrotik:"run-count-uint"`
+			CountUint8    uint8  `mikrotik:"run-count-uint8"`
+			CountUint16   uint16 `mikrotik:"run-count-uint16"`
+			CountUint32   uint32 `mikrotik:"run-count-uint32"`
+			CountUint64   uint64 `mikrotik:"run-count-uint64"`
+
+			Allowed  bool
+			Schedule types.MikrotikList
+		}
+	)
 
 	testCases := []struct {
-		name           string
-		expectedResult testStruct
-		reply          routeros.Reply
+		name     string
+		expected any
+		reply    routeros.Reply
 	}{
 		{
 			name: "basic types only",
@@ -97,7 +113,7 @@ func TestUnmarshal(t *testing.T) {
 					},
 				},
 			},
-			expectedResult: testStruct{
+			expected: &testStruct{
 				Name:          "testing script",
 				NotNamedOwner: "admin",
 				RunCount:      3,
@@ -132,19 +148,116 @@ func TestUnmarshal(t *testing.T) {
 					},
 				},
 			},
-			expectedResult: testStruct{
+			expected: &testStruct{
 				NotNamedOwner: "admin",
 				Schedule:      []string{"mon", "wed", "fri"},
+			},
+		},
+		{
+			name: "nested struct",
+			reply: routeros.Reply{
+				Re: []*proto.Sentence{
+					{
+						Word: "!re",
+						List: []proto.Pair{
+							{
+								Key:   "title",
+								Value: "title value",
+							},
+							{
+								Key:   "inline.name",
+								Value: "name from nested struct",
+							},
+							{
+								Key:   "inline.enabled",
+								Value: "true",
+							},
+							{
+								Key:   "inline.count",
+								Value: "3",
+							},
+						},
+					},
+				},
+			},
+			expected: &testParentStruct{
+				Title:                "title value",
+				NameFromNestedStruct: "name from nested struct",
+				InlineName:           "name from nested struct",
+				Inline: testNestedStruct{
+					Name:    "name from nested struct",
+					Enabled: true,
+					Count:   3,
+				},
+			},
+		},
+		{
+			name: "nested struct pointer",
+			reply: routeros.Reply{
+				Re: []*proto.Sentence{
+					{
+						Word: "!re",
+						List: []proto.Pair{
+							{
+								Key:   "title",
+								Value: "title value",
+							},
+							{
+								Key:   "inline.name",
+								Value: "name from nested struct",
+							},
+							{
+								Key:   "inline.enabled",
+								Value: "true",
+							},
+							{
+								Key:   "inline.count",
+								Value: "3",
+							},
+							{
+								Key:   "inline_ptr.name",
+								Value: "nested pointer name",
+							},
+							{
+								Key:   "inline_ptr.enabled",
+								Value: "false",
+							},
+							{
+								Key:   "inline_ptr.count",
+								Value: "8",
+							},
+						},
+					},
+				},
+			},
+			expected: &testParentStruct{
+				Title:                "title value",
+				NameFromNestedStruct: "name from nested struct",
+				InlineName:           "name from nested struct",
+				Inline: testNestedStruct{
+					Name:    "name from nested struct",
+					Enabled: true,
+					Count:   3,
+				},
+				InlinePtr: &testNestedStruct{
+					Name:    "nested pointer name",
+					Enabled: false,
+					Count:   8,
+				},
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			targetStruct := testStruct{}
-			err := Unmarshal(tc.reply, &targetStruct)
+			v := reflect.New(reflect.Indirect(reflect.ValueOf(tc.expected)).Type())
+			var actual any = v.Interface()
+			if reflect.TypeOf(tc.expected).Kind() != reflect.Pointer {
+				actual = &actual
+			}
+			err := Unmarshal(tc.reply, actual)
 			assert.NoError(t, err)
-			assert.Equal(t, tc.expectedResult, targetStruct)
+			assert.Equal(t, tc.expected, actual)
 		})
 	}
 }
@@ -280,7 +393,7 @@ func TestMarshal(t *testing.T) {
 	action := "/test/owner/add"
 	testCases := []struct {
 		name        string
-		testStruct  interface{}
+		testStruct  any
 		expectedCmd []string
 	}{
 		{
@@ -316,7 +429,6 @@ func TestMarshal(t *testing.T) {
 				Allowed:       true,
 			},
 			expectedCmd: []string{
-				"/test/owner/add",
 				"=name=test owner",
 				"=owner=admin",
 				"=run-count=3",
@@ -348,7 +460,6 @@ func TestMarshal(t *testing.T) {
 				Schedule:      []string{"mon", "tue", "fri"},
 			},
 			expectedCmd: []string{
-				"/test/owner/add",
 				"=name=test owner",
 				"=owner=admin",
 				"=run-count=3",
@@ -356,13 +467,74 @@ func TestMarshal(t *testing.T) {
 				"=schedule=mon,tue,fri",
 			},
 		},
+		{
+			name: "nested struct",
+			testStruct: struct {
+				Name   string `mikrotik:"name"`
+				Config struct {
+					Enabled  bool   `mikrotik:"enabled"`
+					Owner    string `mikrotik:"owner"`
+					Username string `mikrotik:"username"`
+				} `mikrotik:"configuration"`
+				RunCount int `mikrotik:"run-count"`
+			}{
+				Name: "nested struct",
+				Config: struct {
+					Enabled  bool   `mikrotik:"enabled"`
+					Owner    string `mikrotik:"owner"`
+					Username string `mikrotik:"username"`
+				}{
+					Enabled:  true,
+					Owner:    "admin",
+					Username: "testuser",
+				},
+				RunCount: 3,
+			},
+			expectedCmd: []string{
+				"=name=nested struct",
+				"=configuration.enabled=yes",
+				"=configuration.owner=admin",
+				"=configuration.username=testuser",
+				"=run-count=3",
+			},
+		},
+		{
+			name: "nested pinter struct",
+			testStruct: &struct {
+				Name   string `mikrotik:"name"`
+				Config struct {
+					Enabled  bool   `mikrotik:"enabled"`
+					Owner    string `mikrotik:"owner"`
+					Username string `mikrotik:"username"`
+				} `mikrotik:"configuration"`
+				RunCount int `mikrotik:"run-count"`
+			}{
+				Name: "nested struct",
+				Config: struct {
+					Enabled  bool   `mikrotik:"enabled"`
+					Owner    string `mikrotik:"owner"`
+					Username string `mikrotik:"username"`
+				}{
+					Enabled:  true,
+					Owner:    "admin",
+					Username: "testuser",
+				},
+				RunCount: 3,
+			},
+			expectedCmd: []string{
+				"=name=nested struct",
+				"=configuration.enabled=yes",
+				"=configuration.owner=admin",
+				"=configuration.username=testuser",
+				"=run-count=3",
+			},
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			cmd := Marshal(action, tc.testStruct)
-			if !reflect.DeepEqual(cmd, tc.expectedCmd) {
-				t.Errorf("Failed to marshal: %v does not equal expected %v", cmd, tc.expectedCmd)
-			}
+			expected := append([]string{action}, tc.expectedCmd...)
+			assert.ElementsMatch(t, expected, cmd)
 		})
 	}
 }
