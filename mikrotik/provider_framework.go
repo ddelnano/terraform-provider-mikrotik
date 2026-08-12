@@ -197,6 +197,7 @@ func (p *ProviderFramework) Resources(ctx context.Context) []func() resource.Res
 		NewInterfaceListResource,
 		NewInterfaceWireguardPeerResource,
 		NewInterfaceWireguardResource,
+		NewInterfaceVethResource,
 		NewIpAddressResource,
 		NewIpv6AddressResource,
 		NewPoolResource,
