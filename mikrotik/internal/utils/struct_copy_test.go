@@ -575,6 +575,24 @@ func TestCopyTerraformToMikrotik(t *testing.T) {
 				VlanIds:  types.MikrotikIntList{2, 5, 10},
 			},
 		},
+		{
+			name: "skip readonly fields",
+			src: struct {
+				Id       tftypes.String
+				Hostname tftypes.String
+			}{
+				Id:       tftypes.StringValue("new id"),
+				Hostname: tftypes.StringValue("should not be copied"),
+			},
+			dest: &client.DhcpLease{
+				Id:       "old id",
+				Hostname: "old hostname",
+			},
+			expected: &client.DhcpLease{
+				Id:       "new id",
+				Hostname: "old hostname", // should not be changed because it's readonly
+			},
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {

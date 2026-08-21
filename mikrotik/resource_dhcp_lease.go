@@ -90,9 +90,6 @@ func (s *dhcpLease) Schema(_ context.Context, _ resource.SchemaRequest, resp *re
 			},
 			"hostname": schema.StringAttribute{
 				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.UseStateForUnknown(),
-				},
 				Description: "The hostname of the device",
 			},
 		},
